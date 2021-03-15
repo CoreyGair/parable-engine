@@ -1,0 +1,3 @@
+[submodule "Parable/vendor/spdlog"]
+	path = Parable/vendor/spdlog
+	url = https://github.com/gabime/spdlog
