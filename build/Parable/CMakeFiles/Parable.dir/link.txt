@@ -1,0 +1,2 @@
+/usr/bin/ar qc libParable.a CMakeFiles/Parable.dir/src/Core/Application.cpp.o
+/usr/bin/ranlib libParable.a
