@@ -2,6 +2,8 @@
 
 #include "pblpch.h"
 
+#include "Base.h"
+
 // Forward decl for friend definition
 int main(int argc, char** argv);
 
