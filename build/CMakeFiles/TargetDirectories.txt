@@ -1,8 +1,0 @@
-/home/corey/Documents/parable-engine/build/CMakeFiles/rebuild_cache.dir
-/home/corey/Documents/parable-engine/build/CMakeFiles/edit_cache.dir
-/home/corey/Documents/parable-engine/build/Parable/CMakeFiles/rebuild_cache.dir
-/home/corey/Documents/parable-engine/build/Parable/CMakeFiles/edit_cache.dir
-/home/corey/Documents/parable-engine/build/Parable/CMakeFiles/Parable.dir
-/home/corey/Documents/parable-engine/build/Testapp/CMakeFiles/rebuild_cache.dir
-/home/corey/Documents/parable-engine/build/Testapp/CMakeFiles/edit_cache.dir
-/home/corey/Documents/parable-engine/build/Testapp/CMakeFiles/Testapp.dir

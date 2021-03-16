@@ -33,3 +33,8 @@
 *.exe
 *.out
 *.app
+
+.ccls-cache
+
+# Build folders
+build/
