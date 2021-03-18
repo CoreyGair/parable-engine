@@ -14,13 +14,17 @@ set(PARABLE_SRCS    ${PARABLE_SRCS_CORE}
                     ${CMAKE_CURRENT_SOURCE_DIR}/src/pblpch.h
                     )
 
+
+# Adding libraries
 set(PARABLE_VENDOR  ${CMAKE_CURRENT_SOURCE_DIR}/vendor)
 
 add_subdirectory(${PARABLE_VENDOR}/spdlog)
+add_subdirectory(${PARABLE_VENDOR}/glfw)
+add_subdirectory(${PARABLE_VENDOR}/glad)
 
 add_library(Parable STATIC ${PARABLE_SRCS})
 
-target_link_libraries(Parable spdlog)
+target_link_libraries(Parable spdlog glfw glad)
 
 target_include_directories(Parable PUBLIC src PRIVATE ${PARABLE_VENDOR}/spdlog/include)
 
