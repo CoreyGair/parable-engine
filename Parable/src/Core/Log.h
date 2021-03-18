@@ -7,6 +7,7 @@
 
 namespace Parable{
 
+// Engine logging header, holds logging initialisation and macros
 class Log{
     public:
         static void Init();

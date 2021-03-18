@@ -12,7 +12,7 @@ namespace Parable {
 class Application{
 
     public:
-        static Application* s_instance;
+        static Application* s_instance; /// Singleton application pointer 
         static Application& GetInstance() { return *s_instance; }
 
     public:
@@ -20,6 +20,7 @@ class Application{
         virtual ~Application(){};
 
     private:
+        // Runs the main loop of the application
         void Run();
 
     private:
@@ -29,7 +30,11 @@ class Application{
 
 };
 
-// To be defined in the CLIENT
+///
+/// Create the singleton application object
+///
+/// To be defined in the CLIENT
+///
 Application* CreateApplication();
 
 }

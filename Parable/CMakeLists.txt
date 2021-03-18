@@ -5,7 +5,11 @@ set(PARABLE_SRCS_CORE   ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/Application.h
                         ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/Log.cpp
                         )
 
+set(PARABLE_SRCS_EVENTS     ${CMAKE_CURRENT_SOURCE_DIR}/src/Events/Event.h
+                            )
+
 set(PARABLE_SRCS    ${PARABLE_SRCS_CORE}
+                    ${PARABLE_SRCS_EVENTS}
                     ${CMAKE_CURRENT_SOURCE_DIR}/src/Parable.h
                     ${CMAKE_CURRENT_SOURCE_DIR}/src/pblpch.h
                     )

@@ -4,7 +4,7 @@
 
 namespace Parable{
 
-Application* Application::s_instance = nullptr;
+Application* Application::s_instance = nullptr; 
 
 Application::Application(){
     s_instance = this;

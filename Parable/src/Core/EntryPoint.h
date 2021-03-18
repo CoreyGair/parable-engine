@@ -5,6 +5,7 @@
 
 extern Parable::Application* Parable::CreateApplication();
 
+// Engine-defined main entrypoint
 int main(int argc, char** argv){
 
     Parable::Log::Init();
