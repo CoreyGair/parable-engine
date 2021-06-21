@@ -3,18 +3,18 @@
 #include "Application.h"
 #include "Base.h"
 
-extern Parable::Application* Parable::CreateApplication();
+extern Parable::Application* Parable::create_application();
 
 // Engine-defined main entrypoint
 int main(int argc, char** argv){
 
-    Parable::Log::Init();
+    Parable::Log::init();
 
     // Create app
-    auto app = Parable::CreateApplication();
+    auto app = Parable::create_application();
 
     // Start the app
-    app->Run();
+    app->run();
 
     // Delete app
     delete app;

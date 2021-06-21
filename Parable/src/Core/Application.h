@@ -17,21 +17,21 @@ class Application
 
     public:
         static Application* s_instance; /// Singleton application pointer 
-        static Application& GetInstance() { return *s_instance; }
+        static Application& get_instance() { return *s_instance; }
 
         Application();
         virtual ~Application(){};
 
-        void OnEvent(Event::EventUPtr e);
+        void on_event(Event::EventUPtr e);
 
     private:
         // Runs the main loop of the application
-        void Run();
+        void run();
 
         EventBuffer m_event_buffer;
 
-        bool m_Running = true;
-        bool m_Minimised = false;
+        bool m_running = true;
+        bool m_minimised = false;
         friend int ::main(int argc, char** argv);
 
 };
@@ -41,6 +41,6 @@ class Application
 ///
 /// To be defined in the CLIENT
 ///
-Application* CreateApplication();
+Application* create_application();
 
 }

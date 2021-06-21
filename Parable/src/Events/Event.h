@@ -19,11 +19,11 @@ enum EventCategory
     None = 0
 };
 
-#define EVENT_CLASS_TYPE(type) static EventType GetStaticType() { return EventType::type; }\
-								virtual EventType GetEventType() const override { return GetStaticType(); }\
-								virtual const char* GetName() const override { return #type; }
+#define EVENT_CLASS_TYPE(type) static EventType get_static_type() { return EventType::type; }\
+								virtual EventType get_event_type() const override { return get_static_type(); }\
+								virtual const char* get_name() const override { return #type; }
 
-#define EVENT_CLASS_CATEGORY(category) virtual int GetCategoryFlags() const override { return category; }
+#define EVENT_CLASS_CATEGORY(category) virtual int get_event_category() const override { return category; }
 
 class Event
 {
@@ -35,14 +35,14 @@ public:
 
     bool handled = false;
 
-	virtual EventType GetEventType() const = 0;
-	virtual const char* GetName() const = 0;
-	virtual int GetEventCategory() const = 0;
-	virtual std::string ToString() const { return GetName(); }
+	virtual EventType get_event_type() const = 0;
+	virtual const char* get_name() const = 0;
+	virtual int get_event_category() const = 0;
+	virtual std::string to_string() const { return get_name(); }
 
-	bool IsInCategory(EventCategory category)
+	bool in_category(EventCategory category)
 	{
-		return GetEventCategory() & category;
+		return get_event_category() & category;
 	}
 
 };
@@ -60,7 +60,7 @@ public:
 	template<typename T>
 	bool Dispatch(const std::function<bool(T&)>& func)
 	{
-		if (m_event.GetEventType() == T::GetStaticType())
+		if (m_event.get_event_type() == T::get_static_type())
 		{
 			m_event->handled |= func(static_cast<T&>(*m_event));
 			return true;

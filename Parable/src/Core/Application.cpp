@@ -12,14 +12,14 @@ Application::Application()
     s_instance = this;
 }
 
-void Application::Run()
+void Application::run()
 {
 
     while(true);
 
 }
 
-void Application::OnEvent(Event::EventUPtr e)
+void Application::on_event(Event::EventUPtr e)
 {
     m_event_buffer.push(std::move(e));
 }

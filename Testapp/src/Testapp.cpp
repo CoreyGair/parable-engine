@@ -15,7 +15,7 @@ class Testapp : public Parable::Application
         }
 };
 
-Parable::Application* Parable::CreateApplication()
+Parable::Application* Parable::create_application()
 {
 	return new Testapp();
 }
