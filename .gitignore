@@ -35,6 +35,7 @@
 *.app
 
 .ccls-cache
+.vscode
 
 # Build folders
 build/
