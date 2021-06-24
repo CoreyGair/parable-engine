@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Application.h"
-#include "Base.h"
+#include "Core/Base.h"
+#include "Core/Application.h"
 
 extern Parable::Application* Parable::create_application();
 

@@ -1,8 +1,7 @@
 #include "pblpch.h"
 
-#include "Application.h"
-
-#include "Layer.h"
+#include "Core/Application.h"
+#include "Core/Layer.h"
 
 namespace Parable
 {

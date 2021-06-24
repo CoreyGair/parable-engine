@@ -2,11 +2,10 @@
 
 #include "pblpch.h"
 
-#include "Base.h"
+#include "Core/Base.h"
+#include "Core/LayerStack.h"
 
 #include "Events/EventBuffer.h"
-
-#include "LayerStack.h"
 
 // Forward decl for friend definition
 int main(int argc, char** argv);
