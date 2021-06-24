@@ -2,7 +2,7 @@
 
 #include "pblpch.h"
 
-#include "Base.h"
+#include "Core/Base.h"
 
 #include <functional>
 
@@ -50,7 +50,7 @@ public:
 class EventDispatcher
 {
 public:
-	EventDispatcher(Event::EventUPtr event) { m_event = std::move(event); }
+	EventDispatcher(Event::EventUPtr event) : m_event(std::move(event)) {} 
 
 	bool handled() { return m_event->handled; }
 

@@ -6,6 +6,8 @@
 
 #include "Events/EventBuffer.h"
 
+#include "LayerStack.h"
+
 // Forward decl for friend definition
 int main(int argc, char** argv);
 
@@ -22,13 +24,21 @@ class Application
         Application();
         virtual ~Application(){};
 
+        // pushes event to event queue
         void on_event(Event::EventUPtr e);
+
+        // dispatches all events in queue to layers
+        void process_events();
+
+        void push_layer(Layer* layer);
 
     private:
         // Runs the main loop of the application
         void run();
 
         EventBuffer m_event_buffer;
+
+        LayerStack m_layer_stack;
 
         bool m_running = true;
         bool m_minimised = false;
