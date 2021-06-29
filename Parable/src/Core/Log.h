@@ -28,10 +28,10 @@ class Log{
 #define PBL_CORE_CRITICAL(...) ::Parable::Log::get_core_logger()->critical(__VA_ARGS__)
 
 // Client log macros
-#define PBL_TRACE(...)         ::Parable::Log::s_client_logger()->trace(__VA_ARGS__)
-#define PBL_INFO(...)          ::Parable::Log::s_client_logger()->info(__VA_ARGS__)
-#define PBL_WARN(...)          ::Parable::Log::s_client_logger()->warn(__VA_ARGS__)
-#define PBL_ERROR(...)         ::Parable::Log::s_client_logger()->error(__VA_ARGS__)
-#define PBL_CRITICAL(...)      ::Parable::Log::s_client_logger()->critical(__VA_ARGS__)
+#define PBL_TRACE(...)         ::Parable::Log::get_client_logger()->trace(__VA_ARGS__)
+#define PBL_INFO(...)          ::Parable::Log::get_client_logger()->info(__VA_ARGS__)
+#define PBL_WARN(...)          ::Parable::Log::get_client_logger()->warn(__VA_ARGS__)
+#define PBL_ERROR(...)         ::Parable::Log::get_client_logger()->error(__VA_ARGS__)
+#define PBL_CRITICAL(...)      ::Parable::Log::get_client_logger()->critical(__VA_ARGS__)
 
 }

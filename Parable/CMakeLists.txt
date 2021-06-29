@@ -15,3 +15,6 @@ target_link_libraries(Parable glfw glad)
 target_include_directories(Parable PUBLIC ${PARABLE_INCLUDE_DIRS} ${PARABLE_VENDOR}/spdlog/include)
 
 target_precompile_headers(Parable PRIVATE src/pblpch.h)
+
+# config definitions
+target_compile_definitions(Parable PUBLIC $<$<CONFIG:Debug>:PBL_DEBUG> $<$<CONFIG:Release>:PBL_RELEASE>)

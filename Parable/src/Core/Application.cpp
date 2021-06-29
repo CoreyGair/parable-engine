@@ -15,7 +15,7 @@ Application::Application()
 
 void Application::run()
 {
-
+    PBL_ASSERT(false);
     while(true);
 
 }
