@@ -3,6 +3,8 @@
 #include "Core/Application.h"
 #include "Core/Layer.h"
 
+#include "Debug/EventLogLayer.h"
+
 namespace Parable
 {
 
@@ -10,13 +12,27 @@ Application* Application::s_instance = nullptr;
 
 Application::Application()
 {
+    PBL_ASSERT_MSG(!s_instance, "Application already exists!");
     s_instance = this;
+
+    m_window = std::make_unique<Window>(1600,900,std::string("Parable Engine"), false);
+    m_window->set_app_event_callback(PBL_BIND_MEMBER_EVENT_HANDLER(Application::on_event));
+
+    m_layer_stack.push(new EventLogLayer(0));
 }
 
 void Application::run()
 {
-    PBL_ASSERT(false);
-    while(true);
+
+    while(true)
+    {
+        if (!m_event_buffer.is_empty())
+        {
+            process_events();
+        }
+
+        m_window->on_update();
+    }
 
 }
 
@@ -46,5 +62,6 @@ void Application::push_layer(Layer* layer)
 {
     m_layer_stack.push(layer);
 }
+
 
 }

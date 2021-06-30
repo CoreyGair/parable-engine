@@ -7,6 +7,8 @@
 
 #include "Events/EventBuffer.h"
 
+#include "Window/Window.h"
+
 // Forward decl for friend definition
 int main(int argc, char** argv);
 
@@ -38,6 +40,8 @@ class Application
         EventBuffer m_event_buffer;
 
         LayerStack m_layer_stack;
+
+        std::unique_ptr<Window> m_window;
 
         bool m_running = true;
         bool m_minimised = false;

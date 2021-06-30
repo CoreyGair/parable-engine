@@ -17,10 +17,10 @@ private:
     std::string m_name;
 
 public:
-    Layer(const std::string& name = "Layer");
-    virtual ~Layer();
+    Layer(const std::string& name = "Layer") : m_name(name) {}
+    virtual ~Layer() {}
 
-    virtual bool on_event(EventDispatcher& dipatcher);
+    virtual void on_event(EventDispatcher& dispatcher) {}
 };
 
 

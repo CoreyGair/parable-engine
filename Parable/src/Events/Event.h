@@ -11,12 +11,18 @@ namespace Parable{
 
 enum class EventType 
 {
-    None = 0
+    None = 0,
+	WindowClose,WindowResize,
+	KeyPressed,KeyRepeated,KeyReleased
 };
 
 enum EventCategory
 {
-    None = 0
+    None = 0,
+	EventCategoryWindow,
+	EventCategoryInput,
+	EventCategoryKeyboard,
+	EventCategoryMouse
 };
 
 #define EVENT_CLASS_TYPE(type) static EventType get_static_type() { return EventType::type; }\
@@ -31,7 +37,7 @@ class Event
 public:
 	typedef std::unique_ptr<Event> EventUPtr;
 
-    virtual ~Event();
+    virtual ~Event() = default;
 
     bool handled = false;
 
@@ -54,11 +60,14 @@ public:
 
 	bool handled() { return m_event->handled; }
 
+	int get_event_type() { return static_cast<int>(m_event->get_event_type()); }
+	int get_event_cagtegory(){ return m_event->get_event_category(); }
+
 	// dspatches event to handler func
 	// sets event.handled if event was handled
 	// returns true if the correct event type was passed (so if func was called)
 	template<typename T>
-	bool Dispatch(const std::function<bool(T&)>& func)
+	bool dispatch(const std::function<bool(T&)>& func)
 	{
 		if (m_event.get_event_type() == T::get_static_type())
 		{
@@ -68,8 +77,17 @@ public:
 		return false;
 	}
 
+	// pass a weak/non-owning/raw ptr of Event to the func instead
+	// use carefully
+	bool dispatch_raw(const std::function<bool(Event*)>& func)
+	{
+		m_event->handled |= func(m_event.get());
+		return true;
+	}
+
 private:
 	Event::EventUPtr m_event;
 };
+
 
 }
