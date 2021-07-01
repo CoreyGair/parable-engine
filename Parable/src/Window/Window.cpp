@@ -74,6 +74,57 @@ Window::Window(int width, int height, std::string name, bool fullscreen)
         }
         window_data.event_callback(std::move(event));
     });
+
+    glfwSetCursorPosCallback(m_glfw_window, [](GLFWwindow* window, double xpos, double ypos)
+    {
+        WindowData& window_data = *(WindowData*)glfwGetWindowUserPointer(window);
+
+        Event::EventUPtr event = std::make_unique<MouseMovedEvent>(xpos, ypos);
+        window_data.event_callback(std::move(event));
+    });
+
+    glfwSetCursorEnterCallback(m_glfw_window, [](GLFWwindow* window, int entered)
+    {
+        WindowData& window_data = *(WindowData*)glfwGetWindowUserPointer(window);
+
+        Event::EventUPtr event;
+        if (entered)
+        {
+            event = std::make_unique<MouseEnterEvent>();
+        } 
+        else 
+        {
+            event = std::make_unique<MouseExitEvent>();
+        }
+
+        window_data.event_callback(std::move(event));
+    });
+
+    glfwSetMouseButtonCallback(m_glfw_window, [](GLFWwindow* window, int button, int action, int mods)
+    {
+        WindowData& window_data = *(WindowData*)glfwGetWindowUserPointer(window);
+
+        Event::EventUPtr event;
+        if (action == GLFW_PRESS)
+        {
+            event = std::make_unique<MouseBtnPressedEvent>(button);
+        } 
+        else 
+        {
+            event = std::make_unique<MouseBtnReleasedEvent>(button);
+        }
+
+        window_data.event_callback(std::move(event));
+    });
+
+    glfwSetScrollCallback(m_glfw_window, [](GLFWwindow* window, double xoffset, double yoffset)
+    {
+        WindowData& window_data = *(WindowData*)glfwGetWindowUserPointer(window);
+
+        Event::EventUPtr event = std::make_unique<MouseScrolledEvent>(yoffset);
+        window_data.event_callback(std::move(event));
+    });
+
 }
 
 Window::~Window()

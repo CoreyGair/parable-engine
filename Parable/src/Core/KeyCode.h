@@ -143,5 +143,20 @@ enum : KeyCode
     Menu = 348
 };
 
+// just here until i do a full input manager
+
+using MouseCode = unsigned short int;
+
+enum : MouseCode
+{
+    MouseButton1 = 0,   // LEFT CLICK
+    MouseButton2 = 1,   // RIGHT CLICK
+    MouseButton3 = 2,   // MIDDLE CLICK
+    MouseButton4 = 3,
+    MouseButton5 = 4,
+    MouseButton6 = 5,
+    MouseButton7 = 6,
+    MouseButton8 = 7    // LAST
+};
 
 }

@@ -13,7 +13,8 @@ enum class EventType
 {
     None = 0,
 	WindowClose,WindowResize,
-	KeyPressed,KeyRepeated,KeyReleased
+	KeyPressed,KeyRepeated,KeyReleased,
+	MouseMoved,MouseEnter,MouseExit,MouseBtnPressed,MouseBtnReleased,MouseScrolled
 };
 
 enum EventCategory

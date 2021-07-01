@@ -14,8 +14,6 @@ class WindowCloseEvent : public Event
 public:
     EVENT_CLASS_CATEGORY(EventCategoryWindow)
     EVENT_CLASS_TYPE(WindowClose) 
-
-    std::string to_string() const override { return std::string("WindowCloseEvent"); }
 };
 
 class WindowResizeEvent : public Event
@@ -29,7 +27,7 @@ public:
 
     WindowResizeEvent(int width, int height) : m_width(width), m_height(height) {}
 
-    std::string to_string() const override { std::stringstream out_stream; out_stream << "WindowResizeEvent: Width=" << m_width << ", Height=" << m_height; return out_stream.str();}
+    std::string to_string() const override { std::stringstream out_stream; out_stream << get_name() << ": Width=" << m_width << ", Height=" << m_height; return out_stream.str();}
 
 private:
     unsigned int m_width;
