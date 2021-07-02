@@ -66,6 +66,7 @@ public:
 
 	int get_event_type() { return static_cast<int>(m_event->get_event_type()); }
 	int get_event_cagtegory(){ return m_event->get_event_category(); }
+	bool event_in_category(EventCategory category){ return m_event->in_category(category); }
 
 	// dspatches event to handler func
 	// sets event.handled if event was handled
@@ -73,7 +74,7 @@ public:
 	template<typename T>
 	bool dispatch(const std::function<bool(T&)>& func)
 	{
-		if (m_event.get_event_type() == T::get_static_type())
+		if (m_event->get_event_type() == T::get_static_type())
 		{
 			m_event->handled |= func(static_cast<T&>(*m_event));
 			return true;

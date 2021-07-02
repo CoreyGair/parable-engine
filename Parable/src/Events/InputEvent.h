@@ -96,10 +96,10 @@ public:
     MouseBtnEvent(int button) : m_button(button) {}
     virtual ~MouseBtnEvent() {};
 
-    MouseCode get_button() { return m_button; }
+    Input::MouseBtnCode get_button() { return m_button; }
 
 protected:
-    MouseCode m_button;
+    Input::MouseBtnCode m_button;
 };
 
 class MouseBtnPressedEvent : public MouseBtnEvent
@@ -129,6 +129,8 @@ public:
     EVENT_CLASS_TYPE(MouseScrolled)
 
     MouseScrolledEvent(int scroll_amt) : m_scroll_amt(scroll_amt) {}
+
+    int get_scrol_amt() { return m_scroll_amt; }
 
     std::string to_string() const override { std::stringstream out_stream; out_stream << get_name() << ": Ammount=" << m_scroll_amt; return out_stream.str();}
 

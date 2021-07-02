@@ -12,7 +12,7 @@ add_library(Parable STATIC ${PARABLE_SRCS})
 
 target_link_libraries(Parable glfw glad)
 
-target_include_directories(Parable PUBLIC ${PARABLE_INCLUDE_DIRS} ${PARABLE_VENDOR}/spdlog/include)
+target_include_directories(Parable PUBLIC ${PARABLE_INCLUDE_DIRS} ${PARABLE_VENDOR}/spdlog/include ${PARABLE_VENDOR}/glm)
 
 target_precompile_headers(Parable PRIVATE src/pblpch.h)
 

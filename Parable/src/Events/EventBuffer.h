@@ -6,8 +6,6 @@
 
 #include "Events/Event.h"
 
-#include <queue>
-
 namespace Parable{
 
 class EventBuffer
