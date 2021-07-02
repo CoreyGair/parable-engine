@@ -3,7 +3,7 @@
 #include "Core/Base.h"
 #include "Events/Event.h"
 
-#include "Core/KeyCode.h"
+#include "Input/InputCodes.h"
 
 #include <sstream>
 
@@ -17,55 +17,50 @@ namespace Parable
 class KeyEvent : public Event
 {
 public:
-    EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryKeyboard)
     virtual ~KeyEvent() = default;
 
-    KeyCode get_key_code() { return m_keycode; }
+    Input::KeyCode get_key_code() { return m_keycode; }
 
 protected:
-    KeyEvent(const KeyCode key) : m_keycode(key) {}
-    KeyCode m_keycode;
+    KeyEvent(const Input::KeyCode key) : m_keycode(key) {}
+    Input::KeyCode m_keycode;
 };
 
 
 class KeyPressedEvent : public KeyEvent
 {
 public:
+    EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryKeyboard | EventCategoryButton)
     EVENT_CLASS_TYPE(KeyPressed)
-    KeyPressedEvent(const KeyCode key) : KeyEvent(key) {}
+    KeyPressedEvent(const Input::KeyCode key) : KeyEvent(key) {}
     std::string to_string() const override { std::stringstream out_stream; out_stream << get_name() << ": KeyCode=" << m_keycode; return out_stream.str();}
 };
 
 class KeyRepeatedEvent : public KeyEvent
 {
 public:
+    EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryKeyboard)
     EVENT_CLASS_TYPE(KeyRepeated)
-    KeyRepeatedEvent(const KeyCode key) : KeyEvent(key) {}
+    KeyRepeatedEvent(const Input::KeyCode key) : KeyEvent(key) {}
     std::string to_string() const override { std::stringstream out_stream; out_stream << get_name() << ": KeyCode=" << m_keycode; return out_stream.str();}
 };
 
 class KeyReleasedEvent : public KeyEvent
 {
 public:
+    EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryKeyboard | EventCategoryButton)
     EVENT_CLASS_TYPE(KeyReleased)
-    KeyReleasedEvent(const KeyCode key) : KeyEvent(key) {}
+    KeyReleasedEvent(const Input::KeyCode key) : KeyEvent(key) {}
     std::string to_string() const override { std::stringstream out_stream; out_stream << get_name() << ": KeyCode=" << m_keycode; return out_stream.str();}
 };
 
 
 ////    MOUSE EVENTS
 
-
-class MouseEvent : public Event
+class MouseMovedEvent : public Event
 {
 public:
-    EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryMouse)
-    virtual ~MouseEvent() = default;
-};
-
-class MouseMovedEvent : public MouseEvent
-{
-public:
+    EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryMouse | EventCategoryAxis)
     EVENT_CLASS_TYPE(MouseMoved)
 
     MouseMovedEvent(double x, double y) : m_x(x), m_y(y) {}
@@ -80,21 +75,24 @@ private:
     double m_y;
 };
 
-class MouseEnterEvent : public MouseEvent
+class MouseEnterEvent : public Event
 {
 public:
+    EVENT_CLASS_CATEGORY(EventCategoryMouse)
     EVENT_CLASS_TYPE(MouseEnter)
 };
 
-class MouseExitEvent : public MouseEvent
+class MouseExitEvent : public Event
 {
 public:
+    EVENT_CLASS_CATEGORY(EventCategoryMouse)
     EVENT_CLASS_TYPE(MouseExit)
 };
 
-class MouseBtnEvent : public MouseEvent
+class MouseBtnEvent : public Event
 {
 public:
+    EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryMouse | EventCategoryButton)
     MouseBtnEvent(int button) : m_button(button) {}
     virtual ~MouseBtnEvent() {};
 
@@ -124,9 +122,10 @@ public:
     std::string to_string() const override { std::stringstream out_stream; out_stream << get_name() << ": Button=" << m_button; return out_stream.str();}
 };
 
-class MouseScrolledEvent : public MouseEvent
+class MouseScrolledEvent : public Event
 {
 public:
+    EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryMouse | EventCategoryAxis)
     EVENT_CLASS_TYPE(MouseScrolled)
 
     MouseScrolledEvent(int scroll_amt) : m_scroll_amt(scroll_amt) {}

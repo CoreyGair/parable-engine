@@ -27,8 +27,6 @@ private:
 
     GLFWwindow* m_glfw_window;
 
-    EventCallbackFn m_event_callback;
-
 public:
     Window(int width, int height, std::string name, bool fullscreen);
     ~Window();

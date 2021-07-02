@@ -23,7 +23,10 @@ enum EventCategory
 	EventCategoryWindow,
 	EventCategoryInput,
 	EventCategoryKeyboard,
-	EventCategoryMouse
+	EventCategoryMouse,
+	// used by input system 
+	EventCategoryButton,
+	EventCategoryAxis
 };
 
 #define EVENT_CLASS_TYPE(type) static EventType get_static_type() { return EventType::type; }\

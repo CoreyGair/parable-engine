@@ -8,7 +8,6 @@ set(PARABLE_SRCS_CORE       ${CMAKE_CURRENT_SOURCE_DIR}/Core/Application.h
                             ${CMAKE_CURRENT_SOURCE_DIR}/Core/LayerStack.h
                             ${CMAKE_CURRENT_SOURCE_DIR}/Core/LayerStack.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Core/Assert.h
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Core/KeyCode.h
                             )
 
 set(PARABLE_SRCS_EVENTS     ${CMAKE_CURRENT_SOURCE_DIR}/Events/Event.h
@@ -29,11 +28,15 @@ set(PARABLE_SRCS_DEBUG      ${CMAKE_CURRENT_SOURCE_DIR}/Debug/EventLogLayer.h
                             ${CMAKE_CURRENT_SOURCE_DIR}/Debug/EventLogLayer.cpp
                             )
 
+set(PARABLE_SRCS_INPUT      ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputCodes.h
+                            )
+
 set(PARABLE_SRCS    ${PARABLE_SRCS_CORE}
                     ${PARABLE_SRCS_EVENTS}
                     ${PARABLE_SRCS_PLATFORM}
                     ${PARABLE_SRCS_WINDOW}
                     ${PARABLE_SRCS_DEBUG}
+                    ${PARABLE_SRCS_INPUT}
                     ${CMAKE_CURRENT_SOURCE_DIR}/Parable.h
                     ${CMAKE_CURRENT_SOURCE_DIR}/pblpch.h
                     PARENT_SCOPE)

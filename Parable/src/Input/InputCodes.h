@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Parable
+namespace Parable::Input
 {
 
 // basically just copying glfw's keycodes implementation
@@ -143,11 +143,9 @@ enum : KeyCode
     Menu = 348
 };
 
-// just here until i do a full input manager
+using MouseBtnCode = unsigned short int;
 
-using MouseCode = unsigned short int;
-
-enum : MouseCode
+enum : MouseBtnCode
 {
     MouseButton1 = 0,   // LEFT CLICK
     MouseButton2 = 1,   // RIGHT CLICK
