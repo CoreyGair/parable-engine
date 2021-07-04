@@ -25,6 +25,9 @@ class Application
         Application();
         virtual ~Application(){};
 
+        // called each frame, update each layer
+        void on_update();
+
         // pushes event to event queue
         void on_event(Event::EventUPtr e);
 

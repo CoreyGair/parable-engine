@@ -60,13 +60,7 @@ public:
 class EventDispatcher
 {
 public:
-	EventDispatcher(Event::EventUPtr event) : m_event(std::move(event)) {} 
-
-	bool handled() { return m_event->handled; }
-
-	int get_event_type() { return static_cast<int>(m_event->get_event_type()); }
-	int get_event_cagtegory(){ return m_event->get_event_category(); }
-	bool event_in_category(EventCategory category){ return m_event->in_category(category); }
+	EventDispatcher(Event* event) : m_event(event) {} 
 
 	// dspatches event to handler func
 	// sets event.handled if event was handled
@@ -86,12 +80,12 @@ public:
 	// use carefully
 	bool dispatch_raw(const std::function<bool(Event*)>& func)
 	{
-		m_event->handled |= func(m_event.get());
+		m_event->handled |= func(m_event);
 		return true;
 	}
 
 private:
-	Event::EventUPtr m_event;
+	Event* m_event;
 };
 
 

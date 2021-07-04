@@ -128,9 +128,9 @@ public:
     EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryMouse | EventCategoryAxis)
     EVENT_CLASS_TYPE(MouseScrolled)
 
-    MouseScrolledEvent(int scroll_amt) : m_scroll_amt(scroll_amt) {}
+    MouseScrolledEvent(double scroll_amt) : m_scroll_amt(scroll_amt) {}
 
-    int get_scrol_amt() { return m_scroll_amt; }
+    double get_scroll_amt() { return m_scroll_amt; }
 
     std::string to_string() const override { std::stringstream out_stream; out_stream << get_name() << ": Ammount=" << m_scroll_amt; return out_stream.str();}
 
@@ -138,7 +138,7 @@ private:
     // note: the event only has a single scroll ammount value
     // glfw exposes both an x and y scroll amt; most normal mice emit y ammounts so this is what we use
     // may look into when the x scroll is uses in future and implement it
-    int m_scroll_amt;
+    double m_scroll_amt;
 };
 
 

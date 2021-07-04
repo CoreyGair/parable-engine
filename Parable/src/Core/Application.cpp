@@ -36,6 +36,15 @@ void Application::run()
 
 }
 
+// call update on each layer
+void Application::on_update()
+{
+    for(auto it = m_layer_stack.cbegin(); it != m_layer_stack.cend(); ++it)
+    {
+        (*it)->on_update();
+    }
+}
+
 // pushes event to event queue
 void Application::on_event(Event::EventUPtr e)
 {
@@ -48,12 +57,11 @@ void Application::process_events()
     while(!m_event_buffer.is_empty())
     {
         Event::EventUPtr e = m_event_buffer.next();
-        EventDispatcher dispatcher (std::move(e));
         for(auto it = m_layer_stack.cbegin(); it != m_layer_stack.cend(); ++it)
         {
-            if (dispatcher.handled()) return;
+            if (e->handled) return;
 
-            (*it)->on_event(dispatcher);
+            (*it)->on_event(e.get());
         }
     }
 }

@@ -20,7 +20,8 @@ public:
     Layer(const std::string& name = "Layer") : m_name(name) {}
     virtual ~Layer() {}
 
-    virtual void on_event(EventDispatcher& dispatcher) {}
+    virtual void on_update() = 0;
+    virtual void on_event(Event* e) = 0;
 };
 
 

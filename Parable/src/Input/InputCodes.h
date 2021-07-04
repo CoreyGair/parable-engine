@@ -6,7 +6,11 @@ namespace Parable::Input
 // basically just copying glfw's keycodes implementation
 // definitely more robust & extensible ways to do it but this is easy and good enough
 
-using KeyCode = unsigned short int;
+// can use this as a combined button code as there is no overlap in key and mouse codes
+// note: 0 is unused by definition
+using InputCode = short int;
+
+using KeyCode = short int;
 
 enum : KeyCode
 {
@@ -143,18 +147,18 @@ enum : KeyCode
     Menu = 348
 };
 
-using MouseBtnCode = unsigned short int;
+using MouseBtnCode = short int;
 
 enum : MouseBtnCode
 {
-    MouseButton1 = 0,   // LEFT CLICK
-    MouseButton2 = 1,   // RIGHT CLICK
-    MouseButton3 = 2,   // MIDDLE CLICK
-    MouseButton4 = 3,
-    MouseButton5 = 4,
-    MouseButton6 = 5,
-    MouseButton7 = 6,
-    MouseButton8 = 7    // LAST
+    MouseButton1 = 1,   // LEFT CLICK
+    MouseButton2 = 2,   // RIGHT CLICK
+    MouseButton3 = 3,   // MIDDLE CLICK
+    MouseButton4 = 4,
+    MouseButton5 = 5,
+    MouseButton6 = 6,
+    MouseButton7 = 7,
+    MouseButton8 = 8    // LAST
 };
 
 }

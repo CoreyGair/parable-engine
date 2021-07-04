@@ -6,15 +6,11 @@ namespace Parable
 {
 
 
-void EventLogLayer::on_event(EventDispatcher& dispatcher)
+void EventLogLayer::on_event(Event* e)
 {
-    dispatcher.dispatch_raw(PBL_BIND_MEMBER_EVENT_HANDLER(EventLogLayer::log_event));
-}
-
-bool EventLogLayer::log_event(Event* e)
-{
+    if(e->get_event_category() & m_event_category_blacklist) return;
     PBL_CORE_INFO(e->to_string());
-    return false;
+    e->handled |= true;
 }
 
 

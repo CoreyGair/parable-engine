@@ -107,11 +107,13 @@ Window::Window(int width, int height, std::string name, bool fullscreen)
         Event::EventUPtr event;
         if (action == GLFW_PRESS)
         {
-            event = std::make_unique<MouseBtnPressedEvent>(button);
+            // add one to button as our input implementation uses the button codes offset by +1
+            event = std::make_unique<MouseBtnPressedEvent>(button+1);
         } 
         else 
         {
-            event = std::make_unique<MouseBtnReleasedEvent>(button);
+            // add one to button as our input implementation uses the button codes offset by +1
+            event = std::make_unique<MouseBtnReleasedEvent>(button+1);
         }
 
         window_data.event_callback(std::move(event));

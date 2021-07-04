@@ -31,6 +31,12 @@ set(PARABLE_SRCS_DEBUG      ${CMAKE_CURRENT_SOURCE_DIR}/Debug/EventLogLayer.h
 set(PARABLE_SRCS_INPUT      ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputCodes.h
                             ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputManager.h
                             ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputManager.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputContext.h
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputContext.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Input/Axis.h
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Input/Axis.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Input/Control.h
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Input/Control.cpp
                             )
 
 set(PARABLE_SRCS    ${PARABLE_SRCS_CORE}
