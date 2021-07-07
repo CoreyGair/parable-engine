@@ -25,6 +25,8 @@ public:
     void on_update();
     void on_event(Event* e);
 
+    void load_context(std::string context_json_file);
+
 private:
     std::vector<InputContext> m_contexts;
 };

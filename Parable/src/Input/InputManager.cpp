@@ -1,37 +1,48 @@
 #include "InputManager.h"
 
 
+// TEMP
+#include "InputContextLoader.h"
+
 namespace Parable::Input
 {
 
+
+InputManager* InputManager::s_instance = nullptr;
 
 InputManager::InputManager()
 {
     PBL_ASSERT_MSG(!s_instance, "Input manager already exists!");
     s_instance = this;
+    load_context(std::string("context.json"));
 }
 
 void InputManager::on_update()
 {
-    for(auto it = m_contexts.begin(); it != m_contexts.end(); ++it)
+    for(auto& ctx : m_contexts)
     {
-        if ((*it).enabled)
+        if (ctx.enabled)
         {
-            (*it).on_update();
+            ctx.on_update();
         }
     }
 }
 
 void InputManager::on_event(Event* e)
 {
-    for(auto it = m_contexts.begin(); it != m_contexts.end(); ++it)
+    for(auto& ctx : m_contexts)
     {
-        if ((*it).enabled)
+        if (ctx.enabled)
         {
-            (*it).on_event(e);
+            ctx.on_event(e);
         }
     }
 }
 
+void InputManager::load_context(std::string context_json_file)
+{
+    InputContextLoader loader(context_json_file);
+    m_contexts.push_back(std::move((*loader.load_context())));
+}
 
 }

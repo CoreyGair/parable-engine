@@ -11,25 +11,28 @@
 namespace Parable::Input
 {
 
-#define AXIS_ID(ID) static AxisID get_static_axis_ID() { return ID; }\
+#define AXIS_ID(ID) static AxisID get_static_axis_ID() { return AxisID::ID; }\
 					virtual AxisID get_axis_ID() const override { return get_static_axis_ID(); }\
 
-using AxisID = unsigned short int;
-enum : AxisID
+
+enum class AxisID  : unsigned short int
 {
-    None=0,
-    MouseX,MouseY,MouseScroll,
-    Button
+    MouseX=0,MouseY=1,MouseScroll=2,
+    Button=3
 };
+
+// fn to decide return type of axis ID
+// must update if change values of AxisID enum
+#define IS_AXIS_DOUBLE(ID) (ID == 0 || ID == 1 ? true : false)
+#define IS_AXIS_INT(ID) (ID == 2 || ID == 3 ? true : false)
 
 template<class T>
 class Axis
 {
 public:
-    virtual ~Axis() = 0;
     virtual void reset() { m_dirty = false; };
     virtual void on_event(Event* e) = 0;
-    T get_value() { return m_value; }
+    virtual T get_value() { return m_value; }
 	virtual AxisID get_axis_ID() const = 0;
 
     bool dirty() { return m_dirty; }
@@ -73,16 +76,25 @@ private:
 class ButtonAxis : public Axis<int>
 {
 public:
-    ButtonAxis(InputCode positive, InputCode negative) : m_positive_input(positive), m_negative_input(negative) {}
+    ButtonAxis(std::vector<InputCode>& positive_inputs, std::vector<InputCode>& negative_inputs) : m_positive_inputs(std::move(positive_inputs)), m_negative_inputs(std::move(negative_inputs)) {}
+    ButtonAxis(std::vector<InputCode>& positive_inputs) : m_positive_inputs(std::move(positive_inputs)), m_negative_inputs() {}
 
     void reset() { Axis::reset(); }
+
+    int get_value() override { update_value(); return m_value; }
 
     void on_event(Event* e) override;
     AXIS_ID(Button)
 
 private:
-    InputCode m_positive_input;
-    InputCode m_negative_input;
+    std::vector<InputCode> m_positive_inputs;
+    std::vector<InputCode> m_negative_inputs;
+
+    unsigned short int m_num_positive_down;
+    unsigned short int m_num_negative_down;
+
+    bool is_positive_input(InputCode c);
+    bool is_negative_input(InputCode c);
 
     bool handle_button_pressed(InputCode c);
     bool handle_button_released(InputCode c);
@@ -91,6 +103,8 @@ private:
     bool handle_mousebtn_pressed(MouseBtnPressedEvent& e);
     bool handle_key_released(KeyReleasedEvent& e);
     bool handle_mousebtn_released(MouseBtnReleasedEvent& e);
+
+    void update_value();
 
 };
 

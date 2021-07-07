@@ -9,6 +9,8 @@ namespace Parable
 
 class Layer;
 
+
+// TODO: should prob use unique ptrs here...
 class LayerStack
 {
 private:
@@ -19,6 +21,8 @@ public:
 
     auto cbegin() { return m_layers.cbegin(); }
     auto cend() { return m_layers.cend(); }
+    auto crbegin() { return m_layers.crbegin(); }
+    auto crend() { return m_layers.crend(); }
 };
 
 

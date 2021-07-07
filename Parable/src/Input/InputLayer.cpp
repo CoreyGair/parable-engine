@@ -5,7 +5,7 @@ namespace Parable::Input
 {
 
 
-void on_update()
+void InputLayer::on_update()
 {
     m_input_manager->on_update();
 }

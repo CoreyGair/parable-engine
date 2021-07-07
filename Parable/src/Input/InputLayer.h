@@ -13,14 +13,14 @@ namespace Parable::Input
 class InputLayer : public Layer
 {
 public:
-    InputLayer() : Layer("InputLayer") {}
+    InputLayer() : Layer("InputLayer"), m_input_manager(new InputManager()) {}
 
     void on_update() override;
     void on_event(Event* e) override;
 
 private:
     std::unique_ptr<InputManager> m_input_manager;
-}
+};
 
 
 }

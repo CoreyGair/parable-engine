@@ -3,7 +3,9 @@
 #include "Core/Application.h"
 #include "Core/Layer.h"
 
+//TEMP FOR TEST
 #include "Debug/EventLogLayer.h"
+#include "Input/InputLayer.h"
 
 namespace Parable
 {
@@ -18,7 +20,10 @@ Application::Application()
     m_window = std::make_unique<Window>(1600,900,std::string("Parable Engine"), false);
     m_window->set_app_event_callback(PBL_BIND_MEMBER_EVENT_HANDLER(Application::on_event));
 
+    // TEMP TEST LAYERS
+    m_layer_stack.push(new Input::InputLayer());
     m_layer_stack.push(new EventLogLayer(0));
+    
 }
 
 void Application::run()
@@ -57,7 +62,7 @@ void Application::process_events()
     while(!m_event_buffer.is_empty())
     {
         Event::EventUPtr e = m_event_buffer.next();
-        for(auto it = m_layer_stack.cbegin(); it != m_layer_stack.cend(); ++it)
+        for(auto it = m_layer_stack.crbegin(); it != m_layer_stack.crend(); ++it)
         {
             if (e->handled) return;
 

@@ -13,7 +13,8 @@ namespace Parable
 Window::Window(int width, int height, std::string name, bool fullscreen)
 {
     // init glfw
-    PBL_ASSERT_MSG(glfwInit(), "Could not init GLFW in Window constructor.");
+    int init_res = glfwInit();
+    PBL_ASSERT_MSG(init_res, "Could not init GLFW in Window constructor.");
 
     // min opengl version supported
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
