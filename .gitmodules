@@ -7,3 +7,6 @@
 [submodule "Parable/vendor/glm"]
 	path = Parable/vendor/glm
 	url = https://github.com/g-truc/glm
+[submodule "Parable/vendor/Catch2"]
+	path = Parable/vendor/Catch2
+	url = https://github.com/catchorg/Catch2

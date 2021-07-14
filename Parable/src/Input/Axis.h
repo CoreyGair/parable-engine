@@ -23,13 +23,14 @@ enum class AxisID  : unsigned short int
 
 // fn to decide return type of axis ID
 // must update if change values of AxisID enum
-#define IS_AXIS_DOUBLE(ID) (ID == 0 || ID == 1 ? true : false)
-#define IS_AXIS_INT(ID) (ID == 2 || ID == 3 ? true : false)
+#define IS_AXIS_DOUBLE(ID) (ID == 0 || ID == 1 || ID == 2)
+#define IS_AXIS_INT(ID) (ID == 3)
 
 template<class T>
 class Axis
 {
 public:
+    Axis(T initial_val) : m_value(initial_val) {}
     virtual void reset() { m_dirty = false; };
     virtual void on_event(Event* e) = 0;
     virtual T get_value() { return m_value; }
@@ -40,12 +41,13 @@ public:
 protected:
     T m_value;
     // set if this axis has handled an event
-    bool m_dirty;
+    bool m_dirty = false;
 };
 
 class MouseXAxis : public Axis<double>
 {
 public:
+    MouseXAxis() : Axis(0.0) {}
     void on_event(Event* e) override;
     void reset() { m_value = 0.0; Axis::reset(); }
     AXIS_ID(MouseX)
@@ -56,6 +58,7 @@ private:
 class MouseYAxis : public Axis<double>
 {
 public:
+    MouseYAxis() : Axis(0.0) {}
     void on_event(Event* e) override;
     void reset() { m_value = 0.0; Axis::reset(); }
     AXIS_ID(MouseY)
@@ -63,9 +66,10 @@ private:
     bool event_to_value(MouseMovedEvent& e);
 };
 
-class MouseScrollAxis : public Axis<int>
+class MouseScrollAxis : public Axis<double>
 {
 public:
+    MouseScrollAxis() : Axis(0.0) {}
     void on_event(Event* e) override;
     void reset() { m_value = 0; Axis::reset(); }
     AXIS_ID(MouseScroll)
@@ -76,8 +80,8 @@ private:
 class ButtonAxis : public Axis<int>
 {
 public:
-    ButtonAxis(std::vector<InputCode>& positive_inputs, std::vector<InputCode>& negative_inputs) : m_positive_inputs(std::move(positive_inputs)), m_negative_inputs(std::move(negative_inputs)) {}
-    ButtonAxis(std::vector<InputCode>& positive_inputs) : m_positive_inputs(std::move(positive_inputs)), m_negative_inputs() {}
+    ButtonAxis(std::vector<InputCode>& positive_inputs, std::vector<InputCode>& negative_inputs) : m_positive_inputs(std::move(positive_inputs)), m_negative_inputs(std::move(negative_inputs)), Axis(0.0) {}
+    ButtonAxis(std::vector<InputCode>& positive_inputs) : ButtonAxis(std::move(positive_inputs), std::vector<InputCode>()) {}
 
     void reset() { Axis::reset(); }
 
@@ -90,8 +94,8 @@ private:
     std::vector<InputCode> m_positive_inputs;
     std::vector<InputCode> m_negative_inputs;
 
-    unsigned short int m_num_positive_down;
-    unsigned short int m_num_negative_down;
+    unsigned short int m_num_positive_down = 0;
+    unsigned short int m_num_negative_down = 0;
 
     bool is_positive_input(InputCode c);
     bool is_negative_input(InputCode c);

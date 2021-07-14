@@ -9,6 +9,7 @@
 #include "Input/InputContext.h"
 
 #include "rapidjson/document.h"
+#include "rapidjson/error/en.h"
 
 namespace Parable::Input
 {
@@ -24,7 +25,7 @@ std::unique_ptr<InputContext> InputContextLoader::load_context()
 
     rapidjson::Document document;
     document.ParseInsitu(json_chars);
-    PBL_ASSERT_MSG(!document.HasParseError(), "Error parsing {}!", m_file)
+    PBL_ASSERT_MSG(!document.HasParseError(), "Error '{}' parsing {}!", GetParseError_En(document.GetParseError()), m_file)
 
     PBL_ASSERT_MSG(document.IsObject(), "JSON root is not an object while parsing {} for input context.", m_file)
 
@@ -196,6 +197,10 @@ std::unique_ptr<Axis<double>> InputContextLoader::parse_axis_double(const rapidj
         return std::make_unique<MouseYAxis>();
         break;
 
+    case AxisID::MouseScroll:
+        return std::make_unique<MouseScrollAxis>();
+        break;
+
     default:
         PBL_ASSERT_MSG(false, "Unrecognised ControlType while parsing {} for input context.", m_file)
         break;
@@ -207,10 +212,6 @@ std::unique_ptr<Axis<int>> InputContextLoader::parse_axis_int(const rapidjson::V
 {
     switch (val["axis_id"].GetUint())
     {
-    case AxisID::MouseScroll:
-        return std::make_unique<MouseScrollAxis>();
-        break;
-
     case AxisID::Button:
     {
         PBL_CORE_ASSERT_MSG(val.HasMember("positive_inputs") && val["positive_inputs"].IsArray(), "Button axis missing positive inputs list while parsing {} for input context.", m_file)

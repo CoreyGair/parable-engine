@@ -22,7 +22,7 @@ public:
     void on_update();
     void on_event(Event* e);
 
-    bool enabled;
+    bool enabled = true;
 
 private:
     std::string m_name;

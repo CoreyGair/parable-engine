@@ -71,7 +71,7 @@ public:
     bool& get_value() { return m_cached_value; }
 
 private:
-    bool m_cached_value;
+    bool m_cached_value = false;
 
     ButtonAxis m_button_axis;
 
@@ -94,7 +94,7 @@ public:
 
     virtual void notify_changed() = 0;
 protected:
-    bool m_changed_this_frame;
+    bool m_changed_this_frame = false;
 
     void private_notify_changed(T val) { for(auto it = m_changed_callbacks.cbegin(); it != m_changed_callbacks.cend(); ++it) (*it)(val); }
     std::vector<AxisControlCallback<T>> m_changed_callbacks;
@@ -185,4 +185,5 @@ class Axis3DIntControl : public Axis3DControlBase<glm::ivec3,int>
 }
 
 // just template things...
+// houses implementations of template functions which need to be in header so complier knows to generate them
 #include "Control.tpp"
