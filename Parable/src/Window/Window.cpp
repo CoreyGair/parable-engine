@@ -14,7 +14,7 @@ Window::Window(int width, int height, std::string name, bool fullscreen)
 {
     // init glfw
     int init_res = glfwInit();
-    PBL_ASSERT_MSG(init_res, "Could not init GLFW in Window constructor.");
+    PBL_CORE_ASSERT_MSG(init_res, "Could not init GLFW in Window constructor.");
 
     // min opengl version supported
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -23,7 +23,7 @@ Window::Window(int width, int height, std::string name, bool fullscreen)
     glfwSetErrorCallback(glfw_error_callback);
 
     m_glfw_window = glfwCreateWindow(width, height, name.c_str(), fullscreen ? glfwGetPrimaryMonitor() : NULL, NULL);
-    PBL_ASSERT_MSG(m_glfw_window, "Window creation failed!");
+    PBL_CORE_ASSERT_MSG(m_glfw_window, "Window creation failed!");
 
     // at first these were member vars, but this would require capturing &this in the callback lambdas below
     // instead, we attach the data object to glfw window user data pointer so we can retrieve it in callback
@@ -36,7 +36,7 @@ Window::Window(int width, int height, std::string name, bool fullscreen)
 
     glfwMakeContextCurrent(m_glfw_window);
     int context_success = gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
-    PBL_ASSERT_MSG(context_success, "Failed to init OpenGL context with GLAD!")
+    PBL_CORE_ASSERT_MSG(context_success, "Failed to init OpenGL context with GLAD!")
 
     // set event callbacks
     glfwSetWindowCloseCallback(m_glfw_window, [](GLFWwindow* window)

@@ -14,7 +14,7 @@ Application* Application::s_instance = nullptr;
 
 Application::Application()
 {
-    PBL_ASSERT_MSG(!s_instance, "Application already exists!");
+    PBL_CORE_ASSERT_MSG(!s_instance, "Application already exists!");
     s_instance = this;
 
     m_window = std::make_unique<Window>(1600,900,std::string("Parable Engine"), false);
