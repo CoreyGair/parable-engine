@@ -4,3 +4,8 @@
 // includes from engine for test
 #include "Input/Control.h"
 #include "Events/InputEvent.h"
+
+
+////
+//// TODO: Add delegates implementation to controls, then write tests :)
+////
