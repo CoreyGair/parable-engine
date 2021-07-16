@@ -6,8 +6,13 @@ namespace Parable::Input
 // basically just copying glfw's keycodes implementation
 // definitely more robust & extensible ways to do it but this is easy and good enough
 
+// can use this as a combined button code as there is no overlap in key and mouse codes
+// note: 0 is unused by definition
+using InputCode = short int;
 
-enum class KeyCode : unsigned short int
+using KeyCode = short int;
+
+enum : KeyCode
 {
     // From glfw3.h, corresponds to GLFW keycodes
     Space = 32,
@@ -139,14 +144,12 @@ enum class KeyCode : unsigned short int
     RightControl = 345,
     RightAlt = 346,
     RightSuper = 347,
-    Menu = 348,
-
-    // hold the first & last used values in the enum
-    FIRST = Space,
-    LAST = Menu
+    Menu = 348
 };
 
-enum class MouseButton : unsigned short int
+using MouseBtnCode = short int;
+
+enum : MouseBtnCode
 {
     MouseButton1 = 1,   // LEFT CLICK
     MouseButton2 = 2,   // RIGHT CLICK
@@ -155,11 +158,7 @@ enum class MouseButton : unsigned short int
     MouseButton5 = 5,
     MouseButton6 = 6,
     MouseButton7 = 7,
-    MouseButton8 = 8,   // LAST
-
-    // hold the first & last used values in the enum
-    FIRST = MouseButton1,
-    LAST = MouseButton8
+    MouseButton8 = 8    // LAST
 };
 
 }

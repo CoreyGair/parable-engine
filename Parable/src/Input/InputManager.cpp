@@ -12,9 +12,8 @@ InputManager* InputManager::s_instance = nullptr;
 
 InputManager::InputManager()
 {
-    PBL_ASSERT_MSG(!s_instance, "Input manager already exists!");
+    PBL_CORE_ASSERT_MSG(!s_instance, "Input manager already exists!");
     s_instance = this;
-    load_context(std::string("context.json"));
 }
 
 void InputManager::on_update()
@@ -26,10 +25,23 @@ void InputManager::on_update()
             ctx.on_update();
         }
     }
+
+    // 'reset pressed this frame' state
+    m_input_state.key_pressed.reset();
+    m_input_state.mouse_btn_pressed.reset();
+
+    m_input_state.mouse_scroll_delta = 0.0;
+    m_input_state.mouse_position_delta.x = 0; m_input_state.mouse_position_delta.y = 0;
 }
 
 void InputManager::on_event(Event* e)
 {
+    EventDispatcher dispatcher (e);
+    dispatcher.dispatch<KeyPressedEvent>(PBL_BIND_MEMBER_EVENT_HANDLER(InputManager::key_pressed));
+    dispatcher.dispatch<KeyPressedEvent>(PBL_BIND_MEMBER_EVENT_HANDLER(InputManager::key_released));
+    dispatcher.dispatch<KeyPressedEvent>(PBL_BIND_MEMBER_EVENT_HANDLER(InputManager::mouse_btn_pressed));
+    dispatcher.dispatch<KeyPressedEvent>(PBL_BIND_MEMBER_EVENT_HANDLER(InputManager::mouse_btn_released));
+
     for(auto& ctx : m_contexts)
     {
         if (ctx.enabled)
@@ -39,10 +51,36 @@ void InputManager::on_event(Event* e)
     }
 }
 
-void InputManager::load_context(std::string context_json_file)
+bool InputManager::key_pressed(KeyPressedEvent& e)
 {
-    InputContextLoader loader(context_json_file);
-    m_contexts.push_back(std::move((*loader.load_context())));
+    m_input_state.key_down[e.get_key_code() - KeyCode.FIRST] = true;
+    m_input_state.key_pressed[e.get_key_code() - KeyCode.FIRST] = true;
+    return true;
 }
+bool InputManager::key_released(KeyReleasedEvent& e)
+{
+    m_input_state.key_down[e.get_key_code() - KeyCode.FIRST] = false; return true;
+}
+bool InputManager::mouse_btn_pressed(MouseBtnPressedEvent& e)
+{
+    m_input_state.mouse_btn_down[e.get_button() - MouseButton.FIRST] = true;
+    m_input_state.mouse_btn_pressed[e.get_button() - MouseButton.FIRST] = true;
+    return true;
+}
+bool InputManager::mouse_btn_released(MouseBtnReleasedEvent& e)
+{
+    m_input_state.mouse_btn_down[e.get_button() - KeyCode.FIRST] = false; return true;
+}
+bool mouse_scrolled(MouseScrolledEvent& e)
+{
+    m_input_state.mouse_scroll_delta += e.get_scroll_amt(); return true;
+}
+bool mouse_moved(MouseMovedEvent& e)
+{
+    glm::vec2 new_pos { e.get_x(), e.get_y() };
+    m_input_state.mouse_position_delta += new_pos - m_input_state.mouse_position;
+    m_input_state.mouse_position = std::move(new_pos);
+}
+
 
 }
