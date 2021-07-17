@@ -55,32 +55,60 @@ bool InputManager::key_pressed(KeyPressedEvent& e)
 {
     m_input_state.key_down[e.get_key_code() - KeyCode.FIRST] = true;
     m_input_state.key_pressed[e.get_key_code() - KeyCode.FIRST] = true;
+    notify_contexts_of_input_pressed(e.get_key_code());
     return true;
 }
 bool InputManager::key_released(KeyReleasedEvent& e)
 {
-    m_input_state.key_down[e.get_key_code() - KeyCode.FIRST] = false; return true;
+    m_input_state.key_down[e.get_key_code() - KeyCode.FIRST] = false;
+    notify_contexts_of_input_released(e.get_key_code());
+    return true;
 }
 bool InputManager::mouse_btn_pressed(MouseBtnPressedEvent& e)
 {
     m_input_state.mouse_btn_down[e.get_button() - MouseButton.FIRST] = true;
     m_input_state.mouse_btn_pressed[e.get_button() - MouseButton.FIRST] = true;
+    notify_contexts_of_input_pressed(e.get_button());
     return true;
 }
 bool InputManager::mouse_btn_released(MouseBtnReleasedEvent& e)
 {
-    m_input_state.mouse_btn_down[e.get_button() - KeyCode.FIRST] = false; return true;
+    m_input_state.mouse_btn_down[e.get_button() - KeyCode.FIRST] = false;
+    notify_contexts_of_input_released(e.get_button());
+    return true;
 }
-bool mouse_scrolled(MouseScrolledEvent& e)
+bool InputManager::mouse_scrolled(MouseScrolledEvent& e)
 {
     m_input_state.mouse_scroll_delta += e.get_scroll_amt(); return true;
 }
-bool mouse_moved(MouseMovedEvent& e)
+bool InputManager::mouse_moved(MouseMovedEvent& e)
 {
     glm::vec2 new_pos { e.get_x(), e.get_y() };
     m_input_state.mouse_position_delta += new_pos - m_input_state.mouse_position;
     m_input_state.mouse_position = std::move(new_pos);
 }
+
+void InputManager::notify_contexts_of_input_pressed(InputCode code)
+{
+    for(auto& ctx : m_contexts)
+    {
+        if (ctx.enabled)
+        {
+            ctx.on_input_pressed(code);
+        }
+    }
+}
+void InputManager::notify_contexts_of_input_released(InputCode code)
+{
+    for(auto& ctx : m_contexts)
+    {
+        if (ctx.enabled)
+        {
+            ctx.on_input_released(code);
+        }
+    }
+}
+
 
 
 }

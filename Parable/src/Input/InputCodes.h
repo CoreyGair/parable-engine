@@ -7,6 +7,9 @@ namespace Parable::Input
 // definitely more robust & extensible ways to do it but this is easy and good enough
 
 
+using InputCode = unsigned short int;
+
+
 enum class KeyCode : unsigned short int
 {
     // From glfw3.h, corresponds to GLFW keycodes

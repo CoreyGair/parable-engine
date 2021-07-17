@@ -6,16 +6,24 @@ namespace Parable::Input
 
 void InputContext::on_update()
 {
-    for(auto it = m_controls.begin(); it != m_controls.end(); ++it)
+    for(auto& button_map : m_button_maps)
     {
-        (*it)->on_update();
+        button_map.on_update();
     }
 }
-void InputContext::on_event(Event* e)
+
+void InputContext::on_input_pressed(InputCode code)
 {
-    for(auto it = m_controls.begin(); it != m_controls.end(); ++it)
+    for(auto& button_map : m_button_maps)
     {
-        (*it)->on_event(e);
+        button_map.on_input_pressed(code);
+    }
+}
+void InputContext::on_input_released(InputCode code)
+{
+    for(auto& button_map : m_button_maps)
+    {
+        button_map.on_input_released(code);
     }
 }
 

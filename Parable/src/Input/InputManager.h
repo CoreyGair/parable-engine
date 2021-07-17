@@ -39,6 +39,9 @@ private:
     bool mouse_scrolled(MouseScrolledEvent& e);
     bool mouse_moved(MouseMovedEvent& e);
 
+    void notify_contexts_of_input(InputCode code, bool pressed);
+    void notify_contexts_of_input_released(InputCode code);
+
     InputState m_input_state;
     
 };

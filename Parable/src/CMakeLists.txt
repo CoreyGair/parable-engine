@@ -35,13 +35,8 @@ set(PARABLE_SRCS_INPUT      ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputCodes.h
                             ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputManager.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputContext.h
                             ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputContext.cpp
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputContextLoader.h
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputContextLoader.cpp
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Input/Axis.h
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Input/Axis.cpp
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Input/Control.h
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Input/Control.cpp
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Input/Control.tpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Input/ButtonMap.h
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Input/ButtonMap.cpp
                             )
 
 set(PARABLE_SRCS    ${PARABLE_SRCS_CORE}
