@@ -1,9 +1,6 @@
 #include "InputManager.h"
 
 
-// TEMP
-#include "InputContextLoader.h"
-
 namespace Parable::Input
 {
 
@@ -38,9 +35,9 @@ void InputManager::on_event(Event* e)
 {
     EventDispatcher dispatcher (e);
     dispatcher.dispatch<KeyPressedEvent>(PBL_BIND_MEMBER_EVENT_HANDLER(InputManager::key_pressed));
-    dispatcher.dispatch<KeyPressedEvent>(PBL_BIND_MEMBER_EVENT_HANDLER(InputManager::key_released));
-    dispatcher.dispatch<KeyPressedEvent>(PBL_BIND_MEMBER_EVENT_HANDLER(InputManager::mouse_btn_pressed));
-    dispatcher.dispatch<KeyPressedEvent>(PBL_BIND_MEMBER_EVENT_HANDLER(InputManager::mouse_btn_released));
+    dispatcher.dispatch<KeyReleasedEvent>(PBL_BIND_MEMBER_EVENT_HANDLER(InputManager::key_released));
+    dispatcher.dispatch<MouseBtnPressedEvent>(PBL_BIND_MEMBER_EVENT_HANDLER(InputManager::mouse_btn_pressed));
+    dispatcher.dispatch<MouseBtnReleasedEvent>(PBL_BIND_MEMBER_EVENT_HANDLER(InputManager::mouse_btn_released));
 
     for(auto& ctx : m_contexts)
     {

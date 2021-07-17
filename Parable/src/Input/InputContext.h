@@ -3,9 +3,7 @@
 #include "Core/Base.h"
 #include "Events/InputEvent.h"
 #include "Input/InputCodes.h"
-#include "Input/Axis.h"
-#include "Input/Control.h"
-
+#include "Input/ButtonMap.h"
 
 #include <glm/glm.hpp>
 

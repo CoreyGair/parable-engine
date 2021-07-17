@@ -44,4 +44,7 @@ private:
 
     std::vector<ButtonCallback> m_pressed_callbacks;
     std::vector<ButtonCallback> m_released_callbacks;
+};
+
+
 }

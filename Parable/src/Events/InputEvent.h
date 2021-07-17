@@ -33,7 +33,7 @@ public:
     EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryKeyboard | EventCategoryButton)
     EVENT_CLASS_TYPE(KeyPressed)
     KeyPressedEvent(const Input::KeyCode key) : KeyEvent(key) {}
-    std::string to_string() const override { std::stringstream out_stream; out_stream << get_name() << ": KeyCode=" << m_keycode; return out_stream.str();}
+    std::string to_string() const override { std::stringstream out_stream; out_stream << get_name() << ": KeyCode=" << (Input::InputCode)m_keycode; return out_stream.str();}
 };
 
 class KeyRepeatedEvent : public KeyEvent
@@ -42,7 +42,7 @@ public:
     EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryKeyboard)
     EVENT_CLASS_TYPE(KeyRepeated)
     KeyRepeatedEvent(const Input::KeyCode key) : KeyEvent(key) {}
-    std::string to_string() const override { std::stringstream out_stream; out_stream << get_name() << ": KeyCode=" << m_keycode; return out_stream.str();}
+    std::string to_string() const override { std::stringstream out_stream; out_stream << get_name() << ": KeyCode=" << (Input::InputCode)m_keycode; return out_stream.str();}
 };
 
 class KeyReleasedEvent : public KeyEvent
@@ -51,7 +51,7 @@ public:
     EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryKeyboard | EventCategoryButton)
     EVENT_CLASS_TYPE(KeyReleased)
     KeyReleasedEvent(const Input::KeyCode key) : KeyEvent(key) {}
-    std::string to_string() const override { std::stringstream out_stream; out_stream << get_name() << ": KeyCode=" << m_keycode; return out_stream.str();}
+    std::string to_string() const override { std::stringstream out_stream; out_stream << get_name() << ": KeyCode=" << (Input::InputCode)m_keycode; return out_stream.str();}
 };
 
 
@@ -96,10 +96,10 @@ public:
     MouseBtnEvent(int button) : m_button(button) {}
     virtual ~MouseBtnEvent() {};
 
-    Input::MouseBtnCode get_button() { return m_button; }
+    Input::MouseButton get_button() { return m_button; }
 
 protected:
-    Input::MouseBtnCode m_button;
+    Input::MouseButton m_button;
 };
 
 class MouseBtnPressedEvent : public MouseBtnEvent
@@ -109,7 +109,7 @@ public:
 
     MouseBtnPressedEvent(int button) : MouseBtnEvent(button) {}
 
-    std::string to_string() const override { std::stringstream out_stream; out_stream << get_name() << ": Button=" << m_button; return out_stream.str();}
+    std::string to_string() const override { std::stringstream out_stream; out_stream << get_name() << ": Button=" << (Input::InputCode)m_button; return out_stream.str();}
 };
 
 class MouseBtnReleasedEvent : public MouseBtnEvent
@@ -119,7 +119,7 @@ public:
 
     MouseBtnReleasedEvent(int button) : MouseBtnEvent(button) {}
 
-    std::string to_string() const override { std::stringstream out_stream; out_stream << get_name() << ": Button=" << m_button; return out_stream.str();}
+    std::string to_string() const override { std::stringstream out_stream; out_stream << get_name() << ": Button=" << (Input::InputCode)m_button; return out_stream.str();}
 };
 
 class MouseScrolledEvent : public Event
