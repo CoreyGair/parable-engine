@@ -7,13 +7,14 @@ namespace Parable::Input
 
 
 class InputContext;
+class ButtonMap;
 
 class InputContextLoader
 {
 public:
     InputContextLoader(std::string& file) : m_file(file) {}
 
-    std::unique_ptr<InputContext> load_context();
+    InputContext load_context();
 
 private:
     std::string m_file;

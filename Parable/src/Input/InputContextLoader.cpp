@@ -4,7 +4,7 @@
 
 #include "Input/InputContextLoader.h"
 
-#include "Input/Control.h"
+#include "Input/ButtonMap.h"
 
 #include "Input/InputContext.h"
 
@@ -14,8 +14,7 @@
 namespace Parable::Input
 {
 
-
-std::unique_ptr<InputContext> InputContextLoader::load_context()
+InputContext InputContextLoader::load_context()
 {
     std::ifstream t(m_file);
     std::stringstream ss;
@@ -43,7 +42,7 @@ std::unique_ptr<InputContext> InputContextLoader::load_context()
 
     for (auto& v : maps.GetArray())
     {   
-        loaded_maps.emplace_back(std::move(parse_control(v)));
+        loaded_maps.emplace_back(std::move(parse_button_map(v)));
     }
     
     std::string context_name (context["name"].GetString());
@@ -55,7 +54,7 @@ ButtonMap InputContextLoader::parse_button_map(const rapidjson::Value& val)
     PBL_CORE_ASSERT_MSG(val.HasMember("name"), "ButtonMap does not contain a name while parsing {} for input context.", m_file)
     std::string map_name (val["name"].GetString());
     
-    PBL_CORE_ASSERT_MSG(val.HasMember("inputs") && val["inputs"].IsArray(), "ButtonMap {} does not contain a name while parsing {} for input context.", map_name, m_file))
+    PBL_CORE_ASSERT_MSG(val.HasMember("inputs") && val["inputs"].IsArray(), "ButtonMap {} does not contain a name while parsing {} for input context.", map_name, m_file);
     std::vector<InputCode> mapped_inputs;
     for(auto& v : val["inputs"].GetArray())
     {
@@ -63,4 +62,7 @@ ButtonMap InputContextLoader::parse_button_map(const rapidjson::Value& val)
     }
 
     return std::move(ButtonMap(map_name, mapped_inputs));
+}
+
+
 }
