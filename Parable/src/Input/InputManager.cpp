@@ -38,51 +38,64 @@ void InputManager::on_event(Event* e)
     dispatcher.dispatch<KeyReleasedEvent>(PBL_BIND_MEMBER_EVENT_HANDLER(InputManager::key_released));
     dispatcher.dispatch<MouseBtnPressedEvent>(PBL_BIND_MEMBER_EVENT_HANDLER(InputManager::mouse_btn_pressed));
     dispatcher.dispatch<MouseBtnReleasedEvent>(PBL_BIND_MEMBER_EVENT_HANDLER(InputManager::mouse_btn_released));
-
-    for(auto& ctx : m_contexts)
-    {
-        if (ctx.enabled)
-        {
-            ctx.on_event(e);
-        }
-    }
 }
 
 bool InputManager::key_pressed(KeyPressedEvent& e)
 {
-    m_input_state.key_down[e.get_key_code() - KeyCode.FIRST] = true;
-    m_input_state.key_pressed[e.get_key_code() - KeyCode.FIRST] = true;
-    notify_contexts_of_input_pressed(e.get_key_code());
+    InputCode key = (InputCode)e.get_key_code();
+    m_input_state.key_down[key - (int)KeyCode::FIRST] = true;
+    m_input_state.key_pressed[key - (int)KeyCode::FIRST] = true;
+    notify_contexts_of_input_pressed(key);
     return true;
 }
 bool InputManager::key_released(KeyReleasedEvent& e)
 {
-    m_input_state.key_down[e.get_key_code() - KeyCode.FIRST] = false;
-    notify_contexts_of_input_released(e.get_key_code());
+    InputCode key = (InputCode)e.get_key_code();
+    m_input_state.key_down[key - (int)KeyCode::FIRST] = false;
+    notify_contexts_of_input_released(key);
     return true;
 }
 bool InputManager::mouse_btn_pressed(MouseBtnPressedEvent& e)
 {
-    m_input_state.mouse_btn_down[e.get_button() - MouseButton.FIRST] = true;
-    m_input_state.mouse_btn_pressed[e.get_button() - MouseButton.FIRST] = true;
-    notify_contexts_of_input_pressed(e.get_button());
+    InputCode btn = (InputCode)e.get_button();
+    m_input_state.mouse_btn_down[btn - (int)MouseButton::FIRST] = true;
+    m_input_state.mouse_btn_pressed[btn - (int)MouseButton::FIRST] = true;
+    notify_contexts_of_input_pressed(btn);
     return true;
 }
 bool InputManager::mouse_btn_released(MouseBtnReleasedEvent& e)
 {
-    m_input_state.mouse_btn_down[e.get_button() - KeyCode.FIRST] = false;
-    notify_contexts_of_input_released(e.get_button());
+    InputCode btn = (InputCode)e.get_button();
+    m_input_state.mouse_btn_down[btn - (int)KeyCode::FIRST] = false;
+    notify_contexts_of_input_released(btn);
     return true;
 }
 bool InputManager::mouse_scrolled(MouseScrolledEvent& e)
 {
     m_input_state.mouse_scroll_delta += e.get_scroll_amt(); return true;
+
+    // allows us to use scroll as a button in button maps
+    if (e.get_scroll_amt() > 0)
+    {
+        InputCode btn = (InputCode)MouseButton::MouseScrollUp;
+        m_input_state.mouse_btn_pressed[btn - (int)MouseButton::FIRST] = true;
+        notify_contexts_of_input_pressed(btn);
+        notify_contexts_of_input_released(btn);
+    }
+    else if (e.get_scroll_amt() < 0)
+    {
+        InputCode btn = (InputCode)MouseButton::MouseScrollDown;
+        m_input_state.mouse_btn_pressed[btn - (int)MouseButton::FIRST] = true;
+        notify_contexts_of_input_pressed(btn);
+        notify_contexts_of_input_released(btn);
+    }
 }
 bool InputManager::mouse_moved(MouseMovedEvent& e)
 {
     glm::vec2 new_pos { e.get_x(), e.get_y() };
     m_input_state.mouse_position_delta += new_pos - m_input_state.mouse_position;
     m_input_state.mouse_position = std::move(new_pos);
+    return true;
 }
 
 void InputManager::notify_contexts_of_input_pressed(InputCode code)

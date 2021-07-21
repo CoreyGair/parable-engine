@@ -8,15 +8,16 @@
 
 TEST_CASE("ButtonMap functions with one input", "[input]")
 {
-    Parable::Input::ButtonMap map (std::string("test"), {Parable::Input::KeyCode::Space});
+    std::vector<Parable::Input::InputCode> inputs {55};
+    Parable::Input::ButtonMap map (std::string("test"), inputs);
 
     REQUIRE(map.get_name() == "test");
 
     SECTION("Button pressed sets down and pressed states")
     {
-        map.on_input_pressed(Parable::Input::KeyCode::Space);
+        map.on_input_pressed(55);
 
-        REQUIRE(map.is_down() == true)
+        REQUIRE(map.is_down() == true);
         REQUIRE(map.pressed_this_frame() == true);
 
         SECTION("Update resets pressed state")
@@ -27,7 +28,7 @@ TEST_CASE("ButtonMap functions with one input", "[input]")
         }
         SECTION("Release resets down state")
         {
-            map.on_input_released(Parable::Input::KeyCode::Space);
+            map.on_input_released(55);
 
             REQUIRE(map.is_down() == false);
         }
@@ -46,13 +47,14 @@ TEST_CASE("ButtonMap functions with one input", "[input]")
 
 TEST_CASE("ButtonMap functions with multiple input", "[input]")
 {
-    Parable::Input::ButtonMap map (std::string("multi input test"), {Parable::Input::KeyCode::Space, Parable::Input::KeyCode::A, Parable::Input::MouseButton::MouseButton1});
+    std::vector<Parable::Input::InputCode> inputs {55,112,1};
+    Parable::Input::ButtonMap map (std::string("multi input test"), inputs);
 
     SECTION("Buttons pressed sets down and pressed states")
     {
-        map.on_input_pressed(Parable::Input::KeyCode::Space);
-        map.on_input_pressed(Parable::Input::KeyCode::A);
-        map.on_input_pressed(Parable::Input::MouseButton::MouseButton1);
+        map.on_input_pressed(55);
+        map.on_input_pressed(112);
+        map.on_input_pressed(1);
 
         REQUIRE(map.is_down() == true);
         REQUIRE(map.pressed_this_frame() == true);

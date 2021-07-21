@@ -1,13 +1,17 @@
 #include "ButtonMap.h"
 
 
+namespace Parable::Input
+{
+
+
 bool ButtonMap::m_input_is_mapped(InputCode code)
 {
-    return std::find(m_inputs.cbegin(), m_inputs.cend(), code) == m_inputs.cend();
+    return std::find(m_inputs.cbegin(), m_inputs.cend(), code) != m_inputs.cend();
 }
 
 
-void on_update()
+void ButtonMap::on_update()
 {
     m_pressed = false;
 }
@@ -54,4 +58,7 @@ void ButtonMap::notify_released()
     {
         cb();
     }
+}
+
+
 }

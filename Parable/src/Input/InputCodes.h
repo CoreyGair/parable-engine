@@ -10,7 +10,7 @@ namespace Parable::Input
 using InputCode = unsigned short int;
 
 
-enum class KeyCode : unsigned short int
+enum class KeyCode : InputCode
 {
     // From glfw3.h, corresponds to GLFW keycodes
     Space = 32,
@@ -149,7 +149,7 @@ enum class KeyCode : unsigned short int
     LAST = Menu
 };
 
-enum class MouseButton : unsigned short int
+enum class MouseButton : InputCode
 {
     MouseButton1 = 1,   // LEFT CLICK
     MouseButton2 = 2,   // RIGHT CLICK
@@ -158,11 +158,13 @@ enum class MouseButton : unsigned short int
     MouseButton5 = 5,
     MouseButton6 = 6,
     MouseButton7 = 7,
-    MouseButton8 = 8,   // LAST
+    MouseButton8 = 8, 
+    MouseScrollUp = 9,
+    MouseScrollDown = 10,
 
     // hold the first & last used values in the enum
     FIRST = MouseButton1,
-    LAST = MouseButton8
+    LAST = MouseScrollDown
 };
 
 }
