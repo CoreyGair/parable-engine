@@ -21,10 +21,12 @@
         #define PBL_PLATFORM_OSX
     #endif
 #elif __ANDROID__
-	#define PBL_PLATFORM_ANDROID
 	#error "Unsupproted android platform."
 #elif __linux
-    #define PBL_PLATFORM_LINUX
+    #ifdef _LP64
+        #define PBL_PLATFORM_LINUX
+    #else
+        #error "Unsupported 32-bit linux platform"
 #elif __unix 
     #error "Unsupported unix platform."  
 #elif __posix
