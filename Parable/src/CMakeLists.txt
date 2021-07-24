@@ -41,12 +41,21 @@ set(PARABLE_SRCS_INPUT      ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputCodes.h
                             ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputContextLoader.cpp
                             )
 
+set(PARABLE_SRCS_MEMORY     ${CMAKE_CURRENT_SOURCE_DIR}/Memory/Allocator.h
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Memory/Allocator.tpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Memory/LinearAllocator.h
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Memory/LinearAllocator.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Memory/PoolAllocator.h
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Memory/PoolAllocator.cpp
+                            ) 
+
 set(PARABLE_SRCS    ${PARABLE_SRCS_CORE}
                     ${PARABLE_SRCS_EVENTS}
                     ${PARABLE_SRCS_PLATFORM}
                     ${PARABLE_SRCS_WINDOW}
                     ${PARABLE_SRCS_DEBUG}
                     ${PARABLE_SRCS_INPUT}
+                    ${PARABLE_SRCS_MEMORY}
                     ${CMAKE_CURRENT_SOURCE_DIR}/Parable.h
                     ${CMAKE_CURRENT_SOURCE_DIR}/pblpch.h
                     PARENT_SCOPE)
