@@ -27,6 +27,7 @@
         #define PBL_PLATFORM_LINUX
     #else
         #error "Unsupported 32-bit linux platform"
+    #endif
 #elif __unix 
     #error "Unsupported unix platform."  
 #elif __posix

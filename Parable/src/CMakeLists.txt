@@ -18,6 +18,7 @@ set(PARABLE_SRCS_EVENTS     ${CMAKE_CURRENT_SOURCE_DIR}/Events/Event.h
                             )
 
 set(PARABLE_SRCS_PLATFORM   ${CMAKE_CURRENT_SOURCE_DIR}/Platform/PlatformDetection.h
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/PlatformDefines.h
                             )
 
 set(PARABLE_SRCS_WINDOW     ${CMAKE_CURRENT_SOURCE_DIR}/Window/Window.h
@@ -48,6 +49,14 @@ set(PARABLE_SRCS_MEMORY     ${CMAKE_CURRENT_SOURCE_DIR}/Memory/Allocator.h
                             ${CMAKE_CURRENT_SOURCE_DIR}/Memory/PoolAllocator.h
                             ${CMAKE_CURRENT_SOURCE_DIR}/Memory/PoolAllocator.cpp
                             ) 
+
+set(PARABLE_SRCS_UTIL   ${CMAKE_CURRENT_SOURCE_DIR}/Util/TemplateTypeID.h
+                        )
+
+set(PARABLE_SRCS_ECS    ${CMAKE_CURRENT_SOURCE_DIR}/ECS/Entity.h
+                        ${CMAKE_CURRENT_SOURCE_DIR}/ECS/IComponent.h
+                        ${CMAKE_CURRENT_SOURCE_DIR}/ECS/Component.h
+                        ) 
 
 set(PARABLE_SRCS    ${PARABLE_SRCS_CORE}
                     ${PARABLE_SRCS_EVENTS}
