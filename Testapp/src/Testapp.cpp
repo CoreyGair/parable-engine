@@ -6,11 +6,13 @@
 class Testapp : public Parable::Application
 {
     public:
-        Testapp(){
+        Testapp()
+        {
 
         }
 
-        ~Testapp(){
+        ~Testapp()
+        {
 
         }
 };

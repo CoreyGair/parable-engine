@@ -3,9 +3,7 @@
 #include "Core/Base.h"
 #include "Events/InputEvent.h"
 #include "Input/InputCodes.h"
-#include "Input/Axis.h"
-#include "Input/Control.h"
-
+#include "Input/ButtonMap.h"
 
 #include <glm/glm.hpp>
 
@@ -16,17 +14,18 @@ namespace Parable::Input
 class InputContext
 {
 public:
-    InputContext(std::string& name, std::vector<std::unique_ptr<Control>>& controls) : m_name(std::move(name)), m_controls(std::move(controls)) {}
-    InputContext(InputContext&& other) : InputContext(other.m_name, other.m_controls) {}
+    InputContext(std::string& name, std::vector<ButtonMap>& button_maps) : m_name(std::move(name)), m_button_maps(std::move(button_maps)) {}
+    InputContext(InputContext&& other) : InputContext(other.m_name, other.m_button_maps) {}
 
     void on_update();
-    void on_event(Event* e);
+    void on_input_pressed(InputCode code);
+    void on_input_released(InputCode code);
 
     bool enabled = true;
 
 private:
     std::string m_name;
-    std::vector<std::unique_ptr<Control>> m_controls;
+    std::vector<ButtonMap> m_button_maps;
 };
 
 

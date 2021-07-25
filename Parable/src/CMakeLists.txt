@@ -18,6 +18,7 @@ set(PARABLE_SRCS_EVENTS     ${CMAKE_CURRENT_SOURCE_DIR}/Events/Event.h
                             )
 
 set(PARABLE_SRCS_PLATFORM   ${CMAKE_CURRENT_SOURCE_DIR}/Platform/PlatformDetection.h
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/PlatformDefines.h
                             )
 
 set(PARABLE_SRCS_WINDOW     ${CMAKE_CURRENT_SOURCE_DIR}/Window/Window.h
@@ -35,14 +36,27 @@ set(PARABLE_SRCS_INPUT      ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputCodes.h
                             ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputManager.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputContext.h
                             ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputContext.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Input/ButtonMap.h
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Input/ButtonMap.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputContextLoader.h
                             ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputContextLoader.cpp
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Input/Axis.h
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Input/Axis.cpp
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Input/Control.h
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Input/Control.cpp
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Input/Control.tpp
                             )
+
+set(PARABLE_SRCS_MEMORY     ${CMAKE_CURRENT_SOURCE_DIR}/Memory/Allocator.h
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Memory/Allocator.tpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Memory/LinearAllocator.h
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Memory/LinearAllocator.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Memory/PoolAllocator.h
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Memory/PoolAllocator.cpp
+                            ) 
+
+set(PARABLE_SRCS_UTIL   ${CMAKE_CURRENT_SOURCE_DIR}/Util/TemplateTypeID.h
+                        )
+
+set(PARABLE_SRCS_ECS    ${CMAKE_CURRENT_SOURCE_DIR}/ECS/Entity.h
+                        ${CMAKE_CURRENT_SOURCE_DIR}/ECS/IComponent.h
+                        ${CMAKE_CURRENT_SOURCE_DIR}/ECS/Component.h
+                        ) 
 
 set(PARABLE_SRCS    ${PARABLE_SRCS_CORE}
                     ${PARABLE_SRCS_EVENTS}
@@ -50,6 +64,7 @@ set(PARABLE_SRCS    ${PARABLE_SRCS_CORE}
                     ${PARABLE_SRCS_WINDOW}
                     ${PARABLE_SRCS_DEBUG}
                     ${PARABLE_SRCS_INPUT}
+                    ${PARABLE_SRCS_MEMORY}
                     ${CMAKE_CURRENT_SOURCE_DIR}/Parable.h
                     ${CMAKE_CURRENT_SOURCE_DIR}/pblpch.h
                     PARENT_SCOPE)

@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "Platform/PlatformDetection.h"
+#include "Platform/PlatformDefines.h"
 
 // build config stuff
 #ifdef PBL_DEBUG
