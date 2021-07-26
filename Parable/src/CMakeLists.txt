@@ -51,12 +51,19 @@ set(PARABLE_SRCS_MEMORY     ${CMAKE_CURRENT_SOURCE_DIR}/Memory/Allocator.h
                             ) 
 
 set(PARABLE_SRCS_UTIL   ${CMAKE_CURRENT_SOURCE_DIR}/Util/TemplateTypeID.h
+                        ${CMAKE_CURRENT_SOURCE_DIR}/Util/DynamicBitset.h
+                        ${CMAKE_CURRENT_SOURCE_DIR}/Util/DynamicBitset.cpp
                         )
 
 set(PARABLE_SRCS_ECS    ${CMAKE_CURRENT_SOURCE_DIR}/ECS/Entity.h
                         ${CMAKE_CURRENT_SOURCE_DIR}/ECS/IComponent.h
                         ${CMAKE_CURRENT_SOURCE_DIR}/ECS/Component.h
                         ) 
+
+set(PARABLE_SRCS_EXCEPTION      ${CMAKE_CURRENT_SOURCE_DIR}/Exception/Exception.h
+                                ${CMAKE_CURRENT_SOURCE_DIR}/Exception/LogicExceptions.h
+                                ${CMAKE_CURRENT_SOURCE_DIR}/Exception/MemoryExceptions.h
+                                ) 
 
 set(PARABLE_SRCS    ${PARABLE_SRCS_CORE}
                     ${PARABLE_SRCS_EVENTS}
@@ -65,6 +72,8 @@ set(PARABLE_SRCS    ${PARABLE_SRCS_CORE}
                     ${PARABLE_SRCS_DEBUG}
                     ${PARABLE_SRCS_INPUT}
                     ${PARABLE_SRCS_MEMORY}
+                    ${PARABLE_SRCS_UTIL}
+                    ${PARABLE_SRCS_EXCEPTION}
                     ${CMAKE_CURRENT_SOURCE_DIR}/Parable.h
                     ${CMAKE_CURRENT_SOURCE_DIR}/pblpch.h
                     PARENT_SCOPE)

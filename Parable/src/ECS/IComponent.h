@@ -13,7 +13,7 @@ protected:
 public:
     inline void set_enabled(bool enabled) { this->m_enabled = enabled; }
 	inline bool is_enabled() const { return this->m_enabled; }
-}
+};
 
 
 }

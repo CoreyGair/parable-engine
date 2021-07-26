@@ -2,11 +2,11 @@
 
 
 
-////
-//// TODO: see if u can fix the segfaults these tests cause
-////
-////    Think its catch2 not liking the malloc, but not sure
-////
+// //
+// // TODO: see if u can fix the segfaults these tests cause
+// //
+// //    Think its catch2 not liking the malloc, but not sure
+// //
 
 
 
@@ -20,11 +20,12 @@
 // //TMP
 // #include <stdio.h>
 
+// void* mem = malloc(128);
+// Parable::LinearAllocator alloc (128, mem);
 
 // TEST_CASE("LinearAllocator", "[memory]")
 // {
-//     void* mem = malloc(128);
-//     Parable::LinearAllocator alloc (128, mem);
+//     alloc.clear();
 
 //     // NOTE: we dont test deallocation here as LinearAllocator doesnt dealloc, only clear
 
@@ -42,8 +43,7 @@
 
 // TEST_CASE("PoolAllocator", "[memory]")
 // {
-//     void* mem = malloc(128);
-//     Parable::PoolAllocator alloc = Parable::PoolAllocator::create<int>(128,mem);
+//     alloc.clear();
 
 //     SECTION("Allocate")
 //     {
@@ -52,7 +52,7 @@
         
 //         SECTION("Deallocate")
 //         {
-//             alloc.deallocate_delete(x);
+//             alloc.deallocate_delete(*x);
 //             REQUIRE((alloc.get_used() == 0 && alloc.get_allocations() == 0));
 //         }
 //     }

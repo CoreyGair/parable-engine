@@ -6,8 +6,10 @@
 #include "Platform/PlatformDefines.h"
 
 #include <string>
+#include <sstream> 
 #include <iostream>
 #include <functional>
 #include <map>
 #include <queue>
 #include <bitset>
+#include <limits>

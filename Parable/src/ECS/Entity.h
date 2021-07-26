@@ -25,7 +25,7 @@ public:
 
     void set_active(bool active) { m_active = active; }
     bool is_active() { return m_active; }
-}
+};
 
 
 }
