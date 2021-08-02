@@ -8,7 +8,7 @@ namespace Parable
 namespace Parable::Util
 {
 
-using Segment = uint8_t;
+using Segment = unsigned int;
 
 /** 
  *  Dynamic size implementation of std::bitset.
@@ -25,8 +25,8 @@ public:
 
     // element access
 
-    bool at(size_t bit);
-    bool operator[](size_t bit);
+    bool at(size_t bit) const;
+    bool operator[](size_t bit) const;
 
     bool all() const;
     bool any() const;

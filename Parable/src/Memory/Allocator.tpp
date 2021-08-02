@@ -1,22 +1,22 @@
-
+#pragma once
 
 //
 //  Implements template funcs for Allocator
 //  Included in any .cpp files which use these functions
 //
 
-#include "Allocator.h"
 
 namespace Parable
 {
 
-
-template<class T> T* Allocator::allocate_new()
+template<class T>
+T* Allocator::allocate_new()
 {
     return new (allocate(sizeof(T), alignof(T))) T;
 }
 
-template<class T> T* Allocator::allocate_array(size_t length)
+template<class T>
+T* Allocator::allocate_array(size_t length)
 {
     PBL_CORE_ASSERT_MSG(length != 0, "Trying to allocate an array of length 0.")
 
@@ -37,13 +37,15 @@ template<class T> T* Allocator::allocate_array(size_t length)
     return array_start;
 }
 
-template<class T> void Allocator::deallocate_delete(T& object)
+template<class T>
+void Allocator::deallocate_delete(T& object)
 {
     object.~T();
     deallocate(&object);
 }
 
-template<class T> void Allocator::deallocate_array(T* array)
+template<class T>
+void Allocator::deallocate_array(T* array)
 {
     PBL_CORE_ASSERT_MSG(array != nullptr, "Trying to deallocate a nullptr array.")
 

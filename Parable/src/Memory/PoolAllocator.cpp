@@ -28,7 +28,7 @@ PoolAllocator::PoolAllocator(size_t object_size, size_t object_alignment, size_t
         // move p along to the next space
         p = (void**)*p;
     }
-    // teninate the list with null
+    // terminate the list with null
     *p = nullptr;
 }
 
@@ -39,7 +39,7 @@ PoolAllocator::~PoolAllocator()
 
 void* PoolAllocator::allocate(size_t size, size_t alignment)
 {
-    PBL_CORE_ASSERT_MSG(size == m_object_size, "PoolAllocator::allocate incorrect size {}, should be {}.", size, m_object_size)
+    PBL_CORE_ASSERT_MSG(size % m_object_size == 0, "PoolAllocator::allocate incorrect size {}, must be a multiple of the pool object size {}.", size, m_object_size)
     PBL_CORE_ASSERT_MSG(alignment == m_object_alignment, "PoolAllocator::allocate incorrect alignment {}, should be {}.", alignment, m_object_alignment)
 
     if (m_free_list == nullptr) return nullptr;

@@ -7,7 +7,6 @@ set(PARABLE_VENDOR  ${CMAKE_CURRENT_SOURCE_DIR}/vendor)
 
 add_subdirectory(${PARABLE_VENDOR}/glfw)
 add_subdirectory(${PARABLE_VENDOR}/glad)
-add_subdirectory(${PARABLE_VENDOR}/Catch2)
 
 add_library(Parable STATIC ${PARABLE_SRCS})
 

@@ -23,7 +23,6 @@ Application::Application()
     // TEMP TEST LAYERS
     m_layer_stack.push(new Input::InputLayer());
     m_layer_stack.push(new EventLogLayer(0));
-    
 }
 
 void Application::run()

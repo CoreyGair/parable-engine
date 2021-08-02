@@ -1,72 +1,64 @@
-#include <catch2/catch_test_macros.hpp>
-#include <catch2/generators/catch_generators.hpp>
+#include <gtest/gtest.h>
+
+#include "test_button_map.h"
 
 // includes from engine for test
 #include "Input/ButtonMap.h"
 #include "Events/InputEvent.h"
 
 
-TEST_CASE("ButtonMap functions with one input", "[input]")
+TEST_F(ButtonMapOneInput, PressAndReleasePolling)
 {
-    std::vector<Parable::Input::InputCode> inputs {55};
-    Parable::Input::ButtonMap map (std::string("test"), inputs);
+    map.on_input_pressed(55);
 
-    REQUIRE(map.get_name() == "test");
+    ASSERT_TRUE(map.is_down());
+    ASSERT_TRUE(map.pressed_this_frame());
 
-    SECTION("Button pressed sets down and pressed states")
-    {
-        map.on_input_pressed(55);
+    map.on_update();
+    EXPECT_FALSE(map.pressed_this_frame()) << "Update did not reset pressed state.";
 
-        REQUIRE(map.is_down() == true);
-        REQUIRE(map.pressed_this_frame() == true);
-
-        SECTION("Update resets pressed state")
-        {
-            map.on_update();
-
-            REQUIRE(map.pressed_this_frame() == false);
-        }
-        SECTION("Release resets down state")
-        {
-            map.on_input_released(55);
-
-            REQUIRE(map.is_down() == false);
-        }
-    }
-    SECTION("Button pressed calls pressed callback")
-    {
-        // TODO: implement callbacks and test
-        REQUIRE(false);
-
-        SECTION("Button released calls released callback")
-        {
-            REQUIRE(false);
-        }
-    }
+    map.on_input_released(55);
+    EXPECT_FALSE(map.is_down()) << "Release did not reset down state.";
 }
 
-TEST_CASE("ButtonMap functions with multiple input", "[input]")
+TEST_F(ButtonMapOneInput, PressAndReleaseCallbacks)
+{
+    map.on_input_pressed(55);
+
+    // TODO: implement callbacks and test 
+    EXPECT_TRUE(false) << "implement callbacks and test";
+}
+
+
+TEST_F(ButtonMapMultipleInput, PressAndReleasePolling)
 {
     std::vector<Parable::Input::InputCode> inputs {55,112,1};
     Parable::Input::ButtonMap map (std::string("multi input test"), inputs);
 
-    SECTION("Buttons pressed sets down and pressed states")
-    {
-        map.on_input_pressed(55);
-        map.on_input_pressed(112);
-        map.on_input_pressed(1);
+    map.on_input_pressed(55);
+    map.on_input_pressed(112);
+    map.on_input_pressed(1);
 
-        REQUIRE(map.is_down() == true);
-        REQUIRE(map.pressed_this_frame() == true);
-    }
-    SECTION("Multiple pressed doesnt notify pressed callback multiple times")
-    {
-        // TODO: implement callbacks and test
-        REQUIRE(false);
+    ASSERT_TRUE(map.is_down());
+    ASSERT_TRUE(map.pressed_this_frame());
 
-        SECTION("Only calls released callback when all released")
-        {
-            REQUIRE(false);
-        }
-    }
+    // only when all are released should down be reset
+    map.on_input_released(55);
+    EXPECT_TRUE(map.is_down());
+
+    map.on_input_released(112);
+    EXPECT_TRUE(map.is_down());
+
+    map.on_input_released(1);
+    EXPECT_FALSE(map.is_down());
+}
+
+TEST_F(ButtonMapMultipleInput, MultipleInputsCallbacks)
+{
+    map.on_input_pressed(55);
+    map.on_input_pressed(112);
+    map.on_input_pressed(1);
+
+    // TODO: implement callbacks and test
+    EXPECT_TRUE(false) << "implement callbacks and test";
 }

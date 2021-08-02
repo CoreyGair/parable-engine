@@ -37,3 +37,5 @@ protected:
 
 
 }
+
+#include "Allocator.tpp"

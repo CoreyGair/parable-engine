@@ -1,68 +1,38 @@
-set(PARABLE_SRCS_CORE       ${CMAKE_CURRENT_SOURCE_DIR}/Core/Application.h
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Core/Application.cpp
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Core/EntryPoint.h
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Core/Base.h
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Core/Log.h
+set(PARABLE_SRCS_CORE       ${CMAKE_CURRENT_SOURCE_DIR}/Core/Application.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Core/Log.cpp
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Core/Layer.h
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Core/LayerStack.h
                             ${CMAKE_CURRENT_SOURCE_DIR}/Core/LayerStack.cpp
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Core/Assert.h
                             )
 
-set(PARABLE_SRCS_EVENTS     ${CMAKE_CURRENT_SOURCE_DIR}/Events/Event.h
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Events/WindowEvent.h
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Events/InputEvent.h
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Events/EventBuffer.h
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Events/EventBuffer.cpp
+set(PARABLE_SRCS_EVENTS     ${CMAKE_CURRENT_SOURCE_DIR}/Events/EventBuffer.cpp
                             )
 
-set(PARABLE_SRCS_PLATFORM   ${CMAKE_CURRENT_SOURCE_DIR}/Platform/PlatformDetection.h
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/PlatformDefines.h
+set(PARABLE_SRCS_PLATFORM   
                             )
 
-set(PARABLE_SRCS_WINDOW     ${CMAKE_CURRENT_SOURCE_DIR}/Window/Window.h
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Window/Window.cpp
+set(PARABLE_SRCS_WINDOW     ${CMAKE_CURRENT_SOURCE_DIR}/Window/Window.cpp
                             )
 
-set(PARABLE_SRCS_DEBUG      ${CMAKE_CURRENT_SOURCE_DIR}/Debug/EventLogLayer.h
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Debug/EventLogLayer.cpp
+set(PARABLE_SRCS_DEBUG      ${CMAKE_CURRENT_SOURCE_DIR}/Debug/EventLogLayer.cpp
                             )
 
-set(PARABLE_SRCS_INPUT      ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputCodes.h
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputLayer.h
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputLayer.cpp
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputManager.h
+set(PARABLE_SRCS_INPUT      ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputLayer.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputManager.cpp
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputContext.h
                             ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputContext.cpp
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Input/ButtonMap.h
                             ${CMAKE_CURRENT_SOURCE_DIR}/Input/ButtonMap.cpp
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputContextLoader.h
                             ${CMAKE_CURRENT_SOURCE_DIR}/Input/InputContextLoader.cpp
                             )
 
-set(PARABLE_SRCS_MEMORY     ${CMAKE_CURRENT_SOURCE_DIR}/Memory/Allocator.h
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Memory/Allocator.tpp
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Memory/LinearAllocator.h
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Memory/LinearAllocator.cpp
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Memory/PoolAllocator.h
+set(PARABLE_SRCS_MEMORY     ${CMAKE_CURRENT_SOURCE_DIR}/Memory/LinearAllocator.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Memory/PoolAllocator.cpp
                             ) 
 
-set(PARABLE_SRCS_UTIL   ${CMAKE_CURRENT_SOURCE_DIR}/Util/TemplateTypeID.h
-                        ${CMAKE_CURRENT_SOURCE_DIR}/Util/DynamicBitset.h
-                        ${CMAKE_CURRENT_SOURCE_DIR}/Util/DynamicBitset.cpp
+set(PARABLE_SRCS_UTIL   ${CMAKE_CURRENT_SOURCE_DIR}/Util/DynamicBitset.cpp
                         )
 
-set(PARABLE_SRCS_ECS    ${CMAKE_CURRENT_SOURCE_DIR}/ECS/Entity.h
-                        ${CMAKE_CURRENT_SOURCE_DIR}/ECS/IComponent.h
-                        ${CMAKE_CURRENT_SOURCE_DIR}/ECS/Component.h
+set(PARABLE_SRCS_ECS    
                         ) 
 
-set(PARABLE_SRCS_EXCEPTION      ${CMAKE_CURRENT_SOURCE_DIR}/Exception/Exception.h
-                                ${CMAKE_CURRENT_SOURCE_DIR}/Exception/LogicExceptions.h
-                                ${CMAKE_CURRENT_SOURCE_DIR}/Exception/MemoryExceptions.h
+set(PARABLE_SRCS_EXCEPTION      
                                 ) 
 
 set(PARABLE_SRCS    ${PARABLE_SRCS_CORE}

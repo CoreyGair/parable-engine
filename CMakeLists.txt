@@ -11,7 +11,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_definitions(-DCMAKE_EXPORT_COMPILE_COMMANDS=ON)
 
 # add thread libs
-SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-pthread")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+#add_compile_options(-pthread)
 
 add_subdirectory(Parable)
 

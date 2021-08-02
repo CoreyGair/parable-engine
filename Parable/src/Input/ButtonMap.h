@@ -17,6 +17,13 @@ public:
     ButtonMap(const std::string& name, std::vector<InputCode>& inputs) : m_name(name), m_inputs(std::move(inputs)) {}
     ButtonMap(ButtonMap&& other) : ButtonMap(other.m_name, other.m_inputs) {}
 
+    ButtonMap& operator=(ButtonMap&& other)
+    {
+        m_name = std::move(other.m_name);
+        m_inputs = std::move(other.m_inputs);
+        return *this;
+    }    
+
     const std::string& get_name() { return m_name; }
 
     bool is_down() { return m_down; }

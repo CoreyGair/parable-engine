@@ -8,7 +8,6 @@
 #include "Exception/MemoryExceptions.h"
 
 #include "Memory/Allocator.h"
-#include "Memory/Allocator.tpp"
 
 
 namespace Parable::Util
@@ -32,7 +31,7 @@ DynamicBitset::DynamicBitset(size_t size, Allocator& allocator) :
 
     m_segments = allocator.allocate_array<Segment>(m_num_segments);
 
-    if (m_segments != nullptr)
+    if (m_segments == nullptr)
     {
         throw Parable::AllocationFailedException("Failed to allocate space for bitset.");
     }
@@ -52,7 +51,7 @@ DynamicBitset::~DynamicBitset()
  *
  * @param bit the position of the bit to check
  */
-bool DynamicBitset::operator[](size_t bit)
+bool DynamicBitset::operator[](size_t bit) const
 {
     size_t segment = bit / segment_bitwidth;
     size_t pos = bit - (segment * segment_bitwidth);
@@ -67,7 +66,7 @@ bool DynamicBitset::operator[](size_t bit)
  * 
  * @throws Parable::OutOfRangeException if bit >= size of the bitset
  */
-bool DynamicBitset::at(size_t bit)
+bool DynamicBitset::at(size_t bit) const
 {
     if (bit >= m_size)
     {
@@ -90,12 +89,18 @@ bool DynamicBitset::all() const
     }
 
     // for last segment, check only the used bits
-    if (m_last_segment_bits > 0)
+    if (m_last_segment_bits < segment_bitwidth)
     {
+        size_t mask = 0;
         for(size_t i = 0; i < m_last_segment_bits; ++i)
         {
-            if (!(*this)[i]) return false;
+            mask |= BIT(i);
         }
+        if ((~m_segments[m_num_segments-1]) & mask != 0) return false;
+    }
+    else
+    {
+        if (~m_segments[m_num_segments-1] != 0) return false;
     }
 
     return true;

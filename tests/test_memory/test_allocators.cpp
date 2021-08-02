@@ -1,70 +1,60 @@
-// #include <catch2/catch_test_macros.hpp>
+#include <gtest/gtest.h>
+
+#include "test_allocators.h"
+
+// engine includes
+#include <Memory/LinearAllocator.h>
+#include <Memory/PoolAllocator.h>
 
 
+// NOTE: we dont test deallocation here as LinearAllocator doesnt dealloc, only clear
+TEST_F(TestLinearAllocator, SingleAllocation)
+{
+    int* x = alloc.allocate_new<int>();
+    ASSERT_NE(x, nullptr);
 
-// //
-// // TODO: see if u can fix the segfaults these tests cause
-// //
-// //    Think its catch2 not liking the malloc, but not sure
-// //
+    // test an access to proc any hidden segfaults
+    *x = 1;
+
+    alloc.clear();
+}
+TEST_F(TestLinearAllocator, ArrayAllocation)
+{
+    int* arr = alloc.allocate_array<int>(4);
+    ASSERT_NE(arr, nullptr);
+
+    arr[0] = 1;
+    arr[1] = 1;
+    arr[2] = 1;
+    arr[3] = 1;
+
+    alloc.clear();
+}
 
 
+TEST_F(TestPoolAllocator, SingleAllocation)
+{
+    size_t* x = alloc.allocate_new<size_t>();
+    ASSERT_NE(x, nullptr);
 
+    // test an access to proc any hidden segfaults
+    *x = 1;
 
+    alloc.deallocate_delete(*x);
+    EXPECT_EQ(alloc.get_used(), 0) << "Used memory is not 0.";
+    EXPECT_EQ(alloc.get_allocations(), 0) << "Not all allocations have been deallocated.";
+}
+TEST_F(TestPoolAllocator, ArrayAllocation)
+{
+    size_t* arr = alloc.allocate_array<size_t>(4);
+    ASSERT_NE(arr, nullptr);
 
-// #include "Memory/LinearAllocator.h"
-// #include "Memory/PoolAllocator.h"
+    arr[0] = 1;
+    arr[1] = 1;
+    arr[2] = 1;
+    arr[3] = 1;
 
-// #include "Memory/Allocator.tpp"
-
-// //TMP
-// #include <stdio.h>
-
-// void* mem = malloc(128);
-// Parable::LinearAllocator alloc (128, mem);
-
-// TEST_CASE("LinearAllocator", "[memory]")
-// {
-//     alloc.clear();
-
-//     // NOTE: we dont test deallocation here as LinearAllocator doesnt dealloc, only clear
-
-//     SECTION("Allocate")
-//     {
-//         int* x = alloc.allocate_new<int>();
-//         REQUIRE(x != nullptr);
-//     }
-//     SECTION("Allocate array")
-//     {
-//         int* arr = alloc.allocate_array<int>(4);
-//         REQUIRE((&arr[0] != nullptr && &arr[1] != nullptr && &arr[2] != nullptr && &arr[3] != nullptr));
-//     }
-// }
-
-// TEST_CASE("PoolAllocator", "[memory]")
-// {
-//     alloc.clear();
-
-//     SECTION("Allocate")
-//     {
-//         int* x = alloc.allocate_new<int>();
-//         REQUIRE(x != nullptr);
-        
-//         SECTION("Deallocate")
-//         {
-//             alloc.deallocate_delete(*x);
-//             REQUIRE((alloc.get_used() == 0 && alloc.get_allocations() == 0));
-//         }
-//     }
-//     SECTION("Allocate array")
-//     {
-//         int* arr = alloc.allocate_array<int>(4);
-//         REQUIRE((&arr[0] != nullptr && &arr[1] != nullptr && &arr[2] != nullptr && &arr[3] != nullptr));
-
-//         SECTION("Deallocate array")
-//         {
-//             alloc.deallocate_array(arr);
-//             REQUIRE((alloc.get_used() == 0 && alloc.get_allocations() == 0));
-//         }
-//     }
-// }
+    alloc.deallocate_array(arr);
+    EXPECT_EQ(alloc.get_used(), 0) << "Used memory is not 0.";
+    EXPECT_EQ(alloc.get_allocations(), 0) << "Not all allocations have been deallocated.";
+}

@@ -1,89 +1,72 @@
-#include <catch2/catch_test_macros.hpp>
+#include <gtest/gtest.h>
+
+#include "test_bitset.h"
 
 #include <Util/DynamicBitset.h>
 #include <Memory/LinearAllocator.h>
 
-TEST_CASE("DynamicBitset set and get", "[util]")
+
+TEST_F(TestDynamicBitset, SetAndGet)
 {
-    void* mem = malloc(10 * sizeof(size_t));
-    Parable::LinearAllocator alloc (10 * sizeof(size_t),mem);
+    ASSERT_TRUE(bitset.none()) << "Bitset not initialised with 0's";
 
-    Parable::Util::DynamicBitset bitset (10, alloc);
-
-    REQUIRE(bitset.none() == true);
-
-    SECTION("Set/get bit")
+    // set all
+    for(int i = 0; i < 10; ++i)
     {
-        for(int i = 0; i < 10; ++i)
-        {
-            bitset.set(i);
-            REQUIRE(bitset.at(i) == true);
-            REQUIRE(bitset.any() == true);
-            REQUIRE(bitset.count() == i+1);
-        }
-
-        REQUIRE(bitset.all() == true);
-
-        SECTION("Reset bit")
-        {
-            for(int i = 0; i < 10; ++i)
-            {
-                bitset.reset(i);
-                REQUIRE(bitset.at(i) == false);
-            }
-        }
+        bitset.set(i);
+        ASSERT_TRUE(bitset.at(i)) << "Failed to set bit " << i;
+        EXPECT_TRUE(bitset.any()) << "any() check failed";
+        EXPECT_EQ(bitset.count(), i+1) << "count is incorrect";
     }
 
-    SECTION("Flip")
+    ASSERT_TRUE(bitset.all()) << "all() check failed";
+
+    // reset all
+    for(int i = 0; i < 10; ++i)
     {
-        bitset.flip_all();
-        REQUIRE(bitset.all() == true);
+        bitset.reset(i);
+        EXPECT_FALSE(bitset.at(i)) << "failed to reset bit " << i;
     }
+
+    ASSERT_TRUE(bitset.none()) << "none() check failed";
+
+    bitset.flip_all();
+    EXPECT_TRUE(bitset.all()) << "flip failed";
 }
 
-TEST_CASE("DynamicBitset operators", "[util]")
+TEST_F(TestTwoDynamicBitset, Comparisons)
 {
-    void* mem = malloc(10 * sizeof(size_t));
-    Parable::LinearAllocator alloc (10 * sizeof(size_t),mem);
-
-    Parable::Util::DynamicBitset a (5, alloc);
     a.set(0); a.set(2); a.set(4);
+    b.set(0);
 
-    SECTION("Comparisons")
-    {
-        Parable::Util::DynamicBitset b (5, alloc);
-        b.set(0); b.set(2); b.set(4);
+    ASSERT_NE(a, b);
 
-        REQUIRE(a == b);
+    b.set(0); b.set(2); b.set(4);
+    ASSERT_EQ(a, b);
+}
+TEST_F(TestTwoDynamicBitset, BitwiseAND)
+{
+    a.set(0); a.set(2); a.set(4);
+    b.set(0); b.set(1); b.set(3);
 
-        b.reset_all();
+    a &= b;
+    EXPECT_EQ(a.count(), 1);
+    EXPECT_TRUE(a.at(0));
+}
+TEST_F(TestTwoDynamicBitset, BitwiseOR)
+{
+    a.set(0); a.set(2); a.set(4);
+    b.set(0); b.set(1); b.set(3);
 
-        REQUIRE(a != b);
-    }
+    a |= b;
+    EXPECT_TRUE(a.all());
+}
+TEST_F(TestTwoDynamicBitset, BitwiseXOR)
+{
+    a.set(0); a.set(2); a.set(4);
+    b.set(0); b.set(1); b.set(3);
 
-    SECTION("Bitwise operations")
-    {
-        Parable::Util::DynamicBitset b (5, alloc);
-        b.set(1); b.set(3);
-
-        SECTION("AND")
-        {
-            b.set(0);
-            a &= b;
-            REQUIRE(a.count() == 1);
-            REQUIRE(a.at(0) == true);
-        }
-        SECTION("OR")
-        {
-            a |= b;
-            REQUIRE(a.all() == true);
-        }
-        SECTION("XOR")
-        {
-            b.set(0);
-            a &= b;
-            REQUIRE(a.count() == 4);
-            REQUIRE(a.at(0) == false);
-        }
-    }
+    a ^= b;
+    EXPECT_EQ(a.count(), 4);
+    EXPECT_FALSE(a.at(0));
 }

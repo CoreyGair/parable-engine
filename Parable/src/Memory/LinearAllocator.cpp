@@ -38,7 +38,7 @@ void* LinearAllocator::allocate(size_t size, size_t alignment)
 
 void LinearAllocator::deallocate(void* p)
 {
-    PBL_CORE_ASSERT_MSG(false, "Cannot dealloc from LinearAllocator, usee clear() instead.")
+    PBL_CORE_WARN("Cannot dealloc from LinearAllocator, use clear() instead.");
 }
 
 void LinearAllocator::clear()
