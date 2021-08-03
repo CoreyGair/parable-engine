@@ -5,6 +5,12 @@
 
 extern Parable::Application* Parable::create_application();
 
+/**
+ * @file EntryPoint.h
+ * 
+ * Defines the engine main function.
+ */
+
 // Engine-defined main entrypoint
 int main(int argc, char** argv){
 

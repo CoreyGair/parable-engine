@@ -6,6 +6,9 @@ namespace Parable
 {
 
 
+/**
+ * Thrown when a memory allocation fails.
+ */
 class AllocationFailedException : public Exception
 {
 public:

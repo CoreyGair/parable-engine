@@ -15,6 +15,13 @@ LinearAllocator::~LinearAllocator()
     PBL_CORE_ASSERT_MSG(m_used == 0 && m_allocations == 0, "LinearAllocator memory leak!")
 }
 
+/**
+ * Allocate memory.
+ * 
+ * @param size the number of bytes to allocate
+ * @param alignment the alignment required
+ * @return void* address of allocated memory
+ */
 void* LinearAllocator::allocate(size_t size, size_t alignment)
 {
     PBL_CORE_ASSERT_MSG(size != 0, "Trying to allocate with size 0!")
@@ -36,11 +43,18 @@ void* LinearAllocator::allocate(size_t size, size_t alignment)
     return aligned_free;
 }
 
+/**
+ * This allocator does not deallocate; use clear() instead.
+ */
 void LinearAllocator::deallocate(void* p)
 {
     PBL_CORE_WARN("Cannot dealloc from LinearAllocator, use clear() instead.");
 }
 
+/**
+ * Clear all allocations.
+ * 
+ */
 void LinearAllocator::clear()
 {
     m_used = 0;

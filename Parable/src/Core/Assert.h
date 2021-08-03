@@ -3,6 +3,12 @@
 #include "Core/Base.h"
 #include "Core/Log.h"
 
+/**
+ * @file Assert.h
+ * 
+ * Defines engine assertions.
+ */
+
 // simple for now to enable assertions in debug builds
 #ifdef PBL_DEBUG
     #define PBL_ENABLE_ASSERTS

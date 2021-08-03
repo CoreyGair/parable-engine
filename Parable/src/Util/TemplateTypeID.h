@@ -5,10 +5,9 @@
 namespace Parable::Util
 {
 
-// use with inheritance -> Derived = U : Base<Derived> : Interface = T
-
-// gives a compile-time evaluated ID for derived classes in the above pattern
-
+/**
+ * Generates compile-time evaluated ID's for derived classes.
+ */
 template<class T>
 class TemplateTypeID
 {
@@ -16,6 +15,15 @@ class TemplateTypeID
 	
 public:
 	
+	/**
+	 * Gives a compile-time evaluated ID for derived classes.
+	 * 
+	 * For the interface class T, a base class Base and a derived class U, we have:
+	 * 
+	 * U -isa-> Base<U> -isa-> T
+	 * 
+	 * When this class is called with templates T & U, gives a unique ID for U
+	 */
 	template<class U>
 	static const TypeID get()
 	{

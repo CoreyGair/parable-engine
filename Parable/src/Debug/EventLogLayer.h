@@ -7,13 +7,19 @@
 namespace Parable
 {
 
-// a simple debug layer for logging events
+/** A simple debug layer for logging events.
+ * 
+ * Logs all events as INFO, then passes them on to the rest of the application.
+ * 
+ */
 class EventLogLayer : public Layer
 {
 private:
     std::string m_name;
 
-    // which event categories should we ignore (if any)
+    /**
+     * Which event categories should we ignore (if any).
+     */
     int m_event_category_blacklist;
 
 public:

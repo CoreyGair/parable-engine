@@ -7,6 +7,12 @@
 #include "Platform/PlatformDetection.h"
 #include "Platform/PlatformDefines.h"
 
+/**
+ * @file Base.h
+ * 
+ * Defines common includes and defines for internal classes.
+ */
+
 // build config stuff
 #ifdef PBL_DEBUG
     #if defined(PBL_PLATFORM_WINDOWS)

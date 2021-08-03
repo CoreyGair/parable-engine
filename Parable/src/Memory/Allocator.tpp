@@ -9,12 +9,28 @@
 namespace Parable
 {
 
+/**
+ * Allocate an object with this allocator.
+ * 
+ * Replaces built-in 'new'.
+ * 
+ * @tparam T the type of the object to construct
+ */
 template<class T>
 T* Allocator::allocate_new()
 {
     return new (allocate(sizeof(T), alignof(T))) T;
 }
 
+/**
+ * Allocate an array of objects with this allocator.
+ * 
+ * Replaces built in 'new[]'
+ * 
+ * @tparam T the type of objects in the array
+ * @param length the length of the array
+ * @return T* pointer to the first object in the array
+ */
 template<class T>
 T* Allocator::allocate_array(size_t length)
 {
@@ -37,6 +53,14 @@ T* Allocator::allocate_array(size_t length)
     return array_start;
 }
 
+/**
+ * Deallocate an object allocated by this allocator.
+ * 
+ * Replaces built-in 'delete'
+ * 
+ * @tparam T the type of the object to delete
+ * @param object reference to the object to be deleted
+ */
 template<class T>
 void Allocator::deallocate_delete(T& object)
 {
@@ -44,6 +68,14 @@ void Allocator::deallocate_delete(T& object)
     deallocate(&object);
 }
 
+/**
+ * Dealocate an array of objects allocated by this allocator.
+ * 
+ * Replaces built-in 'delete[]'
+ * 
+ * @tparam T the type of objects in the array
+ * @param array address of the first object in the array
+ */
 template<class T>
 void Allocator::deallocate_array(T* array)
 {

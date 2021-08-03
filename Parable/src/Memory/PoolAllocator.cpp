@@ -5,6 +5,18 @@ namespace Parable
 {
 
 
+/**
+ * Construct a new Pool Allocator.
+ * 
+ * Splits the memory into chunks which are joined in a free chunk linked list.
+ * Takes from the free chunks head when an allocation is requested
+ * Inserts memory back into free list when it is deallocated.
+ * 
+ * @param object_size size of the chunks
+ * @param object_alignment alignment of the chunks
+ * @param alloc_size size of the allocated memory
+ * @param alloc_start address of start of the allocated memory
+ */
 PoolAllocator::PoolAllocator(size_t object_size, size_t object_alignment, size_t alloc_size, void* alloc_start) :                                 Allocator(alloc_size, alloc_start), 
                                 m_object_size(object_size),
                                 m_object_alignment(object_alignment)
@@ -37,6 +49,13 @@ PoolAllocator::~PoolAllocator()
     PBL_CORE_ASSERT_MSG(m_used == 0 && m_allocations == 0, "PoolAllocator memory leak!")
 }
 
+/**
+ * Allocate a memory chunk.
+ * 
+ * @param size the number of bytes to allocate
+ * @param alignment the alignment required
+ * @return void* address of allocated memory
+ */
 void* PoolAllocator::allocate(size_t size, size_t alignment)
 {
     PBL_CORE_ASSERT_MSG(size % m_object_size == 0, "PoolAllocator::allocate incorrect size {}, must be a multiple of the pool object size {}.", size, m_object_size)
@@ -55,6 +74,13 @@ void* PoolAllocator::allocate(size_t size, size_t alignment)
     return return_ptr;
 }
 
+/**
+ * Deallocate a memory chunk.
+ * 
+ * Returns the memory to the free list to be reused.
+ * 
+ * @param p the memeory to deallocate
+ */
 void PoolAllocator::deallocate(void* p) 
 {
     // put this ptr at the head of the free list:

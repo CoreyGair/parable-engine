@@ -11,6 +11,12 @@ class Layer;
 
 
 // TODO: should prob use unique ptrs here...
+/**
+ * Holds layers in a stack for use by the Application.
+ * 
+ * Allows forwards iteration for update(), and reverse iteration for event()
+ * 
+ */
 class LayerStack
 {
 private:

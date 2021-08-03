@@ -5,7 +5,12 @@
 namespace Parable
 {
 
-
+/**
+ * Simple allocator which allocates linearly.
+ * 
+ * This allocator cannot deallocate, instead it can only be completely cleared.
+ * 
+ */
 class LinearAllocator : public Allocator
 {
 public:

@@ -25,6 +25,12 @@ Application::Application()
     m_layer_stack.push(new EventLogLayer(0));
 }
 
+/**
+ * Main application loop.
+ * 
+ * Processes events and updates.
+ * 
+ */
 void Application::run()
 {
 
@@ -40,7 +46,9 @@ void Application::run()
 
 }
 
-// call update on each layer
+/**
+ * Call update on each layer
+ */
 void Application::on_update()
 {
     for(auto it = m_layer_stack.cbegin(); it != m_layer_stack.cend(); ++it)
@@ -49,13 +57,17 @@ void Application::on_update()
     }
 }
 
-// pushes event to event queue
+/**
+ * Pushes event to event queue
+ */
 void Application::on_event(Event::EventUPtr e)
 {
     m_event_buffer.push(std::move(e));
 }
 
-// dispatches all events in queue to layers
+/**
+ * Dispatches all events in queue to layers
+ */
 void Application::process_events()
 {
     while(!m_event_buffer.is_empty())
@@ -70,6 +82,9 @@ void Application::process_events()
     }
 }
 
+/**
+ * Add an engine layer.
+ */
 void Application::push_layer(Layer* layer)
 {
     m_layer_stack.push(layer);

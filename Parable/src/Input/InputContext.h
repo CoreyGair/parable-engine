@@ -11,6 +11,10 @@ namespace Parable::Input
 {
 
 
+/**
+ * Groups together ButtonMaps for enabling/disabling purposes.
+ * 
+ */
 class InputContext
 {
 public:

@@ -5,10 +5,20 @@
 
 #include <memory>
 
+/**
+ * @file Log.h
+ * 
+ * Engine logging header, holds logging initialisation and macros
+ * 
+ */
+
 namespace Parable
 {
 
-// Engine logging header, holds logging initialisation and macros
+/**
+ * Handles logger initialisaion (spdlog)
+ * 
+ */
 class Log{
     public:
         static void init();

@@ -11,6 +11,10 @@ namespace Parable
 // may be more efficient as pure lambda, but this is easy
 using EventCallbackFn = std::function<void(Event::EventUPtr)>;
 
+/**
+ * Holds data about a glfw window.
+ * 
+ */
 struct WindowData
 {
     int width;
@@ -20,6 +24,12 @@ struct WindowData
     EventCallbackFn event_callback;
 };
 
+/**
+ * Manages the glfw window.
+ * 
+ * 
+ * 
+ */
 class Window
 {
 private:

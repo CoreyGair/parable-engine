@@ -12,7 +12,12 @@
 namespace Parable::Input
 {
 
-
+/**
+ * Holds all current input states.
+ * 
+ * Currently includes: key states, mouse button states, mouse movement, mouse scroll
+ * 
+ */
 struct InputState
 {
     // down refers to the key/btn being held down, pressed means it became down after the previous on_update
@@ -26,6 +31,13 @@ struct InputState
 };
 
 
+/**
+ * Manages the input system.
+ * 
+ * Holds the state of the input for polling by other parts of the engine.
+ * Also holds InputContexts which define virtual control sets.
+ * 
+ */
 class InputManager
 {
 public:

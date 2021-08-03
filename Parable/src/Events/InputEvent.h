@@ -14,10 +14,14 @@ namespace Parable
 //// KEYBOARD EVENTS
 
 
+/**
+ * Abstract class for keyboard input events.
+ * 
+ */
 class KeyEvent : public Event
 {
 public:
-    virtual ~KeyEvent() = default;
+    virtual ~KeyEvent() = 0;
 
     Input::KeyCode get_key_code() { return m_keycode; }
 
@@ -25,9 +29,11 @@ public:
     KeyEvent(int key) : m_keycode(static_cast<Input::KeyCode>(key)) {}
 
 protected:
+    /**
+     * The key which the event is about.
+     */
     Input::KeyCode m_keycode;
 };
-
 
 
 class KeyPressedEvent : public KeyEvent
@@ -92,6 +98,10 @@ public:
     EVENT_CLASS_TYPE(MouseExit)
 };
 
+/**
+ * Abstract class for mouse button input events.
+ * 
+ */
 class MouseBtnEvent : public Event
 {
 public:
@@ -138,9 +148,14 @@ public:
     std::string to_string() const override { std::stringstream out_stream; out_stream << get_name() << ": Ammount=" << m_scroll_amt; return out_stream.str();}
 
 private:
-    // note: the event only has a single scroll ammount value
-    // glfw exposes both an x and y scroll amt; most normal mice emit y ammounts so this is what we use
-    // may look into when the x scroll is uses in future and implement it
+
+    /**
+     * Ammount scrolled in this event.
+     * 
+     * Note that this event only has a single value.
+     * GLFW exposes an x and y scroll ammount, but most mice only use the y.
+     * Could look into implementing x scroll in future
+     */
     double m_scroll_amt;
 };
 

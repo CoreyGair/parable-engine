@@ -7,7 +7,10 @@ namespace Parable
 {
 
 
-// base interface for allocators
+/**
+ * Base interface for custom engine allocators.
+ * 
+ */
 class Allocator
 {
 public:
@@ -29,9 +32,21 @@ public:
     size_t get_allocations() { return m_allocations; }
 
 protected:
+    /**
+     * The size in bytes of the allocation.
+     */
     size_t m_size;
+    /**
+     * Address of the start of the allocation.
+     */
     void* m_start;
+    /**
+     * The number of used bytes.
+     */
     size_t m_used = 0;
+    /**
+     * The number of allocations made.
+     */
     size_t m_allocations = 0;
 };
 

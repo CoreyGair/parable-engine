@@ -10,6 +10,16 @@ namespace Parable
 {
 
 
+/**
+ * Construct a new Window.
+ * 
+ * Essentially just initialises a bunch of glwf stuff.
+ * 
+ * @param width window widith in pixels
+ * @param height window height in pixels
+ * @param name window name
+ * @param fullscreen should the window start in fullscreen?
+ */
 Window::Window(int width, int height, std::string name, bool fullscreen)
 {
     // init glfw

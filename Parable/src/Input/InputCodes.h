@@ -10,6 +10,11 @@ namespace Parable::Input
 using InputCode = unsigned short int;
 
 
+/**
+ * Represent keys on keyboard.
+ * 
+ * Just a copy-paste of glfw's keycodes.
+ */
 enum class KeyCode : InputCode
 {
     // From glfw3.h, corresponds to GLFW keycodes
@@ -149,6 +154,11 @@ enum class KeyCode : InputCode
     LAST = Menu
 };
 
+/**
+ * Represent mouse buttons.
+ * 
+ * Just a copy-paste of glfw's buttons, with additional for mouse scroll.
+ */
 enum class MouseButton : InputCode
 {
     MouseButton1 = 1,   // LEFT CLICK

@@ -14,6 +14,11 @@
 namespace Parable::Input
 {
 
+/**
+ * Parses the JSON file for input context data.
+ * 
+ * @return InputContext the loaded input context
+ */
 InputContext InputContextLoader::load_context()
 {
     std::ifstream t(m_file);

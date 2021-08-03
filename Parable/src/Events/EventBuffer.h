@@ -8,6 +8,11 @@
 
 namespace Parable{
 
+
+/**
+ * A buffer to store incoming engine events to process at a later time.
+ * 
+ */
 class EventBuffer
 {
 private:

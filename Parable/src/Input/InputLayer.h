@@ -9,7 +9,10 @@
 namespace Parable::Input
 {
 
-
+/**
+ * Engine layer responsible for the Input system
+ * 
+ */
 class InputLayer : public Layer
 {
 public:

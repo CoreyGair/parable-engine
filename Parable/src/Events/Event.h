@@ -9,6 +9,10 @@
 namespace Parable{
 
 
+/**
+ * Describes the specific type of engine events.
+ * 
+ */
 enum class EventType 
 {
     None = 0,
@@ -17,6 +21,10 @@ enum class EventType
 	MouseMoved,MouseEnter,MouseExit,MouseBtnPressed,MouseBtnReleased,MouseScrolled
 };
 
+/**
+ * Describes categories for filtering engine events.
+ * 
+ */
 enum EventCategory
 {
     None = 0,
@@ -35,6 +43,13 @@ enum EventCategory
 
 #define EVENT_CLASS_CATEGORY(category) virtual int get_event_category() const override { return category; }
 
+
+/**
+ * Abstract class for engine events.
+ * 
+ * Parable has a main event backbone, which passs data from the application to the engine layers.s
+ * 
+ */
 class Event
 {
 
@@ -57,14 +72,25 @@ public:
 
 };
 
+
+/**
+ * Dispatches events to engine layers.
+ */
 class EventDispatcher
 {
 public:
 	EventDispatcher(Event* event) : m_event(event) {} 
 
-	// dspatches event to handler func
-	// sets event.handled if event was handled
-	// returns true if the correct event type was passed (so if func was called)
+	/**
+	 * Dispatches m_event to a handler function.
+	 * 
+	 * Sets m_event.handled if the handler returns true (the event was handled),
+	 * and returns true if the correct event type was passed (and so the handler was invoked).
+	 * 
+	 * @tparam T the concrete event type the handler accepts
+	 * 
+	 * @param func function pointer to the handler
+	 */
 	template<typename T>
 	bool dispatch(const std::function<bool(T&)>& func)
 	{
@@ -76,8 +102,13 @@ public:
 		return false;
 	}
 
-	// pass a weak/non-owning/raw ptr of Event to the func instead
-	// use carefully
+	/**
+	 * Dispatch a pointer to the event.
+	 * 
+	 * Use carefully, mostly deprecated but used for some debugging for now.
+	 * 
+	 * @param func function pointer to handlers
+	 */
 	bool dispatch_raw(const std::function<bool(Event*)>& func)
 	{
 		m_event->handled |= func(m_event);
@@ -85,6 +116,10 @@ public:
 	}
 
 private:
+	/**
+	 * The event which we are dispatching.
+	 * 
+	 */
 	Event* m_event;
 };
 

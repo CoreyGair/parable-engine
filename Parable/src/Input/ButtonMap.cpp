@@ -16,7 +16,13 @@ void ButtonMap::on_update()
     m_pressed = false;
 }
 
-
+/**
+ * Updates state when an input button is pressed.
+ * 
+ * Sets pressed and down if the input is mapped, as well as calling the pressed callbacks.
+ * 
+ * @param code the input code of the button that was pressed
+ */
 void ButtonMap::on_input_pressed(InputCode code)
 {
     if (m_input_is_mapped(code))
@@ -31,6 +37,13 @@ void ButtonMap::on_input_pressed(InputCode code)
         }
     }
 }
+/**
+ * Updates state when an input button is released.
+ * 
+ * Resets down if the input is mapped, as well as calling the released callbacks.
+ * 
+ * @param code the input code of the button that was released
+ */
 void ButtonMap::on_input_released(InputCode code)
 {
     if (m_input_is_mapped(code))
