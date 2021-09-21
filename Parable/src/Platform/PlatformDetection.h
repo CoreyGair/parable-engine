@@ -14,6 +14,7 @@
         #ifdef TARGET_IPHONE_SIMULATOR
             // simulator
         #endif
+        #define PBL_PLATFORM_IOS
         #error "Unsupported IOS platform." 
     #else
         // OSX / macOS
@@ -21,9 +22,10 @@
         #define PBL_PLATFORM_OSX
     #endif
 #elif __ANDROID__
+    #define PBL_PLATFORM_ANDROID
 	#error "Unsupproted android platform."
 #elif __linux
-    #ifdef _LP64
+    #ifdef _LP64 || __aarch64__ || __x86_64__ || _IA64
         #define PBL_PLATFORM_LINUX
     #else
         #error "Unsupported 32-bit linux platform"
