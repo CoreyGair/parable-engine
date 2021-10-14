@@ -5,6 +5,17 @@
 namespace Parable::Util
 {
 
+//// NOTE: In order to use this, must put the following in the header of the InterfaceClass (with correct class names):
+/*
+
+namespace Parable::Util
+{
+TypeID TemplateTypeID<InterfaceClass>::s_count = 0;
+template class TemplateTypeID<InterfaceClass>;
+}
+
+*/
+
 /**
  * Generates compile-time evaluated ID's for derived classes.
  */
@@ -31,7 +42,7 @@ public:
 		return STATIC_TYPE_ID;
 	}
 
-	static const TypeID get()
+	static constexpr TypeID get_count()
 	{
 		return s_count;
 	}

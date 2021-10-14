@@ -21,7 +21,7 @@ namespace Parable
 class KeyEvent : public Event
 {
 public:
-    virtual ~KeyEvent() = 0;
+    virtual ~KeyEvent() = default;
 
     Input::KeyCode get_key_code() { return m_keycode; }
 

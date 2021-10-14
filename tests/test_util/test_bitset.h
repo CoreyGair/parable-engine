@@ -3,6 +3,7 @@
 #include "test_with_malloc.h"
 
 #include <Util/DynamicBitset.h>
+#include <Util/StaticBitset.h>
 #include <Memory/LinearAllocator.h>
 
 class TestDynamicBitset : public MallocWrapper<256>
@@ -34,4 +35,17 @@ public:
     Parable::LinearAllocator alloc;
     Parable::Util::DynamicBitset a;
     Parable::Util::DynamicBitset b;
+};
+
+class TestStaticBitset : public ::testing::Test
+{
+public:
+    Parable::Util::StaticBitset<10> bitset;
+};
+
+class TestTwoStaticBitset : public ::testing::Test
+{
+public:
+    Parable::Util::StaticBitset<5> a;
+    Parable::Util::StaticBitset<5> b;
 };

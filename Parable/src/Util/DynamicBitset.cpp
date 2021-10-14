@@ -38,6 +38,7 @@ DynamicBitset::DynamicBitset(size_t size, Allocator& allocator) :
 
     reset_all();
 }
+
                                         
 DynamicBitset::~DynamicBitset()
 {
@@ -116,15 +117,6 @@ bool DynamicBitset::any() const
         if (m_segments[i] != 0) return true;
     }
 
-    // for last segment, check only the used bits
-    if (m_last_segment_bits > 0)
-    {
-        for(size_t i = 0; i < m_last_segment_bits; ++i)
-        {
-            if ((*this)[i]) return true;
-        }
-    }
-
     return false;
 }
 
@@ -167,7 +159,7 @@ bool DynamicBitset::operator==(const DynamicBitset& rhs) const
     if (m_size != rhs.get_size())
     {
         std::ostringstream ss;
-        ss << "Cannot compare a bitset of size " << m_size << " with a bitset of size ";
+        ss << "Cannot compare a bitset of size " << m_size << " with a bitset of size "<< m_size;
         throw IncompatibleObjectException(ss.str().c_str());
     }
 
@@ -188,12 +180,36 @@ bool DynamicBitset::operator!=(const DynamicBitset& rhs) const
     if (m_size != rhs.get_size())
     {
         std::ostringstream ss;
-        ss << "Cannot compare a bitset of size " << m_size << " with a bitset of size ";
+        ss << "Cannot compare a bitset of size " << m_size << " with a bitset of size " << m_size;
         throw IncompatibleObjectException(ss.str().c_str());
     }
 
     return !((*this) == rhs);
 }
+
+
+bool DynamicBitset::is_subset_of(const DynamicBitset& other) const
+{
+    if (m_size != other.get_size())
+    {
+        std::ostringstream ss;
+        ss << "Cannot compare a bitset of size " << m_size << " with a bitset of size "<< m_size;
+        throw IncompatibleObjectException(ss.str().c_str());
+    }
+
+    for(size_t i = 0; i < m_num_segments; ++i)
+    {
+        Segment s = m_segments[i] & other.m_segments[i];
+        if (s != m_segments[i]) return false;
+    }
+
+    return true;
+}
+bool DynamicBitset::is_superset_of(const DynamicBitset& other) const
+{
+    return other.is_subset_of(*this);
+}
+
 
 // modifiers
 

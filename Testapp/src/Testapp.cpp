@@ -2,17 +2,12 @@
 
 #include <Core/EntryPoint.h>
 
-
-#include "Memory/LinearAllocator.h"
-#include "Util/DynamicBitset.h"
-
-
 class Testapp : public Parable::Application
 {
     public:
         Testapp()
         {
-
+            PBL_INFO("{}", sizeof(unsigned int));
         }
 
         ~Testapp()

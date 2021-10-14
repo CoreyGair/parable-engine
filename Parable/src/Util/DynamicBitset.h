@@ -8,17 +8,21 @@ namespace Parable
 namespace Parable::Util
 {
 
-using Segment = unsigned int;
+
 
 /** 
  *  Dynamic size implementation of std::bitset.
  *
- *  Holds a set of boolean values in an array of 8 bit allocations.
+ *  Holds a set of boolean values in an array of allocations.
  * 
  *  Implements most of the functions from std::bitset, but size is set in ctor instead of by template.
+ * 
+ * Invariant: any unused bits in the last segment will always be 0
  */
 class DynamicBitset
 {
+    using Segment = unsigned int;
+
 public:
     DynamicBitset(size_t size, Allocator& allocator);
     ~DynamicBitset();
@@ -42,6 +46,9 @@ public:
 
     bool operator==(const DynamicBitset& rhs) const;
     bool operator!=(const DynamicBitset& rhs) const;
+
+    bool is_subset_of(const DynamicBitset& other) const;
+    bool is_superset_of(const DynamicBitset& other) const;
 
     // modifiers
 
