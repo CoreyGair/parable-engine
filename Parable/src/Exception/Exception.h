@@ -12,10 +12,15 @@ namespace Parable
  * 
  * Essntially just a wrapper for std::exception.
  */
-class Exception : std::exception
+class Exception : public std::exception
 {
 public:
-    Exception(const char* msg) : std::exception(msg) {}
+    Exception(const char* msg) : m_msg(msg) {}
+
+    const char* what() const noexcept override { return m_msg; }
+
+private:
+    const char* m_msg;
 };
 
 

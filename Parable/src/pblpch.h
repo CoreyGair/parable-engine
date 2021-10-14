@@ -2,6 +2,8 @@
 
 // Precompiled header for parable engine
 
+#include <cstddef>
+
 #include "Platform/PlatformDetection.h"
 #include "Platform/PlatformDefines.h"
 

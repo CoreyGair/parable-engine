@@ -23,6 +23,7 @@ using ButtonCallback = std::function<void(void)>;
 class ButtonMap{
 public:
     ButtonMap(const std::string& name, std::vector<InputCode>& inputs) : m_name(name), m_inputs(std::move(inputs)) {}
+    ButtonMap(const std::string& name, std::vector<InputCode>&& inputs) : m_name(name), m_inputs(std::move(inputs)) {}
     ButtonMap(ButtonMap&& other) : ButtonMap(other.m_name, other.m_inputs) {}
     
     ButtonMap& operator=(ButtonMap&& other)

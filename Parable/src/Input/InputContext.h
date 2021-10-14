@@ -19,6 +19,7 @@ class InputContext
 {
 public:
     InputContext(std::string& name, std::vector<ButtonMap>& button_maps) : m_name(std::move(name)), m_button_maps(std::move(button_maps)) {}
+    InputContext(std::string& name, std::vector<ButtonMap>&& button_maps) : m_name(std::move(name)), m_button_maps(std::move(button_maps)) {}
     InputContext(InputContext&& other) : InputContext(other.m_name, other.m_button_maps) {}
 
     void on_update();
