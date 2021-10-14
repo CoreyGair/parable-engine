@@ -25,7 +25,7 @@
     #define PBL_PLATFORM_ANDROID
 	#error "Unsupproted android platform."
 #elif __linux
-    #ifdef _LP64 || __aarch64__ || __x86_64__ || _IA64
+    #if defined _LP64 || defined aarch64 || defined x86_64_|| defined IA64
         #define PBL_PLATFORM_LINUX
     #else
         #error "Unsupported 32-bit linux platform"
