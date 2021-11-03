@@ -58,6 +58,9 @@ void ButtonMap::on_input_released(InputCode code)
     }
 }
 
+/**
+ * Execute pressed callbacks
+ */
 void ButtonMap::notify_pressed()
 {
     for(auto cb : m_pressed_callbacks)
@@ -65,6 +68,10 @@ void ButtonMap::notify_pressed()
         cb();
     }
 }
+
+/**
+ * Execute released callbacks
+ */
 void ButtonMap::notify_released()
 {
     for(auto cb : m_released_callbacks)

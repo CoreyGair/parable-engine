@@ -7,7 +7,7 @@ class Testapp : public Parable::Application
     public:
         Testapp()
         {
-            PBL_INFO("{}", sizeof(unsigned int));
+            
         }
 
         ~Testapp()

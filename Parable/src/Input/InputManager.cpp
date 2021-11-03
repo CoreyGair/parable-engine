@@ -40,6 +40,11 @@ void InputManager::on_event(Event* e)
     dispatcher.dispatch<MouseBtnReleasedEvent>(PBL_BIND_MEMBER_EVENT_HANDLER(InputManager::mouse_btn_released));
 }
 
+/**
+ * Passes key pressed event to contexts and modifies polling state.
+ *
+ * Binds to event dispatcher.
+ */
 bool InputManager::key_pressed(KeyPressedEvent& e)
 {
     InputCode key = (InputCode)e.get_key_code();
@@ -48,6 +53,12 @@ bool InputManager::key_pressed(KeyPressedEvent& e)
     notify_contexts_of_input_pressed(key);
     return true;
 }
+
+/**
+ * Passes key released event to contexts and modifies polling state.
+ *
+ * Binds to event dispatcher.
+ */
 bool InputManager::key_released(KeyReleasedEvent& e)
 {
     InputCode key = (InputCode)e.get_key_code();
@@ -55,6 +66,12 @@ bool InputManager::key_released(KeyReleasedEvent& e)
     notify_contexts_of_input_released(key);
     return true;
 }
+
+/**
+ * Passes mouse button pressed event to contexts and modifies polling state.
+ *
+ * Binds to event dispatcher.
+ */
 bool InputManager::mouse_btn_pressed(MouseBtnPressedEvent& e)
 {
     InputCode btn = (InputCode)e.get_button();
@@ -63,6 +80,12 @@ bool InputManager::mouse_btn_pressed(MouseBtnPressedEvent& e)
     notify_contexts_of_input_pressed(btn);
     return true;
 }
+
+/**
+ * Passes mouse button released event to contexts and modifies polling state.
+ *
+ * Binds to event dispatcher.
+ */
 bool InputManager::mouse_btn_released(MouseBtnReleasedEvent& e)
 {
     InputCode btn = (InputCode)e.get_button();
@@ -70,6 +93,12 @@ bool InputManager::mouse_btn_released(MouseBtnReleasedEvent& e)
     notify_contexts_of_input_released(btn);
     return true;
 }
+
+/**
+ * Passes scroll event to contexts and modifies polling state.
+ *
+ * Binds to event dispatcher.
+ */
 bool InputManager::mouse_scrolled(MouseScrolledEvent& e)
 {
     m_input_state.mouse_scroll_delta += e.get_scroll_amt(); return true;
@@ -90,6 +119,12 @@ bool InputManager::mouse_scrolled(MouseScrolledEvent& e)
         notify_contexts_of_input_released(btn);
     }
 }
+
+/**
+ * Passes mouse moved event to contexts and modifies polling state.
+ *
+ * Binds to event dispatcher.
+ */
 bool InputManager::mouse_moved(MouseMovedEvent& e)
 {
     glm::vec2 new_pos { e.get_x(), e.get_y() };

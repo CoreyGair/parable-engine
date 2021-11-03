@@ -1,5 +1,11 @@
 #pragma once
 
+/**
+ * @file PlatformDetection.h
+ *
+ * Defines for which platform (OS/bits/mobile etc) we are compiling for.
+ */
+
 #ifdef _WIN32
     #define PBL_PLATFORM_WINDOWS
     #ifdef _WIN64   // 64 bit windows

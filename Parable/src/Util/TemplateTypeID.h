@@ -27,7 +27,7 @@ class TemplateTypeID
 public:
 	
 	/**
-	 * Gives a compile-time evaluated ID for derived classes.
+	 * Gives a compile-time evaluated ID for derived classes (uses CRTP).
 	 * 
 	 * For the interface class T, a base class Base and a derived class U, we have:
 	 * 

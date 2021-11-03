@@ -47,7 +47,7 @@ enum EventCategory
 /**
  * Abstract class for engine events.
  * 
- * Parable has a main event backbone, which passs data from the application to the engine layers.s
+ * Parable has a main event backbone, which passs data from the application to the engine layers.
  * 
  */
 class Event
