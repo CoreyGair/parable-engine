@@ -16,6 +16,7 @@ class PoolAllocator : public Allocator
 {
 public:
     PoolAllocator(size_t object_size, size_t object_alignment, size_t alloc_size, void* alloc_start);
+    PoolAllocator(PoolAllocator&& other);
     ~PoolAllocator();
 
     /**

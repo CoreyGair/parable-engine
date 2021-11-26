@@ -17,7 +17,8 @@ namespace Parable
  * @param alloc_size size of the allocated memory
  * @param alloc_start address of start of the allocated memory
  */
-PoolAllocator::PoolAllocator(size_t object_size, size_t object_alignment, size_t alloc_size, void* alloc_start) :                                 Allocator(alloc_size, alloc_start), 
+PoolAllocator::PoolAllocator(size_t object_size, size_t object_alignment, size_t alloc_size, void* alloc_start) :
+                                Allocator(alloc_size, alloc_start), 
                                 m_object_size(object_size),
                                 m_object_alignment(object_alignment)
 {
@@ -42,6 +43,17 @@ PoolAllocator::PoolAllocator(size_t object_size, size_t object_alignment, size_t
     }
     // terminate the list with null
     *p = nullptr;
+}
+
+PoolAllocator::PoolAllocator(PoolAllocator&& other) : Allocator(other.get_size(), other.get_start())
+{
+
+    m_object_size = other.m_object_size;
+    m_object_alignment = other.m_object_alignment;
+    m_free_list = other.m_free_list;
+
+    m_used = other.get_used();
+    m_allocations = other.get_allocations();
 }
 
 PoolAllocator::~PoolAllocator()

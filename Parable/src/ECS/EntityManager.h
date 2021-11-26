@@ -36,7 +36,7 @@ private:
      * These ID's are used before coninuing from m_next_entity.
      */
     std::queue<Entity> m_toombstone_entities;
-}
+};
 
 
 }
