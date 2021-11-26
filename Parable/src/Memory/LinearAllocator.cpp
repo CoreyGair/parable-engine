@@ -30,9 +30,8 @@ void* LinearAllocator::allocate(size_t size, size_t alignment)
     void* aligned_free = m_free_start;
     size_t free_size = m_size - m_used;
     size_t free_size_after_alignment = free_size;
-    std::align(alignment, size, aligned_free, free_size_after_alignment);
-    
-    if (aligned_free != nullptr)
+
+    if (std::align(alignment, size, aligned_free, free_size_after_alignment))
     {
         // add the alignment padding + alloc size to used, move the free ptr to the aligned addr + alloc size
         m_used += (free_size - free_size_after_alignment) + size;

@@ -2,6 +2,8 @@
 
 #include "ComponentManager.h"
 
+#include "Exception/MemoryExceptions.h"
+
 
 namespace Parable::ECS
 {
@@ -15,8 +17,8 @@ ComponentManager::ComponentManager(Allocator& allocator) : m_allocator(allocator
 																)
 															), 
 															m_component_chunk_allocator(
-																sizeof(ComponentChunk) + m_COMPONENT_CHUNK_SIZE,
-																alignof(ComponentChunk),
+																m_COMPONENT_CHUNK_SIZE,
+																0,
 																m_allocator.get_size() - m_allocator.get_used(),
 																m_allocator.allocate(m_allocator.get_size() - m_allocator.get_used(), 0)
 															)
@@ -30,8 +32,11 @@ ComponentManager::ComponentManager(Allocator& allocator) : m_allocator(allocator
 ComponentManager::~ComponentManager()
 {
 
-// deallocate space for the entity component lists
-m_allocator.deallocate(m_entity_component_list_allocator.get_start());
+	// deallocate space for the entity component lists
+	m_allocator.deallocate(m_entity_component_list_allocator.get_start());
+
+	// deallocate the component chunks
+	m_allocator.deallocate(m_component_chunk_allocator.get_start());
 
 }
 
@@ -82,20 +87,71 @@ void ComponentManager::remove_component(Entity e, ComponentTypeID c)
 
 }
 
-ComponentManager::ComponentChunk::ComponentChunk(size_t chunk_size, size_t component_size, size_t component_align) : m_component_size(component_size)
+
+ComponentManager::ComponentChunkManager::ComponentChunkManager(size_t component_size, size_t component_align, Allocator& chunk_allocator) :
+																m_component_size(component_size),
+																m_component_align(component_align)
+																m_allocator(chunk_allocator);
+																m_chunk_start(m_allocator.allocate(m_COMPONENT_CHUNK_SIZE,0))
 {
-	// seek a pointer to the end of this class:
-	// the ComponentManager will allocate chunk_size extra space here to store the components
-	void* components_space = this + sizeof(ComponentManager::ComponentChunk);
+	chunk = m_chunk_start;
 
-	// align this address to the desired component align
-	std::align(component_align, 0, components_space, chunk_size);
+	size_t max_components = m_COMPONENT_CHUNK_SIZE / m_component_size;
 
-	m_components = (IComponent*)components_space; 
+	m_num_flag_segments = max_components / (sizeof(FlagSegment) * 8);
+	size_t avaliable_chunk_size = m_COMPONENT_CHUNK_SIZE;
 
-	// calculate number of components we can fit in the chunk
-	m_component_count = chunk_size / component_size;
+	if (!std::align(alignof(FlagSegment), m_num_flag_segments * sizeof(FlagSegment), chunk, avaliable_chunk_size) == nullptr)
+	{
+		throw OutOfMemoryException("Not enough space in component chunk for flags!");
+	}
+
+	m_used_flags = chunk;
+	chunk += m_num_flag_segments * sizeof(FlagSegment);
+	for(int i = 0; i < m_num_flag_segments; ++i)
+	{
+		m_used_flags[i] = 0;
+	}
+
+
+	if (std::align(m_component_align, 0, chunk, avaliable_chunk_size) == nullptr)
+	{
+		throw OutOfMemoryException("Not enough space in component chunk for components!");
+	}
+
+	m_components = chunk;
+	m_num_components = avaliable_chunk_size / m_component_size;
 }
+
+
+ComponentManager::ComponentChunkManager::~ComponentChunkManager()
+{
+	m_allocator.deallocate(m_chunk_start);
+}
+
+size_t ComponentManager::ComponentChunkManager::first_free_space()
+{
+	size_t x;
+	const size_t segment_bitwidth = sizeof(FlagSegment) * 8;
+	for(size_t i = 0; i < m_num_flag_segments; ++i)
+    {
+        if (m_segments[i] == 0)
+		{
+			x = i * segment_bitwidth;
+			break;
+		} 
+        Segment s = ~m_segments[i];
+        if (s != 0)
+        {
+            s = (s & ~(s-1));
+            int pos = 0;
+            while (s >>= 1) ++pos;
+            x = i * segment_bitwidth + pos;
+        }
+    }
+	return x;
+}
+
 
 
 }

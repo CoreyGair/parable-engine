@@ -15,5 +15,11 @@ public:
     using Exception::Exception;
 };
 
+class OutOfMemoryException : public Exception
+{
+public:
+    using Exception::Exception;
+};
+
 
 }

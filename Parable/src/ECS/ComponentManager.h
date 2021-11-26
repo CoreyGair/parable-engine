@@ -50,26 +50,29 @@ public:
 	void remove_component(Entity e, ComponentTypeID c);
 
 private:
-	/**
-	 * Stores a fixed amount of a single component type.
-	 * 
-	 * Can be linked together into a linked list.
-	 */
-	struct ComponentChunk
+	class ComponentChunkManager
 	{
-		ComponentChunk(size_t chunk_size, size_t component_size, size_t component_align);
-
-		IComponent* get(size_t i) { return (IComponent*)(i < m_component_count ? ((uintptr_t)m_components + i*m_component_size) : (uintptr_t)nullptr);}
-		size_t get_component_count() { return m_component_count; }
-		IComponent* get_components_array() { return m_components; }
-
-		ComponentChunk* m_next;
-		const size_t m_component_size;
+		ComponentChunkManager(size_t component_size, size_t component_align, Allocator& chunk_allocator);
+		~ComponentChunkManager();
 
 	private:
-		IComponent* m_components;
-		size_t m_component_count;
-	};
+		size_t first_free_space();
+
+		Allocator& m_chunk_allocator;
+
+		size_t m_component_size;
+		size_t m_component_align;
+
+		void* m_chunk_start;
+
+		// bit[i] are set if component[i] is used
+		using FlagSegment = char;
+		size_t m_num_flag_segments;
+		FlagSegment* m_used_flags;
+
+		size_t m_num_components;
+		uintptr_t m_components;
+	}
 
 private:
 	IComponent* create_component(ComponentTypeID);
@@ -113,12 +116,7 @@ private:
 	 * Allocates space for the component chunks.
 	 */
 	PoolAllocator m_component_chunk_allocator;
-	/**
-	 * Vector of ComponentChunk lists.
-	 * 
-	 * Each list (indexed by ComponentTypeID) holds the head of a list of ComponentChunks containing Components of type ComponentTypeID.
-	 */
-	std::vector<ComponentChunk*> m_component_chunk_lists;
+	
 };
 
 
