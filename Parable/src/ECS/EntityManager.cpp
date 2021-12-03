@@ -7,7 +7,7 @@ namespace Parable::ECS
 
 
 /**
- * Allocates a new Entity ID, and registers it with the ComponentManager.
+ * Allocates a new Entity ID, creating a new entity.
  *
  * Takes from the front of m_toombstone_entities if avaliable, or increments m_next_entity if not.
  *
@@ -25,6 +25,15 @@ Entity EntityManager::create()
         m_toombstone_entities.pop();
         return e;
     }
+}
+
+
+/**
+ * Destroy an entity, and enqueue its ID for reuse.
+ */
+void EntityManager::destroy(Entity e)
+{
+    m_toombstone_entities.push(e);
 }
 
 

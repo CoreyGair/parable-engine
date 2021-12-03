@@ -29,7 +29,6 @@ PoolAllocator::PoolAllocator(size_t object_size, size_t object_alignment, size_t
     std::align(object_alignment, object_size, alloc_start, alloc_size);
 
     size_t num_objects = alloc_size / object_size;
-
     m_free_list = (void**)alloc_start;
     void** p = m_free_list;
 
@@ -38,6 +37,7 @@ PoolAllocator::PoolAllocator(size_t object_size, size_t object_alignment, size_t
     {
         // make *p point to the next space
         *p = (void*)((uintptr_t)p + object_size);
+
         // move p along to the next space
         p = (void**)*p;
     }
@@ -47,18 +47,35 @@ PoolAllocator::PoolAllocator(size_t object_size, size_t object_alignment, size_t
 
 PoolAllocator::PoolAllocator(PoolAllocator&& other) : Allocator(other.get_size(), other.get_start())
 {
-
     m_object_size = other.m_object_size;
     m_object_alignment = other.m_object_alignment;
     m_free_list = other.m_free_list;
 
-    m_used = other.get_used();
-    m_allocations = other.get_allocations();
+    m_used = other.m_used;
+    m_allocations = other.m_allocations;
+
+    other.m_used = 0;
+    other.m_allocations = 0;
+}
+
+PoolAllocator& PoolAllocator::operator=(PoolAllocator&& other)
+{
+    m_object_size = other.m_object_size;
+    m_object_alignment = other.m_object_alignment;
+    m_free_list = other.m_free_list;
+
+    m_used = other.m_used;
+    m_allocations = other.m_allocations;
+
+    other.m_used = 0;
+    other.m_allocations = 0;
+
+    return *this;
 }
 
 PoolAllocator::~PoolAllocator()
 {
-    PBL_CORE_ASSERT_MSG(m_used == 0 && m_allocations == 0, "PoolAllocator memory leak!")
+    PBL_CORE_ASSERT_MSG(m_used == 0 && m_allocations == 0, "PoolAllocator memory leak! Used = {}, Allocs = {}", m_used, m_allocations);
 }
 
 /**
@@ -70,7 +87,7 @@ PoolAllocator::~PoolAllocator()
  */
 void* PoolAllocator::allocate(size_t size, size_t alignment)
 {
-    PBL_CORE_ASSERT_MSG(size % m_object_size == 0, "PoolAllocator::allocate incorrect size {}, must be a multiple of the pool object size {}.", size, m_object_size)
+    PBL_CORE_ASSERT_MSG(size == m_object_size, "PoolAllocator::allocate incorrect size {}, must be equal to the pool object size {}.", size, m_object_size)
     PBL_CORE_ASSERT_MSG(alignment == m_object_alignment, "PoolAllocator::allocate incorrect alignment {}, should be {}.", alignment, m_object_alignment)
 
     if (m_free_list == nullptr) return nullptr;

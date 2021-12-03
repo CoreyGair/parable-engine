@@ -33,6 +33,7 @@ set(PARABLE_SRCS_ECS    ${CMAKE_CURRENT_SOURCE_DIR}/ECS/Entity.h
                         ${CMAKE_CURRENT_SOURCE_DIR}/ECS/EntityManager.h
                         ${CMAKE_CURRENT_SOURCE_DIR}/ECS/EntityManager.cpp
                         ${CMAKE_CURRENT_SOURCE_DIR}/ECS/Component.h
+                        ${CMAKE_CURRENT_SOURCE_DIR}/ECS/Component.cpp
                         ${CMAKE_CURRENT_SOURCE_DIR}/ECS/ComponentManager.h
                         ${CMAKE_CURRENT_SOURCE_DIR}/ECS/ComponentManager.cpp
                         ) 

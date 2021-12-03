@@ -17,11 +17,11 @@ protected:
     Parable::LinearAllocator alloc;
 };
 
-class TestPoolAllocator : public MallocWrapper<128>
+class TestPoolAllocator : public MallocWrapper<sizeof(size_t) * 51>
 {
 public:
 // use size_t as pool alloc cannot use a type smaller than void* (=size_t) (~8bytes)
-    TestPoolAllocator() : alloc(Parable::PoolAllocator::create<size_t>(sizeof(size_t) * 10, mem)) {}
+    TestPoolAllocator() : alloc(Parable::PoolAllocator::create<size_t>(sizeof(size_t) * 50, mem)) {}
     
 protected:
 

@@ -8,6 +8,13 @@ set(TEST_MEMORY     ${CMAKE_CURRENT_SOURCE_DIR}/test_memory/test_allocators.cpp
 
 set(TEST_UTIL       ${CMAKE_CURRENT_SOURCE_DIR}/test_util/test_bitset.cpp
                     ${CMAKE_CURRENT_SOURCE_DIR}/test_util/test_bitset.h
+                    ${CMAKE_CURRENT_SOURCE_DIR}/test_util/test_pointer.cpp
+                    )
+
+set(TEST_ECS        ${CMAKE_CURRENT_SOURCE_DIR}/test_ecs/test_entity_manager.cpp
+                    ${CMAKE_CURRENT_SOURCE_DIR}/test_ecs/test_entity_manager.h
+                    ${CMAKE_CURRENT_SOURCE_DIR}/test_ecs/test_component_manager.cpp
+                    ${CMAKE_CURRENT_SOURCE_DIR}/test_ecs/test_component_manager.h
                     )
 
 # GTEST
@@ -25,9 +32,10 @@ enable_testing()
 
 add_executable( parable-core-test
                 test_main.cpp
-                ${TEST_INPUT_SYSTEM}
-                ${TEST_MEMORY}
                 ${TEST_UTIL}
+                ${TEST_MEMORY}
+                ${TEST_ECS}
+                ${TEST_INPUT_SYSTEM}
                 )
 target_include_directories(parable-core-test PUBLIC include)
 target_link_libraries(parable-core-test Parable gtest)

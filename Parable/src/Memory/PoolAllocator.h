@@ -19,6 +19,8 @@ public:
     PoolAllocator(PoolAllocator&& other);
     ~PoolAllocator();
 
+    PoolAllocator& operator=(PoolAllocator&& other);
+
     /**
      * Convenience factory method to avoid passing sizeof()'s and alignof()'s
      * 
@@ -34,6 +36,9 @@ public:
 
     void* allocate(size_t size, size_t alignment) override;
     void  deallocate(void* p) override;
+
+    size_t get_object_size() const { return m_object_size; }
+    size_t get_object_alignment() const { return m_object_alignment; }
 
 private:
     /**

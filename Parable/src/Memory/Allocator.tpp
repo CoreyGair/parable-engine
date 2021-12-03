@@ -41,7 +41,11 @@ T* Allocator::allocate_array(size_t length)
     uint8_t header_size = sizeof(size_t) / sizeof(T);
     if (sizeof(size_t) % sizeof(T) > 0) header_size += 1;
 
-    T* array_start = ((T*) allocate(sizeof(T) * (length + header_size), alignof(T))) + header_size;
+    T* allocation = ((T*) allocate(sizeof(T) * (length + header_size), alignof(T)));
+
+    if (allocation == nullptr) return allocation;
+
+    T* array_start = allocation + header_size;
 
     // set the header to the array length
     // cast start to size_t*, move to the bytes before the actual array, set value
