@@ -15,6 +15,7 @@ public:
 	ComponentManagerSingleton() : alloc(ALLOC_SIZE, mem),
 									component_manager(2000,100,alloc)
 	{
+
 		component_manager.register_component<A>();
 		component_manager.register_component<B>();
 		
@@ -27,7 +28,6 @@ public:
 	}
 
 protected:
-
 	Parable::LinearAllocator alloc;
 
 	Parable::ECS::ComponentManager component_manager;
@@ -36,6 +36,7 @@ protected:
 	struct A : public Parable::ECS::Component<A>
 	{
 		int val = 0;
+
 	};
 	struct B : public Parable::ECS::Component<B>
 	{

@@ -14,7 +14,8 @@ namespace Parable::ECS
 {
 
 
-
+// TODO: kind of want to refactor this whole thing into pure data oriented / functional / without objects
+// remvoe some complexity overhead of the mess of objects here
 
 class ComponentManager
 {
@@ -49,13 +50,13 @@ public:
 	void add_entity(Entity e);
 	void remove_entity(Entity e);
 
-	template<class C>
+	template<IsComponent C>
 	C* add_component(Entity e);
 
-	template<class C>
+	template<IsComponent C>
 	void remove_component(Entity e);
 
-	template<class C>
+	template<IsComponent C>
 	C* get_component(Entity e);
 
 private:
@@ -206,7 +207,7 @@ private:
  * @tparam C the component type to add
  * @return IComponent* the newly created component
  */
-template<class C>
+template<IsComponent C>
 C* ComponentManager::add_component(Entity e)
 {
 	ComponentTypeID component_type = Component<C>::get_static_component_type();
@@ -227,7 +228,7 @@ C* ComponentManager::add_component(Entity e)
  * @param e the entity to remove the component from
  * @tparam C the component type to remove
  */
-template<class C>
+template<IsComponent C>
 void ComponentManager::remove_component(Entity e)
 {
 	ComponentTypeID component_type = Component<C>::get_static_component_type();
@@ -250,7 +251,7 @@ void ComponentManager::remove_component(Entity e)
  * @param e the entity to find the component on
  * @tparam C the component type to find
  */
-template<class C>
+template<IsComponent C>
 C* ComponentManager::get_component(Entity e)
 {
 	ComponentTypeID component_type = Component<C>::get_static_component_type();

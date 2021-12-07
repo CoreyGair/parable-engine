@@ -1,5 +1,7 @@
 #pragma once
 
+#include "pblpch.h"
+
 #include "Core/Base.h"
 
 
@@ -36,12 +38,18 @@ public:
 
 private:
 	static ComponentTypeID m_component_type;
-
+	
 	friend ComponentManager;
 };
 
 template<class T>
 ComponentTypeID Component<T>::m_component_type;
+
+/**
+ * Concept to check if type is a component type.
+ */
+template<class T>
+concept IsComponent = std::derived_from<T, IComponent>;
 
 
 }

@@ -2,5 +2,5 @@
 
 namespace Parable::ECS
 {
-	
+
 }
