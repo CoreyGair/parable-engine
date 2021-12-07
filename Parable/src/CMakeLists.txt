@@ -36,6 +36,9 @@ set(PARABLE_SRCS_ECS    ${CMAKE_CURRENT_SOURCE_DIR}/ECS/Entity.h
                         ${CMAKE_CURRENT_SOURCE_DIR}/ECS/Component.cpp
                         ${CMAKE_CURRENT_SOURCE_DIR}/ECS/ComponentManager.h
                         ${CMAKE_CURRENT_SOURCE_DIR}/ECS/ComponentManager.cpp
+                        ${CMAKE_CURRENT_SOURCE_DIR}/ECS/System.h
+                        ${CMAKE_CURRENT_SOURCE_DIR}/ECS/SystemManager.h
+                        ${CMAKE_CURRENT_SOURCE_DIR}/ECS/SystemManager.cpp
                         ) 
 
 set(PARABLE_SRCS_EXCEPTION      
