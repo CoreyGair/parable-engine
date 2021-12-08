@@ -11,39 +11,84 @@ namespace Parable::ECS
 {
 
 
+using SystemID = TypeID;
+
 /**
- * Abstract 
+ * Interface for systems.
  */
 class ISystem
 {
 public:
+
+	virtual ~ISystem() = 0;
+
 	/**
 	 * Performs the main work of the system, called each frame.
 	 */
 	virtual void on_update() = 0;
 
 	/**
+	 * Return the system id for this system (held in SystemTypeID).
+	 */
+	virtual SystemID get_system_id() const = 0;
+
+	/**
+	 * Should this system be called on update?
+	 */
+	bool enabled = true;
+
+	int get_order() const { return m_order; }
+
+protected:
+	
+	/**
+	 * Update the order of this system.
+	 *
+	 * Should only be called in system constructor, as the order is only checked once by SystemManager at system creation.
+	 */
+	void set_order(int o) { m_order = o; }
+
+private:
+	/**
 	 * Defines the order of execution for different systems.
 	 * 
 	 * Systems with a lower order are always executed before systems with higher orders.
 	 * The execution order for systems with equal orders is undefined (and may change between updates).
 	 */
-	virtual int get_order() { return 0; }
-
-	/**
-	 * Should this system be called on update?
-	 */
-	bool m_enabled;
+	int m_order;
 };
 
 
+class SystemManager;
+
+
+/**
+ * Holds the type ID of the system class.
+ */
+template<class S>
+class SystemIDContainer : public ISystem
+{
+	static SystemID system_id;
+
+	friend SystemManager;
+
+public:
+	SystemID get_system_id() const override { return system_id; }
+};
+
+template<class S>
+SystemID SystemIDContainer<S>::system_id;
+
 /**
  * Keeps track of the Component types the system wants to access.
+ *
+ * This is used in the engine to check which components each system depends on (e.g. for parralellism).
  * 
+ * @tparam S the derived system class (CRTP).
  * @tparam Components the types of component the system wants to access.
  */
-template<IsComponent... Components>
-class System : public ISystem
+template<class S, IsComponent... Components>
+class System : public SystemIDContainer<S>
 {
 private:
 	/**
@@ -58,11 +103,10 @@ private:
 	constexpr bool has_permission() { return std::disjunction_v<std::is_same<C, Components>...>; }
 };
 
-
 /**
- * Concept to check if type is a system.
+ * Concept to check if type is a System.
  */
 template<class T>
-concept IsSystem = std::derived_from<T, ISystem>;
+concept IsSystem = std::derived_from<T, System<T>>;
 
 }

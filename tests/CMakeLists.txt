@@ -1,20 +1,16 @@
 set(TEST_INPUT_SYSTEM   ${CMAKE_CURRENT_SOURCE_DIR}/test_input_system/test_button_map.cpp
-                        ${CMAKE_CURRENT_SOURCE_DIR}/test_input_system/test_button_map.h
                         )
 
 set(TEST_MEMORY     ${CMAKE_CURRENT_SOURCE_DIR}/test_memory/test_allocators.cpp
-                    ${CMAKE_CURRENT_SOURCE_DIR}/test_memory/test_allocators.h
                     )
 
 set(TEST_UTIL       ${CMAKE_CURRENT_SOURCE_DIR}/test_util/test_bitset.cpp
-                    ${CMAKE_CURRENT_SOURCE_DIR}/test_util/test_bitset.h
                     ${CMAKE_CURRENT_SOURCE_DIR}/test_util/test_pointer.cpp
                     )
 
 set(TEST_ECS        ${CMAKE_CURRENT_SOURCE_DIR}/test_ecs/test_entity_manager.cpp
-                    ${CMAKE_CURRENT_SOURCE_DIR}/test_ecs/test_entity_manager.h
                     ${CMAKE_CURRENT_SOURCE_DIR}/test_ecs/test_component_manager.cpp
-                    ${CMAKE_CURRENT_SOURCE_DIR}/test_ecs/test_component_manager.h
+                    ${CMAKE_CURRENT_SOURCE_DIR}/test_ecs/test_system_manager.cpp
                     )
 
 # GTEST

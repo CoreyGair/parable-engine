@@ -49,7 +49,7 @@ ComponentTypeID Component<T>::m_component_type;
  * Concept to check if type is a component type.
  */
 template<class T>
-concept IsComponent = std::derived_from<T, IComponent>;
+concept IsComponent = std::derived_from<T, Component<T>>;
 
 
 }

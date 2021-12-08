@@ -1,5 +1,3 @@
-#pragma once
-
 #include "ComponentManager.h"
 
 #include "Exception/MemoryExceptions.h"
