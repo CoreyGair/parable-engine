@@ -26,11 +26,17 @@ public:
 };
 
 /**
+ * Concept to check if type is a component type.
+ */
+template<class T>
+concept IsComponent = std::convertible_to<T, IComponent>;
+
+/**
  * Extension of IComponent to allow one m_component_type per actual component type.
  * 
  * @tparam T the type of the inheriting component class (CRTP)
  */
-template<class T>
+template<IsComponent T>
 class Component : public IComponent
 {
 public:
@@ -42,14 +48,10 @@ private:
 	friend ComponentManager;
 };
 
-template<class T>
+template<IsComponent T>
 ComponentTypeID Component<T>::m_component_type;
 
-/**
- * Concept to check if type is a component type.
- */
-template<class T>
-concept IsComponent = std::derived_from<T, Component<T>>;
+
 
 
 }
