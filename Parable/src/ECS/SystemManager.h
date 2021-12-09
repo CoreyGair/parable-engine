@@ -22,44 +22,47 @@ public:
 	void add_system()
 	{
 		// create the system object
-		UPtr<S> system = UPtr<S>::make_unique();
+		UPtr<S> system = std::make_unique<S>();
+
+		// insert ref in correct order slot
+		m_systems_by_order.insert(std::upper_bound(m_systems_by_order.begin(), m_systems_by_order.end(),
+								*system,
+								[](const ISystem& a, const ISystem& b) { return a.get_order() < b.get_order(); }
+								),
+							*system
+							);
 
 		// update the system type id
-		SystemIDContainer<S>::m_system_id = m_systems_by_id.size();
-		m_systems_by_id.emplace_back(*system);
-
-		// move into systems vector
-		m_systems.insert(std::upper_bound(m_systems.begin(), m_systems.end(),
-								system,
-								[](const UPtr<ISystem>& a, const UPtr<ISystem>& b) { return a->get_order() < b->get_order(); }
-								),
-							std::move(system)
-							);
+		System<S>::system_id = m_systems_by_id.size();
+		m_systems_by_id.emplace_back(std::move(system));
 	}
 
 	template<IsSystem S>
 	void set_enabled(bool enabled)
 	{
-		const SystemID id = SystemIDContainer<S>::m_system_id;
+		const SystemID id = System<S>::system_id;
 
-		m_systems_by_id.at(id).get().enabled = enabled;
+		m_systems_by_id.at(id)->enabled = enabled;
 	}
 	
 
 private:
 
 	/**
-	 * The actual systems to be executed, ordered by the systems order member.
+	 * The systems to be executed, ordered by the systems order member.
+	 *
+	 * Contains the same elements as m_systems_by_id, but they are instead ordered by ISystem.get_order().
+	 * Used for iterating over systems to call them in the correct order.
 	 */
-	std::vector<UPtr<ISystem>> m_systems;
+	std::vector<std::reference_wrapper<ISystem>> m_systems_by_order;
 
 	/**
-	 * m_systems, ordered (and indexed) by the systems id instead.
+	 * The systems to be executed, ordered (and indexed) by the systems id instead.
 	 *
-	 * Contains the same elements as m_systems, but they are instead ordered by SystemIDContainer's.
+	 * Contains the same elements as m_systems_by_order, but they are instead ordered by SystemIDContainer's.
 	 * Used for getting systems by id, saves us from searching in m_systems.
 	 */
-	std::vector<std::reference_wrapper<ISystem>> m_systems_by_id;
+	std::vector<UPtr<ISystem>> m_systems_by_id;
 };
 
 

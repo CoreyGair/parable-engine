@@ -16,9 +16,9 @@ public:
 protected:
     void SetUp() override
     {
-        A::value = 0;
-        B::value = 0;
-        C::value = 0;
+        A::updates = 0;
+        B::updates = 0;
+        C::updates = 0;
 
         side_effects = "";
     }
@@ -29,33 +29,39 @@ protected:
 
     // test systems
 
-    static std::string side_effects = "";
+    static std::string side_effects;
 
     class A : public Parable::ECS::System<A>
     {
     public:
-        A() : m_order(-1) {}
+        A() { set_order(-1); }
 
-        void on_update() override { updates += 1; side_effects += 'A'; }
+        ~A() override = default;
 
-        static int updates = 0;
-    }
+        void on_update() override { ++updates; side_effects += 'A'; }
+
+        static int updates;
+    };
     class B: public Parable::ECS::System<B>
     {
     public:
-        B() : m_order(0) {}
+        B() { set_order(0); }
 
-        void on_update() override { updates += 1; side_effects += 'B'; }
+        ~B() = default;
 
-        static int updates = 0;
-    }
+        void on_update() override { ++updates; side_effects += 'B'; }
+
+        static int updates;
+    };
     class C : public Parable::ECS::System<C>
     {
     public:
-        C() : m_order(1) {}
+        C() { set_order(1); }
 
-        void on_update() override { updates += 1; side_effects += 'C'; }
+        ~C() = default;
 
-        static int updates = 0;
-    }
+        void on_update() override { ++updates; side_effects += 'C'; }
+
+        static int updates;
+    };
 };

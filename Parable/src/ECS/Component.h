@@ -13,6 +13,8 @@ class ComponentManager;
 
 using ComponentTypeID = TypeID;
 
+// TODO: ISystem might be obsolete: actually has no use apart from acting as a pointer to some component.
+//			Instead, could have ComponentManager use void* or uintptr_t internally, this type is not needed.
 /**
  * Interface used by ComponentManager to dynamically handle component types.
  * 
@@ -21,22 +23,24 @@ using ComponentTypeID = TypeID;
  */
 class IComponent
 {
-public:
 
 };
+
+template<class T>
+class Component;
 
 /**
  * Concept to check if type is a component type.
  */
 template<class T>
-concept IsComponent = std::convertible_to<T, IComponent>;
+concept IsComponent = std::derived_from<T, Component<T>>;
 
 /**
  * Extension of IComponent to allow one m_component_type per actual component type.
  * 
  * @tparam T the type of the inheriting component class (CRTP)
  */
-template<IsComponent T>
+template<class T>
 class Component : public IComponent
 {
 public:
@@ -48,7 +52,7 @@ private:
 	friend ComponentManager;
 };
 
-template<IsComponent T>
+template<class T>
 ComponentTypeID Component<T>::m_component_type;
 
 

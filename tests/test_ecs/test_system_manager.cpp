@@ -3,6 +3,11 @@
 
 #include "test_system_manager.h"
 
+std::string SystemManagerSingleton::side_effects = "";
+
+int SystemManagerSingleton::A::updates = 0;
+int SystemManagerSingleton::B::updates = 0;
+int SystemManagerSingleton::C::updates = 0;
 
 TEST_F(SystemManagerSingleton, SystemOrderRespected)
 {

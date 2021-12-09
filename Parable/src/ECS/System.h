@@ -58,45 +58,46 @@ private:
 	int m_order;
 };
 
-/**
- * Concept to check if type is a System.
- */
-template<class T>
-concept IsSystem = std::convertible_to<T, System<T>>;
-
-
 class SystemManager;
-
 
 /**
  * Holds the type ID of the system class.
+ *
+ * @tparam S the derived (concrete) system class (CRTP).
  */
-template<ISystem S>
-class SystemIDContainer : public ISystem
+template<class S>
+class System : public ISystem
 {
 	static SystemID system_id;
 
 	friend SystemManager;
 
 public:
+
 	SystemID get_system_id() const override { return system_id; }
 };
 
-template<ISystem S>
-SystemID SystemIDContainer<S>::system_id;
+template<class S>
+SystemID System<S>::system_id;
+
+/**
+ * Concept to check if type is a System.
+ */
+template<class T>
+concept IsSystem = std::derived_from<T, System<T>>;
 
 /**
  * Keeps track of the Component types the system wants to access.
  *
  * This is used in the engine to check which components each system depends on (e.g. for parralellism).
  * 
- * @tparam S the derived system class (CRTP).
  * @tparam Components the types of component the system wants to access.
  */
-template<ISystem S, IsComponent... Components>
-class System : public SystemIDContainer<S>
+
+template<IsComponent... Components>
+class SystemComponentAccess
 {
-private:
+protected:
 	/**
 	 * Checks if this system requests permission to access a certain type of component.
 	 * 

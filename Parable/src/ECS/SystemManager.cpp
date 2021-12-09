@@ -14,9 +14,9 @@ namespace Parable::ECS
  */ 
 void SystemManager::on_update()
 {
-    for(UPtr<ISystem>& system : m_systems)
+    for(ISystem& system : m_systems_by_order)
     {
-        if (system->enabled) system->on_update();
+        if (system.enabled) system.on_update();
     }
 }
 
