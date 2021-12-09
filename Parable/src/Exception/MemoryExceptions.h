@@ -15,6 +15,9 @@ public:
     using Exception::Exception;
 };
 
+/**
+ * Thrown when a data structure using dynamic allocation runs out of memory.
+ */
 class OutOfMemoryException : public Exception
 {
 public:

@@ -10,6 +10,9 @@ namespace Parable::ECS
 {
 
 
+/**
+ * Stores and runs Systems for the ECS.
+ */
 class SystemManager
 {
 public:

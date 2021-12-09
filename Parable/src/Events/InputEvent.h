@@ -16,7 +16,6 @@ namespace Parable
 
 /**
  * Abstract class for keyboard input events.
- * 
  */
 class KeyEvent : public Event
 {
@@ -38,6 +37,7 @@ protected:
 // Defined dtor as required for derrived class dtors (even tho its pure virtual)
 // inline avoids multiple definition errors
 inline KeyEvent::~KeyEvent() = default;
+
 
 class KeyPressedEvent : public KeyEvent
 {
@@ -68,6 +68,7 @@ public:
 
 
 ////    MOUSE EVENTS
+
 
 class MouseMovedEvent : public Event
 {

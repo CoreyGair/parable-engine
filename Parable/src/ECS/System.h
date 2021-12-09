@@ -58,6 +58,9 @@ private:
 	int m_order;
 };
 
+// define PVD
+inline ISystem::~ISystem() {}
+
 class SystemManager;
 
 /**

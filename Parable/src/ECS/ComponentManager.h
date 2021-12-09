@@ -16,7 +16,12 @@ namespace Parable::ECS
 
 // TODO: kind of want to refactor this whole thing into pure data oriented / functional / without objects
 // remvoe some complexity overhead of the mess of objects here
-
+// like remove ChunkManager obj and just manage an array of std::vector<chunk> indexed by component type
+/**
+ * Manages creation and storage for components of the ECS.
+ * 
+ * This includes registering user-defined components, dynamic memory allocation and attaching components to Entities.
+ */
 class ComponentManager
 {
 public:
@@ -117,6 +122,7 @@ private:
 		size_t m_components_per_chunk;
 
 		// TODO: want to avoid vector/dynamic alloc but this will do for now
+		// maybe just make chunks a linked list (have a void*/uintptr_t field before the components, like the flags/count field)
 		/**
 		 * Pointers to the chunks currently managed by this object.
 		 * 

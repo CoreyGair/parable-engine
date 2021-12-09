@@ -23,18 +23,17 @@ enum class EventType
 
 /**
  * Describes categories for filtering engine events.
- * 
  */
 enum EventCategory
 {
     None = 0,
-	EventCategoryWindow,
-	EventCategoryInput,
-	EventCategoryKeyboard,
-	EventCategoryMouse,
+	EventCategoryWindow = BIT(0),
+	EventCategoryInput = BIT(1),
+	EventCategoryKeyboard = BIT(2),
+	EventCategoryMouse = BIT(3),
 	// used by input system 
-	EventCategoryButton,
-	EventCategoryAxis
+	EventCategoryButton = BIT(4),
+	EventCategoryAxis = BIT(5)
 };
 
 #define EVENT_CLASS_TYPE(type) static EventType get_static_type() { return EventType::type; }\

@@ -10,7 +10,7 @@ namespace Parable::ECS
 {
 
 
-/*
+/**
  * Manages allocation of entity id's within the ECS.
  */
 class EntityManager

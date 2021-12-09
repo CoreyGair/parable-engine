@@ -16,7 +16,7 @@ public:
 };
 
 /**
- * Thrown when an object has state which is incompatible with an action which was attempted.s
+ * Thrown when an object has state which is incompatible with an action which was attempted.
  */
 class IncompatibleObjectException : public Exception
 {
