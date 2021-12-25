@@ -22,7 +22,7 @@ TEST_F(SystemManagerSingleton, SystemOrderRespected)
 
 TEST_F(SystemManagerSingleton, SystemEnableRespected)
 {
-    manager.set_enabled<B>(false);
+    manager.set_enabled(B::get_static_system_id(), false);
 
     manager.on_update();
 

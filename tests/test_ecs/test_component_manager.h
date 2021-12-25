@@ -12,14 +12,14 @@
 class ComponentManagerSingleton : public MallocWrapper<ALLOC_SIZE>
 {
 public:
-	ComponentManagerSingleton() : alloc(ALLOC_SIZE, mem),
-									component_manager(2000,100,alloc)
+	ComponentManagerSingleton() : alloc(ALLOC_SIZE, mem)
 	{
+		Parable::ECS::ComponentRegistry reg;
 
-		component_manager.register_component<A>();
-		component_manager.register_component<B>();
-		
-		component_manager.init();
+		reg.register_component<A>();
+		reg.register_component<B>();
+
+		component_manager = std::make_unique<Parable::ECS::ComponentManager>(reg, 2000, 100, 1000, alloc);
 	}
 
 	~ComponentManagerSingleton()
@@ -30,7 +30,7 @@ public:
 protected:
 	Parable::LinearAllocator alloc;
 
-	Parable::ECS::ComponentManager component_manager;
+	UPtr<Parable::ECS::ComponentManager> component_manager;
 
 	// test components
 	struct A : public Parable::ECS::Component<A>

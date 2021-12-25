@@ -83,15 +83,14 @@ public:
 	/**
 	 * Dispatches m_event to a handler function.
 	 * 
-	 * Sets m_event.handled if the handler returns true (the event was handled),
-	 * and returns true if the correct event type was passed (and so the handler was invoked).
+	 * Sets m_event.handled if the handler returns true (the event was handled), and returns true if the correct event type was passed (and so the handler was invoked).
 	 * 
 	 * @tparam T the concrete event type the handler accepts
 	 * 
 	 * @param func function pointer to the handler
 	 */
 	template<typename T>
-	bool dispatch(const std::function<bool(T&)>& func)
+	inline bool dispatch(const std::function<bool(T&)>& func)
 	{
 		if (m_event->get_event_type() == T::get_static_type())
 		{
@@ -108,7 +107,7 @@ public:
 	 * 
 	 * @param func function pointer to handlers
 	 */
-	bool dispatch_raw(const std::function<bool(Event*)>& func)
+	inline bool dispatch_raw(const std::function<bool(Event*)>& func)
 	{
 		m_event->handled |= func(m_event);
 		return true;

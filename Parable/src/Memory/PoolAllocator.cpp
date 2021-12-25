@@ -41,6 +41,7 @@ PoolAllocator::PoolAllocator(size_t object_size, size_t object_alignment, size_t
         // move p along to the next space
         p = (void**)*p;
     }
+
     // terminate the list with null
     *p = nullptr;
 }

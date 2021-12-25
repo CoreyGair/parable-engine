@@ -147,6 +147,9 @@ Window::~Window()
     glfwTerminate();
 }
 
+/**
+ * Tells the GLFW window to process all events, thereby adding them to the event queue in Application.
+ */
 void Window::on_update()
 {
     glfwPollEvents();

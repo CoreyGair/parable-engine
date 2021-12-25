@@ -11,6 +11,9 @@ namespace Parable::ECS
 {
 
 
+class SystemManager;
+class ECS;
+
 using SystemID = TypeID;
 
 /**
@@ -26,11 +29,6 @@ public:
 	 * Performs the main work of the system, called each frame.
 	 */
 	virtual void on_update() = 0;
-
-	/**
-	 * Return the system id for this system (held in SystemTypeID).
-	 */
-	virtual SystemID get_system_id() const = 0;
 
 	/**
 	 * Should this system be called on update?
@@ -71,17 +69,35 @@ class SystemManager;
 template<class S>
 class System : public ISystem
 {
+	/**
+	 * An identifier for the system, unique to this system type (not object).
+	 */
 	static SystemID system_id;
+
+	/**
+	 * The ecs this system type is managed by.
+	 */
+	static ECS& m_ecs;
 
 	friend SystemManager;
 
-public:
+protected:
+	/**
+	 * Get the ecs this system is managed by.
+	 * 
+	 * Should be used in system implementations to reference the ecs and access entity/component/system managers.
+	 */
+	inline static ECS& get_ecs() { return m_ecs; }
 
-	SystemID get_system_id() const override { return system_id; }
+public:
+	static SystemID get_static_system_id() { return system_id; }
 };
 
 template<class S>
 SystemID System<S>::system_id;
+
+template<class S>
+ECS& System<S>::m_ecs;
 
 /**
  * Concept to check if type is a System.
@@ -89,6 +105,7 @@ SystemID System<S>::system_id;
 template<class T>
 concept IsSystem = std::derived_from<T, System<T>>;
 
+// TODO: actually implement this "functionality request" behaviour
 /**
  * Keeps track of the Component types the system wants to access.
  *

@@ -40,15 +40,8 @@ public:
 		m_systems_by_id.emplace_back(std::move(system));
 	}
 
-	template<IsSystem S>
-	void set_enabled(bool enabled)
-	{
-		const SystemID id = System<S>::system_id;
-
-		m_systems_by_id.at(id)->enabled = enabled;
-	}
+	void set_enabled(SystemID s, bool enabled);
 	
-
 private:
 
 	/**
@@ -66,6 +59,7 @@ private:
 	 * Used for getting systems by id, saves us from searching in m_systems.
 	 */
 	std::vector<UPtr<ISystem>> m_systems_by_id;
+
 };
 
 

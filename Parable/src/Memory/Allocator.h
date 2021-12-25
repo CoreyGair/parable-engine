@@ -16,7 +16,7 @@ class Allocator
 public:
     Allocator(size_t size, void* start) : m_size(size), m_start(start)
     {
-        PBL_CORE_ASSERT_MSG(start != nullptr, "Cannot have an allocator start at null!")
+        PBL_CORE_ASSERT_MSG(start != nullptr, "Cannot have an allocator start at null!");
     }
     virtual ~Allocator() {}
 

@@ -29,15 +29,11 @@ set(PARABLE_SRCS_MEMORY     ${CMAKE_CURRENT_SOURCE_DIR}/Memory/LinearAllocator.c
 set(PARABLE_SRCS_UTIL   ${CMAKE_CURRENT_SOURCE_DIR}/Util/DynamicBitset.cpp
                         )
 
-set(PARABLE_SRCS_ECS    ${CMAKE_CURRENT_SOURCE_DIR}/ECS/Entity.h
-                        ${CMAKE_CURRENT_SOURCE_DIR}/ECS/EntityManager.h
-                        ${CMAKE_CURRENT_SOURCE_DIR}/ECS/EntityManager.cpp
-                        ${CMAKE_CURRENT_SOURCE_DIR}/ECS/Component.h
-                        ${CMAKE_CURRENT_SOURCE_DIR}/ECS/ComponentManager.h
+set(PARABLE_SRCS_ECS    ${CMAKE_CURRENT_SOURCE_DIR}/ECS/EntityManager.cpp
                         ${CMAKE_CURRENT_SOURCE_DIR}/ECS/ComponentManager.cpp
-                        ${CMAKE_CURRENT_SOURCE_DIR}/ECS/System.h
-                        ${CMAKE_CURRENT_SOURCE_DIR}/ECS/SystemManager.h
                         ${CMAKE_CURRENT_SOURCE_DIR}/ECS/SystemManager.cpp
+                        ${CMAKE_CURRENT_SOURCE_DIR}/ECS/EntityComponentMap.cpp
+                        ${CMAKE_CURRENT_SOURCE_DIR}/ECS/ECS.cpp
                         ) 
 
 set(PARABLE_SRCS_EXCEPTION      
@@ -53,6 +49,4 @@ set(PARABLE_SRCS    ${PARABLE_SRCS_CORE}
                     ${PARABLE_SRCS_UTIL}
                     ${PARABLE_SRCS_ECS}
                     ${PARABLE_SRCS_EXCEPTION}
-                    ${CMAKE_CURRENT_SOURCE_DIR}/Parable.h
-                    ${CMAKE_CURRENT_SOURCE_DIR}/pblpch.h
                     PARENT_SCOPE)

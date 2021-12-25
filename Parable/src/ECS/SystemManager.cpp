@@ -1,7 +1,6 @@
-
-
 #include "SystemManager.h"
 
+#include "ComponentManager.h"
 
 namespace Parable::ECS
 {
@@ -18,6 +17,11 @@ void SystemManager::on_update()
     {
         if (system.enabled) system.on_update();
     }
+}
+
+void SystemManager::set_enabled(SystemID s, bool enabled)
+{
+    m_systems_by_id[s]->enabled = enabled;
 }
 
 

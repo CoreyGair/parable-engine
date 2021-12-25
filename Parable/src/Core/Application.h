@@ -7,9 +7,11 @@
 
 #include "Events/EventBuffer.h"
 
+#include "ECS/ECS.h"
+
 #include "Window/Window.h"
 
-// Forward decl for friend definition
+
 int main(int argc, char** argv);
 
 namespace Parable
@@ -32,22 +34,13 @@ class Application
         static Application& get_instance() { return *s_instance; }
 
         Application();
-        virtual ~Application(){};
+        virtual ~Application() {}
 
         // called each frame, update each layer
         void on_update();
-
-        // pushes event to event queue
-        void on_event(Event::EventUPtr e);
-
-        // dispatches all events in queue to layers
-        void process_events();
-
+    
+    protected:
         void push_layer(Layer* layer);
-
-    private:
-        // Runs the main loop of the application
-        void run();
 
         /**
          * Buffer of events to be processed.
@@ -57,6 +50,17 @@ class Application
          * Engine layers, which consume events.
          */
         LayerStack m_layer_stack;
+
+        /**
+         * The engine ecs.
+         */
+        //ECS::ECS m_ecs;
+
+    private:
+        void run();
+
+        void on_event(Event::EventUPtr e);
+        void process_events();
 
         /**
          * The main application window.

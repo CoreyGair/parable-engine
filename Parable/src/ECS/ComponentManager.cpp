@@ -1,131 +1,175 @@
 #include "ComponentManager.h"
 
+#include "EntityComponentMap.h"
+
 #include "Exception/MemoryExceptions.h"
 
 #include "Util/Pointer.h"
+
+#include "Memory/Allocator.h"
+#include "Memory/PoolAllocator.h"
 
 
 namespace Parable::ECS
 {
 
 
-//TODO: these are temp until static ecs manages them
-size_t ComponentManager::ENTITY_COMPONENT_LISTS_SIZE;
-size_t ComponentManager::COMPONENT_CHUNK_SIZE;
+TypeID ComponentRegistry::registry_count = 0;
 
-ComponentManager::ComponentManager(size_t entity_component_lists_size, size_t component_chunk_size, Allocator& allocator) :
-															m_allocator(allocator),			
-															m_entity_component_list_allocator(				// This is ugly but has to be done here
-																sizeof(IComponent*),
-																alignof(IComponent*),
-																entity_component_lists_size,
-																m_allocator.allocate(entity_component_lists_size, alignof(IComponent*))
-															), 
+/**
+ * Construct a new ComponentManager from an existing ComponentRegistry.
+ * 
+ * @param registry holds the component types this manager will manage.
+ * @param chunks_allocation_size the number of bytes to allocate for storing component chunks.
+ * @param chunk_size the number of bytes to allocate per component chunk.
+ * @param allocator the allocator from which to request memory.
+ */
+ComponentManager::ComponentManager(ComponentRegistry& registry, size_t total_chunks_allocation_size, size_t chunk_size, size_t entity_component_map_size, Allocator& allocator) :
+															m_registered_components(registry.get_num_registered()),
+															m_allocator(allocator),
+															m_entity_component_map(
+																std::make_unique<EntityComponentMap>(
+																	registry.get_num_registered(),
+																	entity_component_map_size,
+																	m_allocator
+																)
+															),
 															m_component_chunk_allocator(
-																component_chunk_size,
-																0,
-																m_allocator.get_size() - m_allocator.get_used(),
-																m_allocator.allocate(m_allocator.get_size() - m_allocator.get_used(), 0)
-															)
+																std::make_unique<PoolAllocator>(
+																	chunk_size,
+																	0,
+																	total_chunks_allocation_size,
+																	m_allocator.allocate(total_chunks_allocation_size, 0)
+																)
+															),
+															m_component_constructors(std::move(registry.get_ctors())),
+															m_component_destructors(std::move(registry.get_dtors()))
 {
+	std::cout<<"A";
+	// unpack component type data from registry
+	const std::vector<size_t>& component_sizes = registry.get_sizes();
+	const std::vector<size_t>& component_aligns = registry.get_aligns();
 
-	ENTITY_COMPONENT_LISTS_SIZE = entity_component_lists_size;
-	COMPONENT_CHUNK_SIZE = component_chunk_size;
+	// create chunk managers
+	for(ComponentTypeID i = 0; i < m_registered_components; ++i)
+	{
+		m_chunk_managers.emplace_back(chunk_size, component_sizes[i], component_aligns[i], *m_component_chunk_allocator);
+	}
 
+	// save overallocated memory
+	m_chunk_managers.shrink_to_fit();
 }
 
 ComponentManager::~ComponentManager()
 {
-	// deallocate space for the entity component lists
-	for(size_t i = 0; i < m_entity_component_lists.size(); ++i)
-	{
-		remove_entity(i);
-	}
-	m_allocator.deallocate(m_entity_component_list_allocator.get_start());
-
 	// deallocate the component chunks
-	m_allocator.deallocate(m_component_chunk_allocator.get_start());
-
+	m_allocator.deallocate(m_component_chunk_allocator->get_start());
 }
 
-void ComponentManager::init()
-{
-	m_is_initialised = true;
-
-	// can save mem as these no longer change
-	m_component_sizes.shrink_to_fit();
-	m_component_aligns.shrink_to_fit();
-
-	// set up entity component list allocation
-	m_entity_component_list_allocator = std::move(PoolAllocator(sizeof(IComponent*) * m_registered_components,
-												alignof(IComponent*),
-												ENTITY_COMPONENT_LISTS_SIZE,
-												m_entity_component_list_allocator.get_start()
-												));
-
-	// construct all component managers
-	for (ComponentTypeID i = 0; i < m_registered_components; ++i)
-	{
-		m_chunk_managers.emplace_back(m_component_sizes[i], m_component_aligns[i], m_component_chunk_allocator);
-	}
-	m_chunk_managers.shrink_to_fit();
-}
-
+/**
+ * Notify the ComponentManager of a newly created entity.
+ */
 void ComponentManager::add_entity(Entity e)
 {
-	// initialise entity component list
-	IComponent** component_ptrs = (IComponent**)m_entity_component_list_allocator.allocate(sizeof(IComponent*) * m_registered_components, alignof(IComponent*));
-	if (component_ptrs == nullptr)
-	{
-		throw OutOfMemoryException("Ran out of memory to store entity component lists!");
-	}
-
-	if (e < m_entity_component_lists.size())
-	{
-		// already have a space in the vector for this entity
-		m_entity_component_lists[e] = component_ptrs;
-	}
-	else 
-	{
-		PBL_CORE_ASSERT_MSG(e == m_entity_component_lists.size(), "Entity out of range for add_entity!");
-
-		// must be e == m_entity_component_lists.size(), so just add an extra element
-		m_entity_component_lists.emplace_back(component_ptrs);
-	}
+	m_entity_component_map->add_entity(e);
 }
 
+/**
+ * Notify the ComponentManager that an entity was destroyed.
+ */
 void ComponentManager::remove_entity(Entity e)
 {
-	// has the entity been previously added and has it not been removed yet?
-	if (e >= m_entity_component_lists.size() || m_entity_component_lists[e] == nullptr) return;
+	// remove all entitys components first
+	for (ComponentTypeID i = 0; i < m_registered_components; ++i)
+	{
+		remove_component(e,i);
+	}
 
-	// clean up entity component list
-	m_entity_component_list_allocator.deallocate(m_entity_component_lists[e]);
-	m_entity_component_lists[e] = nullptr;
+	m_entity_component_map->remove_entity(e);
 }
 
+/**
+ * Allocates space for a new component, calls its default constructor and attaches it to an entity.
+ */
+IComponent* ComponentManager::add_component(Entity e, ComponentTypeID c)
+{
+	if (has_component(e, c)) return (*m_entity_component_map)[e][c];
 
-// add, remove and get entity are templates implemented in ComponentManager.h
+	// request a new component from the relevant ChunkManager
+	IComponent* component = (IComponent*)m_chunk_managers[c].create_component();
+
+	// call default constructor on the new component location
+	m_component_constructors[c](component);
+
+	// add component to the entity
+	(*m_entity_component_map)[e][c] = component;
+
+	return component;
+}
+
+/**
+ * Destructs & deallocates a component and removes it from an entity.
+ */
+void ComponentManager::remove_component(Entity e, ComponentTypeID c)
+{
+	if (!has_component(e, c)) return;
+
+	IComponent* component = (*m_entity_component_map)[e][c];
+
+	// call dtor on the new component location
+	m_component_destructors[c](component);
+
+	// dealloc the component
+	m_chunk_managers[c].destroy_component(component);
+
+	// remove from entity
+	(*m_entity_component_map)[e][c] = nullptr;
+}
+
+/**
+ * Find a component attached to an entity.
+ */
+IComponent* ComponentManager::get_component(Entity e, ComponentTypeID c)
+{
+	if (!has_component(e, c)) return nullptr;
+
+	return (*m_entity_component_map)[e][c];
+}
+
+bool ComponentManager::has_component(Entity e, ComponentTypeID c)
+{
+	if (e >= (*m_entity_component_map).get_map().size()) throw NullEntityException((std::string("Entity ") + std::to_string(e) + std::string(" is not currently in use!")).c_str());
+
+	return (*m_entity_component_map)[e] != nullptr && (*m_entity_component_map)[e][c] != nullptr;
+}
 
 
 //
 // ComponentChunkManager
 //
 
-ComponentManager::ComponentChunkManager::ComponentChunkManager(size_t component_size, size_t component_align, Allocator& chunk_allocator) :
+/**
+ * Construct a new ComponentChunkManager.
+ * 
+ * @param component_size the size of the components stored in the chunk.
+ * @param component_align the alignment of the components stored in the chunk.
+ * @param chunk_allocator the allocator from which to request new chunks.
+ */
+ComponentManager::ComponentChunkManager::ComponentChunkManager(size_t chunk_size, size_t component_size, size_t component_align, Allocator& chunk_allocator) :
+																m_chunk_size(chunk_size),
 																m_component_size(component_size),
 																m_component_align(component_align),
 																m_chunk_allocator(chunk_allocator)
 {
 	// at most the chunk could fit this many components,
 	// ignoring align constraints and other reserved space in the chunk
-	size_t max_components_per_chunk = COMPONENT_CHUNK_SIZE / m_component_size;
+	size_t max_components_per_chunk = m_chunk_size / m_component_size;
 
 	m_flag_segments_per_chunk = (max_components_per_chunk % flag_segment_bitwidth) ?
 											max_components_per_chunk / flag_segment_bitwidth + 1 :
 											max_components_per_chunk / flag_segment_bitwidth;
 
-	size_t remaining_chunk_space = COMPONENT_CHUNK_SIZE
+	size_t remaining_chunk_space = m_chunk_size
 									- sizeof(size_t) - alignof(size_t)
 									- m_flag_segments_per_chunk * flag_segment_bitwidth
 									- m_component_align;
@@ -154,7 +198,7 @@ ComponentManager::ComponentChunkManager::~ComponentChunkManager()
  */
 void ComponentManager::ComponentChunkManager::alloc_chunk()
 {
-	uintptr_t new_chunk = (uintptr_t)m_chunk_allocator.allocate(COMPONENT_CHUNK_SIZE, 0);
+	uintptr_t new_chunk = (uintptr_t)m_chunk_allocator.allocate(m_chunk_size, 0);
 
 	m_chunks.push_back((uintptr_t)new_chunk); 
 
@@ -241,12 +285,12 @@ void ComponentManager::ComponentChunkManager::destroy_component(IComponent* comp
 	size_t chunk_index = 0;
 	for(; chunk_index < m_chunks_components.size(); ++chunk_index)
 	{
-		if (component_location >= m_chunks_components[chunk_index] && component_location < m_chunks_components[chunk_index] + COMPONENT_CHUNK_SIZE)
+		if (component_location >= m_chunks_components[chunk_index] && component_location < m_chunks_components[chunk_index] + m_chunk_size)
 		{
 			break;
 		}
 	}
-
+	
 	size_t component_index_in_chunk = (component_location - m_chunks_components[chunk_index]) / m_component_size;
 
 	reset_chunk_flag(chunk_index, component_index_in_chunk);

@@ -9,7 +9,7 @@ namespace Parable::ECS
 {
 
 
-class ComponentManager;
+class ComponentRegistry;
 
 using ComponentTypeID = TypeID;
 
@@ -26,15 +26,6 @@ class IComponent
 
 };
 
-template<class T>
-class Component;
-
-/**
- * Concept to check if type is a component type.
- */
-template<class T>
-concept IsComponent = std::derived_from<T, Component<T>>;
-
 /**
  * Extension of IComponent to allow one m_component_type per actual component type.
  * 
@@ -44,18 +35,46 @@ template<class T>
 class Component : public IComponent
 {
 public:
-	static ComponentTypeID get_static_component_type() { return m_component_type; }
+	static ComponentTypeID get_component_type() { return component_type; }
+	static TypeID get_manager_id() { return manager_id; }
+
+	/**
+	 * Default construct in place.
+	 */
+	static void construct(void* location) { new ((T*)location) T; }
+
+	/**
+	 * Destruct in place.
+	 */
+	static void destruct(void* location) { ((T*)location)->~T(); }
 
 private:
-	static ComponentTypeID m_component_type;
+	/**
+	 * Unique identifier for the concrete component type T.
+	 */
+	static ComponentTypeID component_type;
+
+	/**
+	 * Which object manages this component type?
+	 * 
+	 * 0 is reserved as 'unregistered'.
+	 */
+	static TypeID manager_id;
 	
-	friend ComponentManager;
+	friend ComponentRegistry;
 };
 
 template<class T>
-ComponentTypeID Component<T>::m_component_type;
+ComponentTypeID Component<T>::component_type;
 
+template<class T>
+TypeID Component<T>::manager_id = 0;
 
+/**
+ * Concept to check if type is a component type.
+ */
+template<class T>
+concept IsComponent = std::derived_from<T, Component<T>>;
 
 
 }

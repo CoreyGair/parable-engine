@@ -3,6 +3,8 @@
 #include "Core/Application.h"
 #include "Core/Layer.h"
 
+#include "Events/WindowEvent.h"
+
 //TEMP FOR TEST
 #include "Debug/EventLogLayer.h"
 #include "Input/InputLayer.h"
@@ -34,20 +36,33 @@ Application::Application()
 void Application::run()
 {
 
+    // TODO: initialise ecs with component & system types
+
     while(true)
     {
+        // invoke update for the ecs
+        //m_ecs.on_update();
+
+        // invoke update across the layer stack
+        on_update();
+
+        // get events from glfw window
+        m_window->on_update();
+
         if (!m_event_buffer.is_empty())
         {
             process_events();
         }
-
-        m_window->on_update();
     }
 
 }
 
 /**
- * Call update on each layer
+ * Process a frame update within the engine.
+ * 
+ * Internally, calls update methods in the ECS and engine layers.
+ * 
+ * Only override if you know what you're doing, altering this will alter the function of the engine.
  */
 void Application::on_update()
 {
@@ -73,6 +88,14 @@ void Application::process_events()
     while(!m_event_buffer.is_empty())
     {
         Event::EventUPtr e = m_event_buffer.next();
+
+        // we handle window closing (and thus application quitting) here
+        if (e->get_event_type() == WindowCloseEvent::get_static_type())
+        {
+            e->handled = true;
+            m_running = false;
+        }
+
         for(auto it = m_layer_stack.crbegin(); it != m_layer_stack.crend(); ++it)
         {
             if (e->handled) return;

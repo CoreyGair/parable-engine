@@ -10,14 +10,14 @@ namespace Parable::ECS
 {
 
 
+class EntityComponentMap;
+
 /**
  * Manages allocation of entity id's within the ECS.
  */
 class EntityManager
 {
 public:
-    EntityManager() = default;
-    ~EntityManager() = default;
 
     Entity create();
     void destroy(Entity e);

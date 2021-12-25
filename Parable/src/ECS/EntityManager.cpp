@@ -1,6 +1,7 @@
 #include "EntityManager.h"
 
-
+#include "ComponentManager.h"
+#include "EntityComponentMap.h"
 
 namespace Parable::ECS
 {
@@ -15,16 +16,20 @@ namespace Parable::ECS
  */
 Entity EntityManager::create()
 {
+    Entity e;
+
+    // either pick the next unused entity or use a previously destroyed one.
     if(m_toombstone_entities.empty())
     {
-        return m_next_entity++;
+        e = m_next_entity++;
     }
     else
     {
-        Entity e = m_toombstone_entities.front();
+        e = m_toombstone_entities.front();
         m_toombstone_entities.pop();
-        return e;
     }
+
+    return e;
 }
 
 

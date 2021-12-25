@@ -7,32 +7,34 @@
 #include "Entity.h"
 #include "Component.h"
 
-#include "Memory/Allocator.h"
-#include "Memory/PoolAllocator.h"
+#include "Exception/ECSExceptions.h"
+
+
+namespace Parable
+{
+	class Allocator;
+	class PoolAllocator;
+}
 
 namespace Parable::ECS
 {
 
 
-// TODO: kind of want to refactor this whole thing into pure data oriented / functional / without objects
-// remvoe some complexity overhead of the mess of objects here
-// like remove ChunkManager obj and just manage an array of std::vector<chunk> indexed by component type
 /**
- * Manages creation and storage for components of the ECS.
- * 
- * This includes registering user-defined components, dynamic memory allocation and attaching components to Entities.
+ * Registers components to be later managed by a ComponentManager.
  */
-class ComponentManager
+class ComponentRegistry
 {
 public:
-	ComponentManager(size_t entity_component_lists_size, size_t component_chunk_size, Allocator& allocator);
-	~ComponentManager();
-
-	void init();
-	bool m_is_initialised = false;
+	/**
+	 * Construct a new registry with unique registry id.
+	 * 
+	 * Increments the static registry_count to give each registry a unique id.
+	 */
+	ComponentRegistry() : registry_id(++registry_count) {}
 
 	/**
-	 * Register a new component type with the ECS.
+	 * Register a new component type to this registry.
 	 * 
 	 * This sets Component<T>::m_component_type.
 	 * 
@@ -43,26 +45,68 @@ public:
 	template<class T>
 	TypeID register_component()
 	{
-		PBL_CORE_ASSERT_MSG(!m_is_initialised, "Trying to register component after ComponentManager::Init()!");
-
-		Component<T>::m_component_type = m_registered_components++;
-
+		PBL_CORE_ASSERT_MSG(Component<T>::manager_id == 0, "Trying to register an already registered component type!");
+		
 		m_component_sizes.emplace_back(sizeof(T));
 		m_component_aligns.emplace_back(alignof(T));
-		return Component<T>::m_component_type;
+
+		m_component_constructors.emplace_back(&Component<T>::construct);
+		m_component_destructors.emplace_back(&Component<T>::destruct);
+
+		Component<T>::component_type = m_registered_components++;
+		Component<T>::manager_id = registry_id;
+
+		return Component<T>::component_type;
 	}
+
+	ComponentTypeID get_num_registered() { return m_registered_components; }
+	const std::vector<size_t>& get_sizes() { return m_component_sizes; }
+	const std::vector<size_t>& get_aligns() { return m_component_aligns; }
+	std::vector<void(*)(void*)>& get_ctors() { return m_component_constructors; }
+	std::vector<void(*)(void*)>& get_dtors() { return m_component_destructors; }
+
+	/**
+	 * Uniquely identifies a ComponentRegistry/ComponentManager pair, which manages a set of component types.
+	 */
+	const TypeID registry_id;
+
+private:
+	/**
+	 * The number of component types registered to this registry.
+	 */
+	ComponentTypeID m_registered_components = 0;
+
+	std::vector<size_t> m_component_sizes;
+	std::vector<size_t> m_component_aligns;
+
+	std::vector<void(*)(void*)> m_component_constructors;
+	std::vector<void(*)(void*)> m_component_destructors;
+
+	/**
+	 * Global count of registries created, used to give each a unique id.
+	 */
+	static TypeID registry_count;
+
+};
+
+class EntityComponentMap;
+
+/**
+ * Manages creation and storage of components for the ECS.
+ */
+class ComponentManager
+{
+public:
+	ComponentManager(ComponentRegistry& registry, size_t total_chunks_allocation_size, size_t chunk_size, size_t entity_component_map_size, Allocator& allocator);
+	~ComponentManager();
 
 	void add_entity(Entity e);
 	void remove_entity(Entity e);
 
-	template<IsComponent C>
-	C* add_component(Entity e);
-
-	template<IsComponent C>
-	void remove_component(Entity e);
-
-	template<IsComponent C>
-	C* get_component(Entity e);
+	IComponent* add_component(Entity e, ComponentTypeID c);
+	void remove_component(Entity e, ComponentTypeID c);
+	IComponent* get_component(Entity e, ComponentTypeID c);
+	bool has_component(Entity e, ComponentTypeID c);
 
 private:
 	/**
@@ -78,7 +122,7 @@ private:
 	class ComponentChunkManager
 	{
 	public:
-		ComponentChunkManager(size_t component_size, size_t component_align, Allocator& chunk_allocator);
+		ComponentChunkManager(size_t chunk_size, size_t component_size, size_t component_align, Allocator& chunk_allocator);
 		~ComponentChunkManager();
 
 		// component mgmt
@@ -86,6 +130,11 @@ private:
 		void destroy_component(IComponent* component);
 
 	private:
+		/**
+		 * The size in bytes of each chunk.
+		 */
+		size_t m_chunk_size;
+
 		// FlagSegment used as bit flags to indicate which slots in the chunk contain active components
 		// bit[i] are set if component[i] is used
 		using FlagSegment = unsigned char;
@@ -139,62 +188,56 @@ private:
 	};
 
 private:
-	IComponent* create_component(ComponentTypeID);
 
-private:
-	// TODO: Static ecs class which manages constants like this
 	/**
-	 * Number of bytes to allocate to entity component lists.
+	 * Checks if a component type is managed by this manager by comparing m_registry_id and Component<>::get_manager_id();
+	 * 
+	 * @tparam C the component type to check.
 	 */
-	static size_t ENTITY_COMPONENT_LISTS_SIZE;
+	template<IsComponent C>
+	inline bool is_managed_by_this() { return m_registry_id == Component<C>::get_manager_id(); }
+
 	/**
-	 * Number of bytes to allocate per component chunk.
+	 * The id of the registry used to create this ComponentManager.
+	 * 
+	 * Uniquely identifies a ComponentRegistry/ComponentManager pair, which manages a set of component types.
+	 * All components managed by this manager will satisfy Component<T>::get_manager_id() == m_registry_id.
 	 */
-	static size_t COMPONENT_CHUNK_SIZE;
+	TypeID m_registry_id;
+	/**
+	 * Count of registered components.
+	 */
+	const TypeID m_registered_components = 0;
+
+	/**
+	 * Maps entities to the components attached to them.
+	 * 
+	 * Should be the same map as the one referenced by the entity manager.
+	 */
+	UPtr<EntityComponentMap> m_entity_component_map;
+
+	/**
+	 * Vector of functions which call component constructors in-place.
+	 * 
+	 * Indexed by component type id.
+	 */
+	std::vector<void(*)(void*)> m_component_constructors;
+	/**
+	 * Vector of functions which call component destructors in-place.
+	 *
+	 * Indexed by component type id.
+	 */
+	std::vector<void(*)(void*)> m_component_destructors;
+
 	/**
 	 * The main allocator used to store all component instances.
 	 */
 	Allocator& m_allocator;
 
 	/**
-	 * Count of registered components.
-	 * 
-	 * Will not change after Init() called.
-	 */
-	TypeID m_registered_components = 0;
-
-	// TODO: maybe make this a new 'ExpandableAllocator'
-	// atm, pool allocs fixed size arrays of IComponent*
-	// could make expandable by allowing it to malloc() a chunk of N (like 100) Icomponent* arrays,
-	// as this currently limits the number of entitites we can handle to the ammount prealloced at the start
-	/**
-	 * Allocates space for the entity component lists.
-	 */
-	PoolAllocator m_entity_component_list_allocator;
-	/**
-	 * Stores lists of pointers to components for each currently alive entity.
-	 * 
-	 * m_entity_component_lists[e] is an array of Component* attached to the Entity e.
-	 * 
-	 * m_entity_component_lists[e][c] is the Component* for the ComponentTypeID c attached to the Entity e.
-	 */
-	std::vector<IComponent**> m_entity_component_lists;
-
-	/**
-	 * Vector of sizes of registered component types, indexed by ComponentTypeID.
-	 */
-	std::vector<size_t> m_component_sizes;
-	/**
-	 * Vector of alignments of registered component types, indexed by ComponentTypeID.
-	 */
-	std::vector<size_t> m_component_aligns;
-
-	/**
 	 * Allocates space for the component chunks.
-	 * 
-	 * Holds pools of COMPONENT_CHUNK_SIZE chunks to be assigned to ComponentChunk objects.
 	 */
-	PoolAllocator m_component_chunk_allocator;
+	UPtr<PoolAllocator> m_component_chunk_allocator;
 	/**
 	 * List of chunk managers, indexed by ComponentTypeID.
 	 * 
@@ -203,69 +246,6 @@ private:
 	std::vector<ComponentChunkManager> m_chunk_managers;
 
 };
-
-/**
- * Create a new component and attach it to an entity.
- * 
- * Note that the created component will be initialised using the component constructor with no arguments.
- * 
- * @param e the entity to add the component to
- * @tparam C the component type to add
- * @return IComponent* the newly created component
- */
-template<IsComponent C>
-C* ComponentManager::add_component(Entity e)
-{
-	ComponentTypeID component_type = Component<C>::get_static_component_type();
-
-	// request a new component from the relevant ChunkManager
-	C* component = new ((C*)m_chunk_managers[component_type].create_component()) C;
-
-	// add component to the entity
-	m_entity_component_lists[e][component_type] = (IComponent*)component;
-
-	return component;
-}
-
-
-/**
- * Remove a component from an entity, and dealloc the component.
- * 
- * @param e the entity to remove the component from
- * @tparam C the component type to remove
- */
-template<IsComponent C>
-void ComponentManager::remove_component(Entity e)
-{
-	ComponentTypeID component_type = Component<C>::get_static_component_type();
-
-	IComponent* component = m_entity_component_lists[e][component_type];
-
-	// must manually destruct components
-	((C*)component)->~C();
-
-	// dealloc the component
-	m_chunk_managers[component_type].destroy_component(component);
-
-	// remove from entity
-	m_entity_component_lists[e][component_type] = nullptr;
-}
-
-/**
- * Get a pointer to a component attached to an entity. Null if the component is not attached to the entity.
- * 
- * @param e the entity to find the component on
- * @tparam C the component type to find
- */
-template<IsComponent C>
-C* ComponentManager::get_component(Entity e)
-{
-	ComponentTypeID component_type = Component<C>::get_static_component_type();
-
-	return (C*)m_entity_component_lists[e][component_type];
-}
-
-
 
 
 }
