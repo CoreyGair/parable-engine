@@ -52,6 +52,7 @@ public:
 
 		m_component_constructors.emplace_back(&Component<T>::construct);
 		m_component_destructors.emplace_back(&Component<T>::destruct);
+		m_component_deregisters.emplace_back(&Component<T>::deregister);
 
 		Component<T>::component_type = m_registered_components++;
 		Component<T>::manager_id = registry_id;
@@ -64,6 +65,7 @@ public:
 	const std::vector<size_t>& get_aligns() { return m_component_aligns; }
 	std::vector<void(*)(void*)>& get_ctors() { return m_component_constructors; }
 	std::vector<void(*)(void*)>& get_dtors() { return m_component_destructors; }
+	std::vector<void(*)(void)>& get_deregs() { return m_component_deregisters; }
 
 	/**
 	 * Uniquely identifies a ComponentRegistry/ComponentManager pair, which manages a set of component types.
@@ -81,6 +83,7 @@ private:
 
 	std::vector<void(*)(void*)> m_component_constructors;
 	std::vector<void(*)(void*)> m_component_destructors;
+	std::vector<void(*)(void)> m_component_deregisters;
 
 	/**
 	 * Global count of registries created, used to give each a unique id.
@@ -228,6 +231,12 @@ private:
 	 * Indexed by component type id.
 	 */
 	std::vector<void(*)(void*)> m_component_destructors;
+	/**
+	 * Vector of functions which deregister the component types from this manager.
+	 *
+	 * Indexed by component type id.
+	 */
+	std::vector<void(*)(void)> m_component_deregisters;
 
 	/**
 	 * The main allocator used to store all component instances.

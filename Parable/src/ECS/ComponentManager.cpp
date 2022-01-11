@@ -25,13 +25,13 @@ TypeID ComponentRegistry::registry_count = 0;
  * @param allocator the allocator from which to request memory.
  */
 ComponentManager::ComponentManager(ComponentRegistry& registry, size_t total_chunks_allocation_size, size_t chunk_size, size_t entity_component_map_size, Allocator& allocator) :
-															m_registered_components(registry.get_num_registered()),
 															m_allocator(allocator),
+															m_registered_components(registry.get_num_registered()),
 															m_entity_component_map(
 																std::make_unique<EntityComponentMap>(
 																	registry.get_num_registered(),
 																	entity_component_map_size,
-																	m_allocator
+																	allocator
 																)
 															),
 															m_component_chunk_allocator(
@@ -39,11 +39,12 @@ ComponentManager::ComponentManager(ComponentRegistry& registry, size_t total_chu
 																	chunk_size,
 																	0,
 																	total_chunks_allocation_size,
-																	m_allocator.allocate(total_chunks_allocation_size, 0)
+																	allocator.allocate(total_chunks_allocation_size, 0)
 																)
 															),
 															m_component_constructors(std::move(registry.get_ctors())),
-															m_component_destructors(std::move(registry.get_dtors()))
+															m_component_destructors(std::move(registry.get_dtors())),
+															m_component_deregisters(std::move(registry.get_deregs()))
 {
 	std::cout<<"A";
 	// unpack component type data from registry
@@ -64,6 +65,9 @@ ComponentManager::~ComponentManager()
 {
 	// deallocate the component chunks
 	m_allocator.deallocate(m_component_chunk_allocator->get_start());
+
+	// deregister all component types so they may be registered to another manager if needed
+	for(auto f : m_component_deregisters) f();
 }
 
 /**

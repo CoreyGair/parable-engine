@@ -48,6 +48,11 @@ public:
 	 */
 	static void destruct(void* location) { ((T*)location)->~T(); }
 
+	/**
+	 * Deregister the component type.
+	 */
+	static void deregister() { manager_id = 0; }
+
 private:
 	/**
 	 * Unique identifier for the concrete component type T.

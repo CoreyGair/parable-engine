@@ -7,7 +7,6 @@
 
 #include "Exception/MemoryExceptions.h"
 
-
 namespace Parable::ECS
 {
 
@@ -57,7 +56,7 @@ EntityComponentMap::~EntityComponentMap()
 void EntityComponentMap::add_entity(Entity e)
 {
 	// check the entity hasnt yet been added, or was previously removed
-	if (e <= m_entity_component_lists.size() && m_entity_component_lists[e] != nullptr) return;
+	if (e < m_entity_component_lists.size() && m_entity_component_lists[e] != nullptr) return;
 
 	// initialise entity component list
 	IComponent** component_ptrs = (IComponent**)m_allocator->allocate(m_allocator->get_object_size(), alignof(IComponent*));
