@@ -26,6 +26,10 @@ UPtr<ECS> ECS::ECSBuilder::create()
 {
 	PBL_CORE_ASSERT_MSG(!created, "Cannot create() from the same ECSBuilder!");
 
+	if (m_entity_component_map_size == 0) throw ECSBuilderException("Failed to set entity component map size!");
+	if (m_component_chunk_size == 0) throw ECSBuilderException("Failed to set component chunk size!");
+	if (m_component_chunks_total_size == 0) throw ECSBuilderException("Failed to set coomponent chunk total size!");
+
 	size_t total_size = m_entity_component_map_size + m_component_chunks_total_size;
 
 	UPtr<Allocator> allocator = std::make_unique<LinearAllocator>(total_size, malloc(total_size));
@@ -54,6 +58,14 @@ ECS::ECS(UPtr<EntityManager> entity_manager,
 												m_allocator(std::move(allocator))
 {
 
+}
+
+/**
+ * Must also free the ECS memory.
+ */
+ECS::~ECS()
+{
+	free(m_allocator->get_start());
 }
 
 

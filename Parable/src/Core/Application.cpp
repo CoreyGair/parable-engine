@@ -3,7 +3,10 @@
 #include "Core/Application.h"
 #include "Core/Layer.h"
 
+#include "Window/Window.h"
 #include "Events/WindowEvent.h"
+
+#include "ECS/ECS.h"
 
 //TEMP FOR TEST
 #include "Debug/EventLogLayer.h"
@@ -18,6 +21,14 @@ Application::Application()
 {
     PBL_CORE_ASSERT_MSG(!s_instance, "Application already exists!");
     s_instance = this;
+
+    ECS::ECS::ECSBuilder builder;
+
+    builder.set_component_chunk_size(500);
+    builder.set_component_chunks_total_size(10000);
+    builder.set_entity_component_map_size(2000);
+
+    m_ecs = builder.create();
 
     m_window = std::make_unique<Window>(1600,900,std::string("Parable Engine"), false);
     m_window->set_app_event_callback(PBL_BIND_MEMBER_EVENT_HANDLER(Application::on_event));

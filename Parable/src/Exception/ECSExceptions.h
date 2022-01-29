@@ -24,6 +24,14 @@ public:
     using Exception::Exception;
 };
 
+/**
+ * Thrown when trying to create an ECS without configuring the builder fully.
+ */
+class ECSBuilderException : public Exception
+{
+public:
+    using Exception::Exception;
+};
 
 
 }

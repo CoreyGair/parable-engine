@@ -7,15 +7,14 @@
 
 #include "Events/EventBuffer.h"
 
-#include "ECS/ECS.h"
-
-#include "Window/Window.h"
-
-
 int main(int argc, char** argv);
 
 namespace Parable
 {
+
+namespace ECS { class ECS; }
+
+class Window;
 
 
 /**
@@ -54,7 +53,7 @@ class Application
         /**
          * The engine ecs.
          */
-        //ECS::ECS m_ecs;
+        UPtr<ECS::ECS> m_ecs;
 
     private:
         void run();
