@@ -17,6 +17,10 @@ namespace Parable
 
 Application* Application::s_instance = nullptr; 
 
+class A : public ECS::Component<A> {
+    int val = 0;
+};
+
 Application::Application()
 {
     PBL_CORE_ASSERT_MSG(!s_instance, "Application already exists!");

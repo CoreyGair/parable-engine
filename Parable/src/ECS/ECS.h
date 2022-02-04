@@ -27,6 +27,8 @@ class ECS
 {
 public:
 
+	~ECS();
+
 	void on_update();
 
 	Entity create_entity();
@@ -87,6 +89,9 @@ public:
 		void set_entity_component_map_size(size_t s) { m_entity_component_map_size = s; }
 		void set_component_chunk_size(size_t s) { m_component_chunk_size = s; }
 		void set_component_chunks_total_size(size_t s) { m_component_chunks_total_size = s; }
+
+		ComponentRegistry* get_registry() { return m_component_registry.get(); }
+
 	private:
 		size_t m_entity_component_map_size = 0;
 		size_t m_component_chunk_size = 0;

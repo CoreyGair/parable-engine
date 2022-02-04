@@ -19,17 +19,14 @@ namespace Parable::ECS
  * @param parent_allocator the allocator to allocate memory for the map from.
  */
 EntityComponentMap::EntityComponentMap(ComponentTypeID num_components, size_t allocation_size, Allocator& parent_allocator) :
-																		m_parent_allocator(parent_allocator),
-																		m_allocator(
-																			std::make_unique<PoolAllocator>(
-																				sizeof(IComponent*) * num_components,
-																				alignof(IComponent*),
-																				allocation_size,
-																				m_parent_allocator.allocate(allocation_size, alignof(IComponent*))
-																			)
-																		)
+																		m_parent_allocator(parent_allocator)
 {
-	
+	PBL_CORE_ASSERT_MSG(num_components > 0, "Cannot create entity component map with 0 components!");
+	m_allocator = std::make_unique<PoolAllocator>(sizeof(IComponent*) * num_components,
+													alignof(IComponent*),
+													allocation_size,
+													m_parent_allocator.allocate(allocation_size, alignof(IComponent*))
+												);						
 }
 
 EntityComponentMap::~EntityComponentMap()

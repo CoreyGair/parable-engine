@@ -7,14 +7,14 @@
 
 #include "Events/EventBuffer.h"
 
+#include "Window/Window.h"
+
+#include "ECS/ECS.h"
+
 int main(int argc, char** argv);
 
 namespace Parable
 {
-
-namespace ECS { class ECS; }
-
-class Window;
 
 
 /**

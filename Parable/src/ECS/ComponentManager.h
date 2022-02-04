@@ -20,78 +20,6 @@ namespace Parable::ECS
 {
 
 
-/**
- * Registers components to be later managed by a ComponentManager.
- */
-class ComponentRegistry
-{
-public:
-	/**
-	 * Construct a new registry with unique registry id.
-	 * 
-	 * Increments the static registry_count to give each registry a unique id.
-	 */
-	ComponentRegistry() : registry_id(++registry_count) {}
-
-	/**
-	 * Register a new component type to this registry.
-	 * 
-	 * This sets Component<T>::m_component_type.
-	 * 
-	 * @tparam T the component class which is being registered.
-	 * 
-	 * @return The TypeID for the component.
-	 */
-	template<class T>
-	TypeID register_component()
-	{
-		PBL_CORE_ASSERT_MSG(Component<T>::manager_id == 0, "Trying to register an already registered component type!");
-		
-		m_component_sizes.emplace_back(sizeof(T));
-		m_component_aligns.emplace_back(alignof(T));
-
-		m_component_constructors.emplace_back(&Component<T>::construct);
-		m_component_destructors.emplace_back(&Component<T>::destruct);
-		m_component_deregisters.emplace_back(&Component<T>::deregister);
-
-		Component<T>::component_type = m_registered_components++;
-		Component<T>::manager_id = registry_id;
-
-		return Component<T>::component_type;
-	}
-
-	ComponentTypeID get_num_registered() { return m_registered_components; }
-	const std::vector<size_t>& get_sizes() { return m_component_sizes; }
-	const std::vector<size_t>& get_aligns() { return m_component_aligns; }
-	std::vector<void(*)(void*)>& get_ctors() { return m_component_constructors; }
-	std::vector<void(*)(void*)>& get_dtors() { return m_component_destructors; }
-	std::vector<void(*)(void)>& get_deregs() { return m_component_deregisters; }
-
-	/**
-	 * Uniquely identifies a ComponentRegistry/ComponentManager pair, which manages a set of component types.
-	 */
-	const TypeID registry_id;
-
-private:
-	/**
-	 * The number of component types registered to this registry.
-	 */
-	ComponentTypeID m_registered_components = 0;
-
-	std::vector<size_t> m_component_sizes;
-	std::vector<size_t> m_component_aligns;
-
-	std::vector<void(*)(void*)> m_component_constructors;
-	std::vector<void(*)(void*)> m_component_destructors;
-	std::vector<void(*)(void)> m_component_deregisters;
-
-	/**
-	 * Global count of registries created, used to give each a unique id.
-	 */
-	static TypeID registry_count;
-
-};
-
 class EntityComponentMap;
 
 /**
@@ -253,6 +181,81 @@ private:
 	 * Each manager manages chunks for the corresponding component.
 	 */
 	std::vector<ComponentChunkManager> m_chunk_managers;
+
+};
+
+/**
+ * Registers components to be later managed by a ComponentManager.
+ */
+class ComponentRegistry
+{
+public:
+	/**
+	 * Construct a new registry with unique registry id.
+	 * 
+	 * Increments the static registry_count to give each registry a unique id.
+	 */
+	ComponentRegistry() : registry_id(++registry_count) {}
+
+	/**
+	 * Register a new component type to this registry.
+	 * 
+	 * This sets Component<T>::m_component_type.
+	 * 
+	 * @tparam T the component class which is being registered.
+	 * 
+	 * @return The TypeID for the component.
+	 */
+	template<class T>
+	TypeID register_component()
+	{
+		PBL_CORE_ASSERT_MSG(Component<T>::manager_id == 0, "Trying to register an already registered component type!");
+		
+		m_component_sizes.emplace_back(sizeof(T));
+		m_component_aligns.emplace_back(alignof(T));
+
+		m_component_constructors.emplace_back(&Component<T>::construct);
+		m_component_destructors.emplace_back(&Component<T>::destruct);
+		m_component_deregisters.emplace_back(&Component<T>::deregister);
+
+		Component<T>::component_type = m_registered_components++;
+		Component<T>::manager_id = registry_id;
+
+		return Component<T>::component_type;
+	}
+
+	/**
+	 * Uniquely identifies a ComponentRegistry/ComponentManager pair, which manages a set of component types.
+	 */
+	const TypeID registry_id;
+	friend ComponentManager;
+
+private:
+	//privage getters used by ComponentManager
+
+	ComponentTypeID get_num_registered() { return m_registered_components; }
+	const std::vector<size_t>& get_sizes() { return m_component_sizes; }
+	const std::vector<size_t>& get_aligns() { return m_component_aligns; }
+	std::vector<void(*)(void*)>& get_ctors() { return m_component_constructors; }
+	std::vector<void(*)(void*)>& get_dtors() { return m_component_destructors; }
+	std::vector<void(*)(void)>& get_deregs() { return m_component_deregisters; }
+
+	/**
+	 * The number of component types registered to this registry.
+	 */
+	ComponentTypeID m_registered_components = 0;
+
+	std::vector<size_t> m_component_sizes;
+	std::vector<size_t> m_component_aligns;
+
+	std::vector<void(*)(void*)> m_component_constructors;
+	std::vector<void(*)(void*)> m_component_destructors;
+	std::vector<void(*)(void)> m_component_deregisters;
+
+	/**
+	 * Global count of registries created, used to give each a unique id.
+	 */
+	static TypeID registry_count;
 
 };
 

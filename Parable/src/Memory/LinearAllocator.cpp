@@ -24,7 +24,6 @@ LinearAllocator::~LinearAllocator()
  */
 void* LinearAllocator::allocate(size_t size, size_t alignment)
 {
-    PBL_CORE_TRACE("linear allocate size {} aling {}", size, alignment);
     PBL_CORE_ASSERT_MSG(size != 0, "Trying to allocate with size 0!")
 
     // get an aligned addr within the free space (std::align gauranteed to return the first avaliable one)
