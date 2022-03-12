@@ -3,6 +3,8 @@
 #include "Core/Base.h"
 #include "Events/Event.h"
 
+#include "vulkan/vulkan.h"
+
 class GLFWwindow;
 
 namespace Parable
@@ -36,6 +38,8 @@ private:
     WindowData m_window_data;
 
     GLFWwindow* m_glfw_window;
+
+    VkInstance m_vulkan_instance;
 
 public:
     Window(int width, int height, std::string name, bool fullscreen);

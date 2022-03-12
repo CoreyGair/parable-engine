@@ -6,7 +6,7 @@ set(PARABLE_SRCS_CORE       ${CMAKE_CURRENT_SOURCE_DIR}/Core/Application.cpp
 set(PARABLE_SRCS_EVENTS     ${CMAKE_CURRENT_SOURCE_DIR}/Events/EventBuffer.cpp
                             )
 
-set(PARABLE_SRCS_PLATFORM   
+set(PARABLE_SRCS_PLATFORM   ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/VulkanInstance.cpp
                             )
 
 set(PARABLE_SRCS_WINDOW     ${CMAKE_CURRENT_SOURCE_DIR}/Window/Window.cpp
@@ -37,7 +37,7 @@ set(PARABLE_SRCS_ECS    ${CMAKE_CURRENT_SOURCE_DIR}/ECS/EntityManager.cpp
                         ) 
 
 set(PARABLE_SRCS_EXCEPTION      
-                                ) 
+                                )
 
 set(PARABLE_SRCS    ${PARABLE_SRCS_CORE}
                     ${PARABLE_SRCS_EVENTS}

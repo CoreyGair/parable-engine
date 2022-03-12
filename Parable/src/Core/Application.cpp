@@ -32,7 +32,7 @@ Application::Application()
     builder.set_component_chunks_total_size(10000);
     builder.set_entity_component_map_size(2000);
 
-    m_ecs = builder.create();
+    //m_ecs = builder.create();
 
     m_window = std::make_unique<Window>(1600,900,std::string("Parable Engine"), false);
     m_window->set_app_event_callback(PBL_BIND_MEMBER_EVENT_HANDLER(Application::on_event));
@@ -53,7 +53,7 @@ void Application::run()
 
     // TODO: initialise ecs with component & system types
 
-    while(true)
+    while(m_running)
     {
         // invoke update for the ecs
         //m_ecs.on_update();

@@ -3,8 +3,10 @@
 #include "Events/WindowEvent.h"
 #include "Events/InputEvent.h"
 
-#include <glad/glad.h>
+#include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
+
+#include "Platform/Vulkan/VulkanInstance.h"
 
 namespace Parable
 {
@@ -23,14 +25,21 @@ namespace Parable
 Window::Window(int width, int height, std::string name, bool fullscreen)
 {
     // init glfw
-    int init_res = glfwInit();
-    PBL_CORE_ASSERT_MSG(init_res, "Could not init GLFW in Window constructor.");
+    int init_result = glfwInit();
+    PBL_CORE_ASSERT_MSG(init_result, "Could not init GLFW in Window constructor.");
 
     // min opengl version supported
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
     glfwSetErrorCallback(glfw_error_callback);
+
+    // check for vulkan dynamic loader loading
+    if (!glfwVulkanSupported())
+    {
+        PBL_CORE_ERROR("Vulkan not supported!");
+    }
+
+    create_vulkan_instance(&m_vulkan_instance);
 
     m_glfw_window = glfwCreateWindow(width, height, name.c_str(), fullscreen ? glfwGetPrimaryMonitor() : NULL, NULL);
     PBL_CORE_ASSERT_MSG(m_glfw_window, "Window creation failed!");
@@ -39,14 +48,10 @@ Window::Window(int width, int height, std::string name, bool fullscreen)
     // instead, we attach the data object to glfw window user data pointer so we can retrieve it in callback
     m_window_data.width = width;
     m_window_data.height = height;
-    m_window_data.name = name;
+    m_window_data.name = name;  
     m_window_data.fullscreen = fullscreen;
 
     glfwSetWindowUserPointer(m_glfw_window, &m_window_data);
-
-    glfwMakeContextCurrent(m_glfw_window);
-    int context_success = gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
-    PBL_CORE_ASSERT_MSG(context_success, "Failed to init OpenGL context with GLAD!")
 
     // set event callbacks
     glfwSetWindowCloseCallback(m_glfw_window, [](GLFWwindow* window)
@@ -142,7 +147,10 @@ Window::Window(int width, int height, std::string name, bool fullscreen)
 
 Window::~Window()
 {
+    destroy_vulkan_instance(m_vulkan_instance);
+
     glfwDestroyWindow(m_glfw_window);
+    
     // must terminate glfw
     glfwTerminate();
 }
