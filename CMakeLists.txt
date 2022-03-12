@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.19)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-project(parable-engine VERSION 0.0 DESCRIPTION "Game engine" LANGUAGES CXX C)
+project(parable-engine VERSION 0.0.0 DESCRIPTION "Game engine" LANGUAGES CXX C)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 

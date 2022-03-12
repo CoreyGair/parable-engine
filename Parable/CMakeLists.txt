@@ -3,16 +3,17 @@ add_subdirectory(src)
 set(PARABLE_INCLUDE_DIRS src)
 
 # Adding libraries
-set(PARABLE_VENDOR  ${CMAKE_CURRENT_SOURCE_DIR}/vendor)
+set(PARABLE_VENDOR ${CMAKE_CURRENT_SOURCE_DIR}/vendor)
+
+find_package(Vulkan REQUIRED FATAL_ERROR)
 
 add_subdirectory(${PARABLE_VENDOR}/glfw)
-add_subdirectory(${PARABLE_VENDOR}/glad)
 
 add_library(Parable STATIC ${PARABLE_SRCS})
 
-target_link_libraries(Parable PRIVATE glfw glad)
+target_link_libraries(Parable PRIVATE glfw ${Vulkan_LIBRARIES})
 
-target_include_directories(Parable PUBLIC ${PARABLE_INCLUDE_DIRS} ${PARABLE_VENDOR}/spdlog/include PRIVATE ${PARABLE_VENDOR}/glm ${PARABLE_VENDOR}/rapidjson/include)
+target_include_directories(Parable PUBLIC ${PARABLE_INCLUDE_DIRS} ${PARABLE_VENDOR}/spdlog/include ${Vulkan_INCLUDE_DIRS} PRIVATE ${PARABLE_VENDOR}/glm ${PARABLE_VENDOR}/rapidjson/include)
 
 target_precompile_headers(Parable PRIVATE src/pblpch.h)
 
