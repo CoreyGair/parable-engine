@@ -22,7 +22,17 @@ using ButtonCallback = std::function<void(void)>;
  */
 class ButtonMap{
 public:
+    /**
+     * Creates a new button map.
+     *
+     * Moves the input code map into the new button map.
+     */
     ButtonMap(const std::string& name, std::vector<InputCode>& inputs) : m_name(name), m_inputs(std::move(inputs)) {}
+    /**
+     * Creates a new button map.
+     *
+     * Used for debugging to recieve a {}-initialised vector of inputs.
+     */
     ButtonMap(const std::string& name, std::vector<InputCode>&& inputs) : m_name(name), m_inputs(std::move(inputs)) {}
     ButtonMap(ButtonMap&& other) : ButtonMap(other.m_name, other.m_inputs) {}
     
@@ -35,8 +45,8 @@ public:
 
     const std::string& get_name() { return m_name; }
 
-    bool is_down() { return m_down; }
-    bool pressed_this_frame() { return m_pressed; }
+    const bool is_down() { return m_down; }
+    const bool pressed_this_frame() { return m_pressed; }
 
     void on_update();
 
