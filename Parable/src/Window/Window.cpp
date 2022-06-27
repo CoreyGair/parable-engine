@@ -3,10 +3,8 @@
 #include "Events/WindowEvent.h"
 #include "Events/InputEvent.h"
 
-#include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 
-#include "Platform/Vulkan/VulkanInstance.h"
 
 namespace Parable
 {
@@ -38,8 +36,6 @@ Window::Window(int width, int height, std::string name, bool fullscreen)
     {
         PBL_CORE_ERROR("Vulkan not supported!");
     }
-
-    create_vulkan_instance(&m_vulkan_instance);
 
     m_glfw_window = glfwCreateWindow(width, height, name.c_str(), fullscreen ? glfwGetPrimaryMonitor() : NULL, NULL);
     PBL_CORE_ASSERT_MSG(m_glfw_window, "Window creation failed!");
@@ -147,8 +143,6 @@ Window::Window(int width, int height, std::string name, bool fullscreen)
 
 Window::~Window()
 {
-    destroy_vulkan_instance(m_vulkan_instance);
-
     glfwDestroyWindow(m_glfw_window);
     
     // must terminate glfw
