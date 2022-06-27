@@ -1,6 +1,7 @@
 set(PARABLE_SRCS_CORE       ${CMAKE_CURRENT_SOURCE_DIR}/Core/Application.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Core/Log.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Core/LayerStack.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Core/Time.cpp
                             )
 
 set(PARABLE_SRCS_EVENTS     ${CMAKE_CURRENT_SOURCE_DIR}/Events/EventBuffer.cpp
