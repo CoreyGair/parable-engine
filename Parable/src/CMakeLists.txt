@@ -6,7 +6,15 @@ set(PARABLE_SRCS_CORE       ${CMAKE_CURRENT_SOURCE_DIR}/Core/Application.cpp
 set(PARABLE_SRCS_EVENTS     ${CMAKE_CURRENT_SOURCE_DIR}/Events/EventBuffer.cpp
                             )
 
-set(PARABLE_SRCS_PLATFORM   ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/VulkanInstance.cpp
+set(PARABLE_SRCS_PLATFORM   ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/GPU.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Swapchain.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Renderpass.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/GraphicsPipeline.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Framebuffers.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/PipelineLayoutBuilder.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Buffer.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/CommandPool.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/ShaderLoader.cpp
                             )
 
 set(PARABLE_SRCS_WINDOW     ${CMAKE_CURRENT_SOURCE_DIR}/Window/Window.cpp
@@ -39,6 +47,10 @@ set(PARABLE_SRCS_ECS    ${CMAKE_CURRENT_SOURCE_DIR}/ECS/EntityManager.cpp
 set(PARABLE_SRCS_EXCEPTION      
                                 )
 
+set(PARABLE_SRCS_RENDER     ${CMAKE_CURRENT_SOURCE_DIR}/Render/RendererVk.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Render/RenderLayer.cpp
+                            )
+
 set(PARABLE_SRCS    ${PARABLE_SRCS_CORE}
                     ${PARABLE_SRCS_EVENTS}
                     ${PARABLE_SRCS_PLATFORM}
@@ -49,4 +61,5 @@ set(PARABLE_SRCS    ${PARABLE_SRCS_CORE}
                     ${PARABLE_SRCS_UTIL}
                     ${PARABLE_SRCS_ECS}
                     ${PARABLE_SRCS_EXCEPTION}
+                    ${PARABLE_SRCS_RENDER}
                     PARENT_SCOPE)

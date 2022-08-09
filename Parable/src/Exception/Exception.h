@@ -16,6 +16,7 @@ class Exception : public std::exception
 {
 public:
     Exception(const char* msg) : m_msg(msg) {}
+    Exception(const std::string& msg) : m_msg(msg.c_str()) {}
 
     const char* what() const noexcept override { return m_msg; }
 

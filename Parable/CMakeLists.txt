@@ -11,7 +11,9 @@ add_subdirectory(${PARABLE_VENDOR}/glfw)
 
 add_library(Parable STATIC ${PARABLE_SRCS})
 
-target_link_libraries(Parable PRIVATE glfw ${Vulkan_LIBRARIES})
+message(${Vulkan_LIBRARIES})
+
+target_link_libraries(Parable PRIVATE ${Vulkan_LIBRARIES} glfw)
 
 target_include_directories(Parable PUBLIC ${PARABLE_INCLUDE_DIRS} ${PARABLE_VENDOR}/spdlog/include ${Vulkan_INCLUDE_DIRS} PRIVATE ${PARABLE_VENDOR}/glm ${PARABLE_VENDOR}/rapidjson/include)
 

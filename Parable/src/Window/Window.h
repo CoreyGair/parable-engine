@@ -3,7 +3,7 @@
 #include "Core/Base.h"
 #include "Events/Event.h"
 
-#include "vulkan/vulkan.h"
+#include <vulkan/vulkan.h>
 
 class GLFWwindow;
 
@@ -23,14 +23,13 @@ struct WindowData
     int height;
     std::string name;
     bool fullscreen;
+    bool focused;
+    bool minimised;
     EventCallbackFn event_callback;
 };
 
 /**
  * Manages the glfw window.
- * 
- * 
- * 
  */
 class Window
 {
@@ -39,11 +38,11 @@ private:
 
     GLFWwindow* m_glfw_window;
 
-    VkInstance m_vulkan_instance;
-
 public:
     Window(int width, int height, std::string name, bool fullscreen);
     ~Window();
+
+    GLFWwindow* get_glfw_window() const { return m_glfw_window; }
 
     void on_update();
 
