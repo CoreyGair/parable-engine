@@ -64,6 +64,7 @@ private:
     std::unique_ptr<Vulkan::CommandPool> m_command_pool;
 
     std::unique_ptr<Vulkan::Buffer> m_vertex_buffer;
+    std::unique_ptr<Vulkan::Buffer> m_index_buffer;
 
     std::vector<VkCommandBuffer> m_vk_command_buffers;
 

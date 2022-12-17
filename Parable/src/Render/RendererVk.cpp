@@ -20,9 +20,14 @@ namespace Parable
 
 
 const std::vector<Vulkan::Vertex> vertices = {
-    {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-    {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-    {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+    {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+    {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+    {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+};
+
+const std::vector<uint16_t> indices = {
+    0, 1, 2, 2, 3, 0
 };
 
 RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
@@ -42,10 +47,10 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
     m_gpu = gpu_builder.create(window);
 
     // GET QUEUES
-    const Vulkan::QueueFamilyIndices& indices = m_gpu->get_queue_family_indices();
-    vkGetDeviceQueue(m_gpu->device, indices.graphics_family.value(), 0, &m_vk_graphics_queue);
-    vkGetDeviceQueue(m_gpu->device, indices.presentation_family.value(), 0, &m_vk_presentation_queue);
-    vkGetDeviceQueue(m_gpu->device, indices.transfer_family.value(), 0, &m_vk_transfer_queue);
+    const Vulkan::QueueFamilyIndices& queue_family_indices = m_gpu->get_queue_family_indices();
+    vkGetDeviceQueue(m_gpu->device, queue_family_indices.graphics_family.value(), 0, &m_vk_graphics_queue);
+    vkGetDeviceQueue(m_gpu->device, queue_family_indices.presentation_family.value(), 0, &m_vk_presentation_queue);
+    vkGetDeviceQueue(m_gpu->device, queue_family_indices.transfer_family.value(), 0, &m_vk_transfer_queue);
 
     // CREATE SWAP CHAIN
     m_swapchain = std::make_unique<Vulkan::Swapchain>(*m_gpu, window);
@@ -148,26 +153,51 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
 
     // CREATE VERTEX BUFFER
     // use staging buffer to copy verts into device-local mem (faster memory)
-    Vulkan::BufferBuilder staging_buf_builder;
-    staging_buf_builder.buffer_info.size = sizeof(vertices[0]) * vertices.size();
-    staging_buf_builder.buffer_info.usage  = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-    staging_buf_builder.buffer_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    staging_buf_builder.required_memory_properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    VkDeviceSize vertices_size = sizeof(vertices[0]) * vertices.size();
 
-    UPtr<Vulkan::Buffer> staging_buffer = staging_buf_builder.create(*m_gpu);
+    Vulkan::BufferBuilder vertex_staging_buf_builder;
+    vertex_staging_buf_builder.buffer_info.size = vertices_size;
+    vertex_staging_buf_builder.buffer_info.usage  = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    vertex_staging_buf_builder.buffer_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    vertex_staging_buf_builder.required_memory_properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+    UPtr<Vulkan::Buffer> vertex_staging_buffer = vertex_staging_buf_builder.create(*m_gpu);
 
     // write the verts into the staging buffer
-    staging_buffer->write((void*)vertices.data(), 0, sizeof(vertices[0]) * vertices.size());
+    vertex_staging_buffer->write((void*)vertices.data(), 0, vertices_size);
 
     Vulkan::BufferBuilder vertex_buf_builder;
-    vertex_buf_builder.buffer_info.size = sizeof(vertices[0]) * vertices.size();
+    vertex_buf_builder.buffer_info.size = vertices_size;
     vertex_buf_builder.buffer_info.usage  = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
     vertex_buf_builder.buffer_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     vertex_buf_builder.required_memory_properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
     m_vertex_buffer = vertex_buf_builder.create(*m_gpu);
 
-    // copy from staging into vertex
+    // CREATE INDEX BUFFER
+    // use staging buffer to copy indices into device-local mem (faster memory)
+    VkDeviceSize indices_size = sizeof(indices[0]) * indices.size();
+
+    Vulkan::BufferBuilder index_staging_buf_builder;
+    index_staging_buf_builder.buffer_info.size = indices_size;
+    index_staging_buf_builder.buffer_info.usage  = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    index_staging_buf_builder.buffer_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    index_staging_buf_builder.required_memory_properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+    UPtr<Vulkan::Buffer> index_staging_buffer = index_staging_buf_builder.create(*m_gpu);
+
+    // write the verts into the staging buffer
+    index_staging_buffer->write((void*)indices.data(), 0, indices_size);
+
+    Vulkan::BufferBuilder index_buf_builder;
+    index_buf_builder.buffer_info.size = indices_size;
+    index_buf_builder.buffer_info.usage  = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+    index_buf_builder.buffer_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    index_buf_builder.required_memory_properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
+    m_index_buffer = index_buf_builder.create(*m_gpu);
+
+    // copy from staging into vertex and indices
     // create a tempoary command buffer to do the transfer
     VkCommandBuffer commandBuffer = m_command_pool->create_command_buffers(VK_COMMAND_BUFFER_LEVEL_PRIMARY, 1)[0];
 
@@ -178,7 +208,10 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
     vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
     // copy into vert buffer
-    m_vertex_buffer->copy_from(*staging_buffer, commandBuffer);
+    m_vertex_buffer->copy_from(*vertex_staging_buffer, commandBuffer);
+
+    // copy into index buffer
+    m_index_buffer->copy_from(*index_staging_buffer, commandBuffer);
 
     vkEndCommandBuffer(commandBuffer);
         
@@ -262,8 +295,11 @@ void RendererVk::record_command_buffer(VkCommandBuffer command_buffer, uint32_t 
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(command_buffer, 0, 1, vertex_buffers, offsets);
 
+    vkCmdBindIndexBuffer(command_buffer, m_index_buffer->get_buffer(), 0, VK_INDEX_TYPE_UINT16);
+
     // draw
     vkCmdDraw(command_buffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
+    vkCmdDrawIndexed(command_buffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 
     // end render pass
     vkCmdEndRenderPass(command_buffer);
