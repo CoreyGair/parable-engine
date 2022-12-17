@@ -32,7 +32,7 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
     Vulkan::GPUBuilder gpu_builder;
     #ifdef PBL_DEBUG
         gpu_builder.validation_layers = std::vector<const char*> {
-            //"VK_LAYER_KHRONOS_validation"
+            "VK_LAYER_KHRONOS_validation"
         };
     #endif
     gpu_builder.device_extensions = {
@@ -154,10 +154,10 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
     staging_buf_builder.buffer_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     staging_buf_builder.required_memory_properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
-    Vulkan::Buffer staging_buffer = *(staging_buf_builder.create(*m_gpu));
+    UPtr<Vulkan::Buffer> staging_buffer = staging_buf_builder.create(*m_gpu);
 
     // write the verts into the staging buffer
-    staging_buffer.write((void*)vertices.data(), 0, sizeof(vertices[0]) * vertices.size());
+    staging_buffer->write((void*)vertices.data(), 0, sizeof(vertices[0]) * vertices.size());
 
     Vulkan::BufferBuilder vertex_buf_builder;
     vertex_buf_builder.buffer_info.size = sizeof(vertices[0]) * vertices.size();
@@ -178,7 +178,7 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
     vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
     // copy into vert buffer
-    m_vertex_buffer->copy_from(staging_buffer, commandBuffer);
+    m_vertex_buffer->copy_from(*staging_buffer, commandBuffer);
 
     vkEndCommandBuffer(commandBuffer);
         

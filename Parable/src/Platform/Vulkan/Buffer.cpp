@@ -29,7 +29,11 @@ Buffer::Buffer(GPU& gpu, VkBufferCreateInfo& info, VkMemoryPropertyFlags require
     m_buffer_memory = m_gpu.allocate_device_memory(mem_requirements.size, mem_type);
 
     // bind mem to buffer
-    vkBindBufferMemory(m_gpu.device, m_buffer, m_buffer_memory, 0);
+    result = vkBindBufferMemory(m_gpu.device, m_buffer, m_buffer_memory, 0);
+
+    if (result != VK_SUCCESS) {
+        throw VulkanFailedCreateException("vertex buffer bind", result);
+    }
 }
 
 Buffer::~Buffer()
@@ -52,10 +56,10 @@ void Buffer::write(void* data, VkDeviceSize offset, VkDeviceSize size)
     PBL_CORE_ASSERT(size <= m_buffer_size);
 
     void* buffer_map;
-    vkMapMemory(m_gpu.device, m_buffer_memory, offset, size, 0, &buffer_map);
+    VkResult res = vkMapMemory(m_gpu.device, m_buffer_memory, offset, size, 0, &buffer_map);
     memcpy(buffer_map, data, (size_t)size);
     vkUnmapMemory(m_gpu.device, m_buffer_memory);
-}
+}   
 
 /**
  * Creates a vulkan transfer command to copy data from another buffer to this one.
