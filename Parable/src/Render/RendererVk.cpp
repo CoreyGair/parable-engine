@@ -3,6 +3,14 @@
 #include "pblpch.h"
 #include "Core/Base.h"
 
+// stuff for rotation code when updating mvp matrices
+// temp
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <chrono>
+//
+
 #include <vulkan/vulkan.h>
 #include "Platform/Vulkan/VulkanWrapper.h"
 #include "Platform/Vulkan/VulkanExceptions.h"
@@ -28,6 +36,12 @@ const std::vector<Vulkan::Vertex> vertices = {
 
 const std::vector<uint16_t> indices = {
     0, 1, 2, 2, 3, 0
+};
+
+struct UniformBufferObject {
+    glm::mat4 model;
+    glm::mat4 view;
+    glm::mat4 proj;
 };
 
 RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
@@ -91,9 +105,26 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
 
     m_renderpass = renderpass_builder.create(*m_gpu, *m_swapchain);
 
+    // CREATE DESCRIPTOR SETS
+
+    Vulkan::DescriptorSetLayoutBuilder desc_set_layout_builder;
+
+    desc_set_layout_builder.add_descriptor_set_layout_binding({
+        .binding = 0,
+        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        .descriptorCount = 1,
+        .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+        .pImmutableSamplers = nullptr,
+    });
+
+    m_descriptor_set_layout = desc_set_layout_builder.create(*m_gpu);
+
     // CREATE PIPELINE
 
     Vulkan::PipelineLayoutBuilder layoutBuilder;
+
+    layoutBuilder.add_descriptor_layout(m_descriptor_set_layout->get_descriptor_set_layout());
+
     m_vk_pipeline_layout = layoutBuilder.create_layout(m_gpu->device);
 
     // load shaders
@@ -106,6 +137,11 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
     m_shader_modules.push_back(fragShaderModule);
 
     Vulkan::GraphicsPipelineBuilder graphics_pipeline_builder(m_swapchain->get_extent());
+
+    // flipping as we flip the y axis in glm code for mvp matrices
+    graphics_pipeline_builder.info.rasterizer_state.cullMode = VK_CULL_MODE_BACK_BIT;
+    graphics_pipeline_builder.info.rasterizer_state.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+
     graphics_pipeline_builder.add_shader_stage({
         .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
         .stage = VK_SHADER_STAGE_VERTEX_BIT, // this is a vertex shader stage
@@ -144,12 +180,12 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
     m_framebuffers = std::make_unique<Vulkan::Framebuffers>(*m_gpu, m_swapchain->get_views(), *m_renderpass, m_swapchain->get_extent());
 
     // CREATE COMMAND POOL
-    VkCommandPoolCreateInfo pool_info{};
-    pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-    pool_info.queueFamilyIndex = m_gpu->get_queue_family_indices().graphics_family.value();
+    VkCommandPoolCreateInfo cmd_pool_info{};
+    cmd_pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    cmd_pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    cmd_pool_info.queueFamilyIndex = m_gpu->get_queue_family_indices().graphics_family.value();
 
-    m_command_pool = std::make_unique<Vulkan::CommandPool>(*m_gpu, pool_info);
+    m_command_pool = std::make_unique<Vulkan::CommandPool>(*m_gpu, cmd_pool_info);
 
     // CREATE VERTEX BUFFER
     // use staging buffer to copy verts into device-local mem (faster memory)
@@ -196,6 +232,53 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
     index_buf_builder.required_memory_properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
     m_index_buffer = index_buf_builder.create(*m_gpu);
+
+    // CREATE UNIFORM BUFFERS
+
+    VkDeviceSize uniform_buffer_size = sizeof(UniformBufferObject);
+
+    m_uniform_buffers.reserve(MAX_FRAMES_IN_FLIGHT);
+
+    Vulkan::BufferBuilder uniform_buffer_builder;
+
+    uniform_buffer_builder.buffer_info.size = uniform_buffer_size;
+    uniform_buffer_builder.buffer_info.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+    index_buf_builder.buffer_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    uniform_buffer_builder.required_memory_properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        uniform_buffer_builder.emplace_back_vector(m_uniform_buffers, *m_gpu);
+
+        // keep persistently mapped
+        m_uniform_buffers[i].map(0, uniform_buffer_size);
+    }
+
+    // CREATE descriptor pool
+    VkDescriptorPoolSize desc_pool_size{};
+    desc_pool_size.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    desc_pool_size.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    VkDescriptorPoolCreateInfo pool_info{};
+    pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    pool_info.poolSizeCount = 1;
+    pool_info.pPoolSizes = &desc_pool_size;
+    pool_info.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+
+    m_descriptor_pool = std::make_unique<Vulkan::DescriptorPool>(*m_gpu, pool_info);
+
+    // CREATE descriptor sets
+    std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_descriptor_set_layout->get_descriptor_set_layout());
+    m_descriptor_sets = m_descriptor_pool->allocate_descriptor_sets(layouts);
+
+    // populate descriptors
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+    {
+        VkDescriptorBufferInfo buffer_info{};
+        buffer_info.buffer = m_uniform_buffers[i].get_buffer();
+        buffer_info.offset = 0;
+        buffer_info.range = sizeof(UniformBufferObject);
+
+        m_descriptor_sets->update_descriptor_set(i, 0, buffer_info);
+    }
 
     // copy from staging into vertex and indices
     // create a tempoary command buffer to do the transfer
@@ -297,8 +380,10 @@ void RendererVk::record_command_buffer(VkCommandBuffer command_buffer, uint32_t 
 
     vkCmdBindIndexBuffer(command_buffer, m_index_buffer->get_buffer(), 0, VK_INDEX_TYPE_UINT16);
 
+    // bind the descriptor set for this frame
+    vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vk_pipeline_layout, 0, 1, &(*m_descriptor_sets)[m_current_frame], 0, nullptr);
+
     // draw
-    vkCmdDraw(command_buffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
     vkCmdDrawIndexed(command_buffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 
     // end render pass
@@ -337,6 +422,29 @@ void RendererVk::on_update()
         return;
     } else if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to acquire swap chain image!");
+    }
+
+    // update uniforms
+    // temp just to demo for now
+    {
+        static auto startTime = std::chrono::high_resolution_clock::now();
+
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+        UniformBufferObject ubo{};
+        // rotate model on y axis 90 degree per sec
+        ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        // looking down at 45 deg angle
+        ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        // perspective projection, 45 degree vertical fov
+        ubo.proj = glm::perspective(glm::radians(45.0f), m_swapchain->get_extent().width / (float) m_swapchain->get_extent().height, 0.1f, 10.0f);
+
+        // glm designed for opengl
+        // opengl Y coord is inverted
+        ubo.proj[1][1] *= -1;
+
+        memcpy(m_uniform_buffers[m_current_frame].get_map(), &ubo, sizeof(ubo));
     }
 
     // reset the fence once we know we will render stuff

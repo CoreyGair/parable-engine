@@ -38,6 +38,10 @@ Buffer::Buffer(GPU& gpu, VkBufferCreateInfo& info, VkMemoryPropertyFlags require
 
 Buffer::~Buffer()
 {
+    if (m_buffer_map) {
+        unmap();
+    }
+
     vkDestroyBuffer(m_gpu.device, m_buffer, nullptr);
     m_gpu.free_device_memory(m_buffer_memory);
 }
@@ -59,7 +63,34 @@ void Buffer::write(void* data, VkDeviceSize offset, VkDeviceSize size)
     VkResult res = vkMapMemory(m_gpu.device, m_buffer_memory, offset, size, 0, &buffer_map);
     memcpy(buffer_map, data, (size_t)size);
     vkUnmapMemory(m_gpu.device, m_buffer_memory);
-}   
+}
+
+/**
+ * Maps this buffer to host memory.
+ * 
+ * This is intended for long term persistent maps, for one-off writes use Buffer::write instead.
+ * 
+ * @param offset The offset into the buffer to map at.
+ * @param size The size of the map.
+ */
+void Buffer::map(VkDeviceSize offset, VkDeviceSize size)
+{
+    PBL_CORE_ASSERT(size <= m_buffer_size);
+    PBL_CORE_ASSERT(!m_buffer_map);
+
+    vkMapMemory(m_gpu.device, m_buffer_memory, offset, size, 0, &m_buffer_map);
+}
+
+/**
+ * Unmaps this buffer from host memory.
+ */
+void Buffer::unmap()
+{
+    PBL_CORE_ASSERT(m_buffer_map);
+
+    vkUnmapMemory(m_gpu.device, m_buffer_memory);
+    m_buffer_map = nullptr;
+}
 
 /**
  * Creates a vulkan transfer command to copy data from another buffer to this one.
@@ -127,6 +158,11 @@ void Buffer::copy_to(Buffer& dst, VkCommandBuffer transfer_command_buffer)
 std::unique_ptr<Buffer> BufferBuilder::create(GPU& gpu)
 {
     return std::make_unique<Buffer>(gpu, buffer_info, required_memory_properties);
+}
+
+void BufferBuilder::emplace_back_vector(std::vector<Buffer>& vec, GPU& gpu)
+{
+    vec.emplace_back(gpu, buffer_info, required_memory_properties);
 }
 
 

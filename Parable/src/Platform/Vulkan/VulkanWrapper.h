@@ -15,3 +15,6 @@
 #include "Platform/Vulkan/Buffer.h"
 #include "Platform/Vulkan/CommandPool.h"
 #include "Platform/Vulkan/PipelineLayoutBuilder.h"
+#include "Platform/Vulkan/DescriptorSetLayout.h"
+#include "Platform/Vulkan/DescriptorPool.h"
+#include "Platform/Vulkan/DescriptorSets.h"

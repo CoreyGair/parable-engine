@@ -17,6 +17,9 @@ class GraphicsPipeline;
 class Framebuffers;
 class Buffer;
 class CommandPool;
+class DescriptorSetLayout;
+class DescriptorPool;
+class DescriptorSets;
 }
 
 namespace Parable 
@@ -54,6 +57,12 @@ private:
     std::unique_ptr<Vulkan::Renderpass> m_renderpass;
 
     std::vector<VkShaderModule> m_shader_modules;
+    
+    std::unique_ptr<Vulkan::DescriptorSetLayout> m_descriptor_set_layout;
+
+    std::unique_ptr<Vulkan::DescriptorPool> m_descriptor_pool;
+
+    std::unique_ptr<Vulkan::DescriptorSets> m_descriptor_sets;
 
     VkPipelineLayout m_vk_pipeline_layout = VK_NULL_HANDLE;
 
@@ -65,6 +74,8 @@ private:
 
     std::unique_ptr<Vulkan::Buffer> m_vertex_buffer;
     std::unique_ptr<Vulkan::Buffer> m_index_buffer;
+
+    std::vector<Vulkan::Buffer> m_uniform_buffers;
 
     std::vector<VkCommandBuffer> m_vk_command_buffers;
 

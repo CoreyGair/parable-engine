@@ -9,6 +9,9 @@ set(PARABLE_SRCS_EVENTS     ${CMAKE_CURRENT_SOURCE_DIR}/Events/EventBuffer.cpp
 set(PARABLE_SRCS_PLATFORM   ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/GPU.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Swapchain.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Renderpass.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/DescriptorSetLayout.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/DescriptorPool.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/DescriptorSets.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/GraphicsPipeline.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Framebuffers.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/PipelineLayoutBuilder.cpp
