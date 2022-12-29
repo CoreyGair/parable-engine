@@ -1,17 +1,19 @@
 #pragma once
 
+#include <pblpch.h>
+
 #include <vulkan/vulkan.hpp>
-#include <vector>
+
 
 namespace Parable::Vulkan
 {
 
 
-class GPU;
+class Device;
 class Swapchain;
 
 /**
- * Describes how the format of renderpass attachments is changed on renderpass create.
+ * Describes how the image format of renderpass attachments is changed on renderpass create.
  */
 enum class AttachmentFormat
 {
@@ -28,79 +30,101 @@ enum class AttachmentFormat
 class Renderpass
 {
 public:
+    Renderpass() = default;
     Renderpass(
-        GPU& gpu,
+        Device& device,
         Swapchain& swapchain,
-        std::vector<VkAttachmentDescription>&& attachments,
+        std::vector<vk::AttachmentDescription>&& attachments,
         std::vector<AttachmentFormat>&& attachment_formats,
-        std::vector<VkAttachmentReference>&& attachment_refs, 
-        std::vector<VkSubpassDescription>&& subpasses, 
-        std::vector<VkSubpassDependency>&& subpass_dependencies
+        std::vector<vk::AttachmentReference>&& attachment_refs, 
+        std::vector<vk::SubpassDescription>&& subpasses, 
+        std::vector<vk::SubpassDependency>&& subpass_dependencies
     );
 
     Renderpass(Renderpass&& other) = default;
+    Renderpass& operator=(Renderpass&& other)
+    {
+        Device m_device = other.m_device;
+        vk::RenderPass m_renderpass = std::move(other.m_renderpass);
 
-    VkRenderPass get_renderpass() const { return m_renderpass; }
+        std::vector<vk::AttachmentDescription> m_attachments = std::move(other.m_attachments);
+        std::vector<AttachmentFormat> m_attachment_formats = std::move(m_attachment_formats);
+        std::vector<vk::AttachmentReference> m_attachment_refs = std::move(m_attachment_refs);
+        std::vector<vk::SubpassDescription> m_subpasses = std::move(m_subpasses);
+        std::vector<vk::SubpassDependency> m_subpass_deps = std::move(m_subpass_deps);
 
-    void recreate_renderpass(const Swapchain& swapchain);
+        return *this;
+    }
+
+    vk::RenderPass get_renderpass() const { return m_renderpass; }
+
+    void recreate_renderpass(Swapchain& swapchain);
 
 private:
     void destroy_renderpass();
-    void create_renderpass(const Swapchain& swapchain);
+    void create_renderpass(Swapchain& swapchain);
 
     /**
-     * The GPU which owns/was used to create this renderpass.
+     * The Device which owns/was used to create this renderpass.
      */
-    GPU& m_gpu;
+    Device m_device;
 
-    VkRenderPass m_renderpass;
+    vk::RenderPass m_renderpass;
 
     // have to keep these around as we rebuild the renderpass when swapchain rebuilt
-    std::vector<VkAttachmentDescription> m_attachments;
+    std::vector<vk::AttachmentDescription> m_attachments;
     std::vector<AttachmentFormat> m_attachment_formats;
-    std::vector<VkAttachmentReference> m_attachment_refs;
-    std::vector<VkSubpassDescription> m_subpasses;
-    std::vector<VkSubpassDependency> m_subpass_deps;
+    std::vector<vk::AttachmentReference> m_attachment_refs;
+    std::vector<vk::SubpassDescription> m_subpasses;
+    std::vector<vk::SubpassDependency> m_subpass_deps;
 };
 
 class RenderpassBuilder
 {
 public:
-    std::unique_ptr<Renderpass> create(GPU& gpu, Swapchain& swapchain);
+    Renderpass create(Device& device, Swapchain& swapchain);
 
-    const std::vector<VkAttachmentDescription>& get_attachments() const { return m_attachments; }
-    const std::vector<VkAttachmentReference>& get_attachment_refs() const { return m_attachment_refs; }
-    const std::vector<VkSubpassDescription>& get_subpasses() const { return m_subpasses; }
-    const std::vector<VkSubpassDependency>& get_subpass_deps() const { return m_subpass_deps; }
+    const std::vector<vk::AttachmentDescription>& get_attachments() const { return m_attachments; }
+    const std::vector<AttachmentFormat>& get_attachment_formats() const { return m_attachment_formats; }
+    const std::vector<vk::AttachmentReference>& get_attachment_refs() const { return m_attachment_refs; }
+    const std::vector<vk::SubpassDescription>& get_subpasses() const { return m_subpasses; }
+    const std::vector<vk::SubpassDependency>& get_subpass_deps() const { return m_subpass_deps; }
 
-    uint32_t add_attachment(VkAttachmentDescription attachment, AttachmentFormat format = AttachmentFormat::SWAPCHAIN) {
+    /**
+     * Adds an attachment.
+     * 
+     * @param attachment The vk::AttachmentDescription for the attachment.
+     * @param format Describe how the attachment image format changes when renderpass is recreated. Defaults to AttachmentFormat::SWAPCHAIN.
+     * @return uint32_t The index into the attachments list.
+     */
+    uint32_t add_attachment(vk::AttachmentDescription&& attachment, AttachmentFormat format = AttachmentFormat::SWAPCHAIN) {
         m_attachments.push_back(attachment);
-        
         m_attachment_formats.push_back(format);
+
         return m_attachments.size() - 1;
     }
 
-    uint32_t add_attachment_ref(uint32_t attachment_index, VkImageLayout layout) {
-        m_attachment_refs.push_back({.attachment = attachment_index, .layout = layout});
+    uint32_t add_attachment_ref(uint32_t attachment_index, vk::ImageLayout layout) {
+        m_attachment_refs.emplace_back(attachment_index, layout);
         return m_attachment_refs.size() - 1;
     }
 
-    uint32_t add_subpass(VkSubpassDescription subpass) {
+    uint32_t add_subpass(vk::SubpassDescription&& subpass) {
         m_subpasses.push_back(subpass);
         return m_subpasses.size()-1;
     }
 
-    uint32_t add_subpass_dependency(VkSubpassDependency dependency) {
+    uint32_t add_subpass_dependency(vk::SubpassDependency&& dependency) {
         m_subpass_deps.push_back(dependency);
         return m_subpass_deps.size()-1;
     }
 
 private:
-    std::vector<VkAttachmentDescription> m_attachments;
+    std::vector<vk::AttachmentDescription> m_attachments;
     std::vector<AttachmentFormat> m_attachment_formats;
-    std::vector<VkAttachmentReference> m_attachment_refs;
-    std::vector<VkSubpassDescription> m_subpasses;
-    std::vector<VkSubpassDependency> m_subpass_deps;
+    std::vector<vk::AttachmentReference> m_attachment_refs;
+    std::vector<vk::SubpassDescription> m_subpasses;
+    std::vector<vk::SubpassDependency> m_subpass_deps;
 };
 
 

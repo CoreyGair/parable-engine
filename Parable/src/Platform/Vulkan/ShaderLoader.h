@@ -1,13 +1,13 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 #include "Util/ReadFile.h"
 
 namespace Parable::Vulkan
 {
 
 
-VkShaderModule load_shader(VkDevice device, const std::string& filename);
+vk::ShaderModule load_shader(vk::Device& device, const std::string& filename);
 
 
 } 

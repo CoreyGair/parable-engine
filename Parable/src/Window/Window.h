@@ -3,8 +3,6 @@
 #include "Core/Base.h"
 #include "Events/Event.h"
 
-#include <vulkan/vulkan.h>
-
 class GLFWwindow;
 
 namespace Parable

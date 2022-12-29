@@ -1,32 +1,33 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 #include <Platform/Vulkan/Vertex.h>
+
+#include "Device.h"
 
 namespace Parable::Vulkan
 {
 
 
-class GPU;
 class Renderpass;
 
 struct PipelineCreateInfo
 {
 public:
-    VkPipelineVertexInputStateCreateInfo vertex_input_state;
-    VkPipelineInputAssemblyStateCreateInfo input_assembly_state;
-    VkViewport viewport;
-    VkRect2D scissor;
-    VkPipelineRasterizationStateCreateInfo rasterizer_state;
-    VkPipelineMultisampleStateCreateInfo multisampling_state;
-    VkPipelineColorBlendStateCreateInfo color_blend_state;
+    vk::PipelineVertexInputStateCreateInfo vertex_input_state;
+    vk::PipelineInputAssemblyStateCreateInfo input_assembly_state;
+    vk::Viewport viewport;
+    vk::Rect2D scissor;
+    vk::PipelineRasterizationStateCreateInfo rasterizer_state;
+    vk::PipelineMultisampleStateCreateInfo multisampling_state;
+    vk::PipelineColorBlendStateCreateInfo color_blend_state;
 
 private:
-    std::vector<VkPipelineShaderStageCreateInfo> shader_stages;
-    std::vector<VkPipelineColorBlendAttachmentState> color_blend_attachments;
+    std::vector<vk::PipelineShaderStageCreateInfo> shader_stages;
+    std::vector<vk::PipelineColorBlendAttachmentState> color_blend_attachments;
 
-    std::vector<VkVertexInputBindingDescription> binding_descriptions;
-    std::vector<VkVertexInputAttributeDescription> attribute_descriptions;
+    std::vector<vk::VertexInputBindingDescription> binding_descriptions;
+    std::vector<vk::VertexInputAttributeDescription> attribute_descriptions;
 
     friend class GraphicsPipeline;
     friend class GraphicsPipelineBuilder;
@@ -35,28 +36,28 @@ private:
 class GraphicsPipeline
 {
 public:
-    GraphicsPipeline(GPU& gpu, VkPipelineLayout layout, Renderpass& renderpass, uint32_t subpass, PipelineCreateInfo& info);
+    GraphicsPipeline(Device& device, vk::PipelineLayout& layout, Renderpass& renderpass, uint32_t subpass, PipelineCreateInfo& info);
 
-    ~GraphicsPipeline()
+    void destroy()
     {
         destroy_pipeline();
     }
 
-    VkPipeline get_pipeline() const { return m_pipeline; }
+    vk::Pipeline get_pipeline() const { return m_pipeline; }
 
-    void recreate_pipeline(VkPipelineLayout layout, Renderpass& renderpass);
+    void recreate_pipeline(vk::PipelineLayout& layout, Renderpass& renderpass);
 
     PipelineCreateInfo info;
     
 private:
-    void create_pipeline(VkPipelineLayout layout, Renderpass& renderpass, uint32_t subpass);
+    void create_pipeline(vk::PipelineLayout& layout, Renderpass& renderpass, uint32_t subpass);
     void destroy_pipeline();
 
-    GPU& m_gpu;
+    Device m_device;
 
-    VkPipeline m_pipeline;
+    vk::Pipeline m_pipeline;
 
-    std::vector<VkPipelineShaderStageCreateInfo> m_shader_stages;
+    std::vector<vk::PipelineShaderStageCreateInfo> m_shader_stages;
 
     uint32_t m_subpass_index;
 };
@@ -64,35 +65,47 @@ private:
 class GraphicsPipelineBuilder
 {
 public:
-    GraphicsPipelineBuilder(VkExtent2D initial_viewport_extent);
+    GraphicsPipelineBuilder();
 
-    std::unique_ptr<GraphicsPipeline> create(GPU& gpu, VkPipelineLayout layout, Renderpass& renderpass, uint32_t subpass);
+    GraphicsPipeline create(Device& device, vk::PipelineLayout& layout, Renderpass& renderpass, uint32_t subpass);
 
-    uint32_t add_shader_stage(VkPipelineShaderStageCreateInfo stage)
+    uint32_t add_shader_stage(vk::PipelineShaderStageCreateInfo stage)
     {
-        info.shader_stages.push_back(stage);
-        return info.shader_stages.size()-1;
+        shaderStageCreateInfos.push_back(stage);
+        return shaderStageCreateInfos.size()-1;
     }
 
-    uint32_t add_blend_attachment(VkPipelineColorBlendAttachmentState&& attachment)
+    uint32_t add_blend_attachment(vk::PipelineColorBlendAttachmentState&& attachment)
     {
-        info.color_blend_attachments.push_back(attachment);
-        return info.color_blend_attachments.size()-1;
+        colorBlendAttachmentStates.push_back(attachment);
+        return colorBlendAttachmentStates.size()-1;
     }
 
-    uint32_t add_binding_description(VkVertexInputBindingDescription&& binding_description)
+    uint32_t add_binding_description(vk::VertexInputBindingDescription&& binding_description)
     {
-        info.binding_descriptions.push_back(binding_description);
-        return info.binding_descriptions.size()-1;
+        vertexInputBindingDescriptions.push_back(binding_description);
+        return vertexInputBindingDescriptions.size()-1;
     }
 
-    uint32_t add_attachment_description(VkVertexInputAttributeDescription&& attribute_description)
+    uint32_t add_attachment_description(vk::VertexInputAttributeDescription&& attribute_description)
     {
-        info.attribute_descriptions.push_back(attribute_description);
-        return info.attribute_descriptions.size()-1;
+        vertexInputAttributeDescriptions.push_back(attribute_description);
+        return vertexInputAttributeDescriptions.size()-1;
     }
 
-    PipelineCreateInfo info;
+    vk::PipelineVertexInputStateCreateInfo vertexInputStateCreateInfo;
+    vk::PipelineInputAssemblyStateCreateInfo InputAssemblyStateCreateInfo;
+    vk::Viewport viewport;
+    vk::Rect2D scissor;
+    vk::PipelineRasterizationStateCreateInfo rasterizationStateCreateInfo;
+    vk::PipelineMultisampleStateCreateInfo multisampleStateCreateInfo;
+    vk::PipelineColorBlendStateCreateInfo colorBlendStateCreateInfo;
+
+    std::vector<vk::PipelineShaderStageCreateInfo> shaderStageCreateInfos;
+    std::vector<vk::PipelineColorBlendAttachmentState> colorBlendAttachmentStates;
+
+    std::vector<vk::VertexInputBindingDescription> vertexInputBindingDescriptions;
+    std::vector<vk::VertexInputAttributeDescription> vertexInputAttributeDescriptions;
 
 };
 

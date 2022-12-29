@@ -4,14 +4,16 @@
 
 #include "pblpch.h"
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
+
+#include "Platform/Vulkan/Device.h"
+#include "Platform/Vulkan/PhysicalDevice.h"
 
 class GLFWwindow;
 
 namespace Parable::Vulkan
 {
 class GPU;
-class Swapchain;
 class Renderpass;
 class GraphicsPipeline;
 class Framebuffers;
@@ -21,6 +23,8 @@ class DescriptorSetLayout;
 class DescriptorPool;
 class DescriptorSets;
 class Image;
+class Swapchain;
+
 }
 
 namespace Parable 
@@ -45,27 +49,31 @@ private:
 
     GLFWwindow* m_window;
 
-    std::unique_ptr<Vulkan::GPU> m_gpu;
+    vk::Instance m_instance;
+    
+    vk::SurfaceKHR m_surface;
 
-    VkQueue m_vk_graphics_queue = VK_NULL_HANDLE;
+    Vulkan::PhysicalDevice m_physical_device;
 
-    VkQueue m_vk_presentation_queue = VK_NULL_HANDLE;
+    Vulkan::Device m_device;
 
-    VkQueue m_vk_transfer_queue = VK_NULL_HANDLE;
+    vk::Queue m_graphics_queue;
+    vk::Queue m_present_queue;
+    vk::Queue m_transfer_queue;
 
-    std::unique_ptr<Vulkan::Swapchain> m_swapchain;
+    Vulkan::Swapchain m_swapchain;
 
-    std::unique_ptr<Vulkan::Renderpass> m_renderpass;
+    Vulkan::Renderpass m_renderpass;
 
     std::vector<VkShaderModule> m_shader_modules;
     
-    std::unique_ptr<Vulkan::DescriptorSetLayout> m_descriptor_set_layout;
+    vk::DescriptorSetLayout m_descriptor_set_layout;
 
     std::unique_ptr<Vulkan::DescriptorPool> m_descriptor_pool;
 
     std::unique_ptr<Vulkan::DescriptorSets> m_descriptor_sets;
 
-    VkPipelineLayout m_vk_pipeline_layout = VK_NULL_HANDLE;
+    vk::PipelineLayout m_vk_pipeline_layout;
 
     std::unique_ptr<Vulkan::GraphicsPipeline> m_graphics_pipeline;
 

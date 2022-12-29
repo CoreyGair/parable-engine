@@ -1,4 +1,4 @@
-#include "RendererVk.h"
+#include "RendererVk2.h"
 
 #include "pblpch.h"
 #include "Core/Base.h"
@@ -17,7 +17,7 @@
 #include <stb_image.h>
 //
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 #include "Platform/Vulkan/VulkanWrapper.h"
 #include "Platform/Vulkan/VulkanExceptions.h"
 
@@ -52,97 +52,248 @@ struct UniformBufferObject {
 
 RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
 {
-    VkResult res;
+    VkResult res; // TODO: remove
 
-    Vulkan::GPUBuilder gpu_builder;
-    #ifdef PBL_DEBUG
-        gpu_builder.validation_layers = std::vector<const char*> {
-            "VK_LAYER_KHRONOS_validation"
-        };
-    #endif
-    gpu_builder.device_extensions = {
+    // CREATE instance
+    vk::ApplicationInfo applicationInfo(
+        // TODO: set this to the game name somehow
+        "APP_NAME_HERE",            // app name
+        VK_MAKE_VERSION(1, 0, 0),   // app ver
+        "Parable Engine",           // engine name
+        // TODO: set to parable version
+        VK_MAKE_VERSION(1, 0, 0),   // engine ver
+        VK_API_VERSION_1_3         // vulkan ver
+    );
+
+    std::vector<const char*> validationLayers;
+#ifdef PBL_DEBUG
+    validationLayers.push_back("VK_LAYER_KHRONOS_validation");
+#endif
+    
+    std::vector<const char*> requiredDeviceExtensions = {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME
     };
 
-    m_gpu = gpu_builder.create(window);
+    // find required glfw extensions
+    uint32_t glfwExtensionCount = 0;
+    const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+
+    // add the glfw extensions to the other required extensions
+    requiredDeviceExtensions.reserve(requiredDeviceExtensions.size() + glfwExtensionCount);
+    for (size_t i = 0; i < glfwExtensionCount; ++i)
+    {
+        const char* glfwExt = glfwExtensions[i];
+        if (find_if(
+                requiredDeviceExtensions.cbegin(),
+                requiredDeviceExtensions.cend(),
+                [&glfwExt](const char* ext) { return strcmp(ext,glfwExt) == 0; }
+            ) 
+            == requiredDeviceExtensions.cend())
+        {
+            requiredDeviceExtensions.push_back(glfwExt);
+        }
+    }
+
+    vk::InstanceCreateInfo instanceCreateInfo(
+        {}, 
+        &applicationInfo,            // app info
+        validationLayers,           // enabled layers
+        requiredDeviceExtensions    // enabled extensions
+    );
+
+    m_instance = vk::createInstance(instanceCreateInfo);
+
+    // CREATE surface
+    {
+        VkSurfaceKHR renderSurface;
+        glfwCreateWindowSurface(m_instance, window, nullptr, &renderSurface);
+        m_surface = vk::SurfaceKHR(renderSurface);
+    }
+
+    // CREATE physical device
+    {
+        Vulkan::PhysicalDevicePicker physicalDevicePicker;
+
+        // needs geom shaders
+        physicalDevicePicker.add_filter([](vk::PhysicalDevice& pd) {
+            return pd.getFeatures().geometryShader;
+        });
+
+        // need all queues
+        physicalDevicePicker.add_filter([&](vk::PhysicalDevice& pd) {
+            return Vulkan::PhysicalDevice::get_optional_queue_family_indices_from_physical_device(pd, m_surface).is_complete();
+        });
+
+        // need required exts
+        physicalDevicePicker.add_filter([&](vk::PhysicalDevice& pd) {
+            std::vector<vk::ExtensionProperties> availableExtensions = pd.enumerateDeviceExtensionProperties();
+
+            std::set<std::string> requiredExtensionsSet(requiredDeviceExtensions.begin(), requiredDeviceExtensions.end());
+
+            for (const auto& extension : availableExtensions) {
+                requiredExtensionsSet.erase(extension.extensionName);
+            }
+
+            return requiredExtensionsSet.empty();
+        });
+
+        // need swapchain support for the surface
+        physicalDevicePicker.add_filter([&](vk::PhysicalDevice& pd) {
+            Vulkan::SwapChainSupportDetails support = Vulkan::PhysicalDevice::get_swapchain_support_details_from_physical_device(pd, m_surface);
+            return !support.formats.empty() && !support.present_modes.empty();
+        });
+
+        // prioritise discrete
+        physicalDevicePicker.add_scorer([&](vk::PhysicalDevice& pd) {
+            return pd.getProperties().deviceType == vk::PhysicalDeviceType::eDiscreteGpu ? 10000 : 0;
+        });
+
+        // prioritise high mem
+        physicalDevicePicker.add_scorer([&](vk::PhysicalDevice& pd) {
+            auto heaps = pd.getMemoryProperties().memoryHeaps;
+            VkDeviceSize max_mem_size = 0;
+            for (const auto& heap : heaps)
+            {
+                if (heap.flags & vk::MemoryHeapFlagBits::eDeviceLocal)
+                {
+                    // Device local heap, should be size of total GPU VRAM.
+                    // heap.size will be the size of VRAM in bytes. (bigger is better)
+                    if (heap.size > max_mem_size) max_mem_size = heap.size;
+                }
+            }
+
+            // add size in MB to score
+            return max_mem_size / 1000000;
+        });
+
+        m_physical_device = Vulkan::PhysicalDevice(m_instance, physicalDevicePicker);
+    }
+
+    // get queue families
+    Vulkan::QueueFamilyIndices queueFamilyIndices = m_physical_device.get_queue_family_indices(m_surface);
+
+    std::set<uint32_t> uniqueQueueFamilies;
+    uniqueQueueFamilies.insert(queueFamilyIndices.graphics_family);
+    uniqueQueueFamilies.insert(queueFamilyIndices.presentation_family);
+    uniqueQueueFamilies.insert(queueFamilyIndices.transfer_family);
+    
+    std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
+    queueCreateInfos.reserve(uniqueQueueFamilies.size());
+
+    // setup the queue creation data
+    float queuePriority = 1.0f;
+    for (uint32_t queueFamily : uniqueQueueFamilies) {
+        vk::DeviceQueueCreateInfo queueCreateInfo(
+            {},
+            queueFamily,        // family index
+            1,                  // queue count
+            &queuePriority     // priorities
+        );
+        
+        queueCreateInfos.push_back(queueCreateInfo);
+    }
+
+    // specify the device features we need
+    vk::PhysicalDeviceFeatures deviceFeatures{};
+
+    // creating the actual logical device
+    vk::DeviceCreateInfo deviceCreateInfo(
+        {},
+        queueCreateInfos,
+        validationLayers,
+        requiredDeviceExtensions,
+        &deviceFeatures
+    );
+    
+    m_device = Vulkan::Device(m_physical_device, deviceCreateInfo);
 
     // GET QUEUES
-    const Vulkan::QueueFamilyIndices& queue_family_indices = m_gpu->get_queue_family_indices();
-    vkGetDeviceQueue(m_gpu->device, queue_family_indices.graphics_family.value(), 0, &m_vk_graphics_queue);
-    vkGetDeviceQueue(m_gpu->device, queue_family_indices.presentation_family.value(), 0, &m_vk_presentation_queue);
-    vkGetDeviceQueue(m_gpu->device, queue_family_indices.transfer_family.value(), 0, &m_vk_transfer_queue);
+    m_graphics_queue = (*m_device).getQueue(queueFamilyIndices.graphics_family, 0);
+    m_present_queue = (*m_device).getQueue(queueFamilyIndices.presentation_family, 0);
+    m_transfer_queue = (*m_device).getQueue(queueFamilyIndices.transfer_family, 0);
 
     // CREATE SWAP CHAIN
-    m_swapchain = std::make_unique<Vulkan::Swapchain>(*m_gpu, window);
+    m_swapchain = Vulkan::Swapchain(m_device, m_physical_device, m_surface, window);
 
-    PBL_CORE_ASSERT(m_swapchain->get_views().size() > 0);
+    PBL_CORE_ASSERT(m_swapchain.get_views().size() > 0);
 
     // CREATE RENDERPASS
 
     Vulkan::RenderpassBuilder renderpass_builder;
 
-    uint32_t colorAttachmentIndex = renderpass_builder.add_attachment({
-        .format = m_swapchain->get_image_format(),
-        .samples = VK_SAMPLE_COUNT_1_BIT,
-        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR, // how are contents treated at start of pass (here, we want to clear it)
-        .storeOp = VK_ATTACHMENT_STORE_OP_STORE, // how are contents treated at end of pass (here, we store to mem)
-        .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE, 
-        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-        .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-    });
+    uint32_t colorAttachmentIndex = renderpass_builder.add_attachment(vk::AttachmentDescription(
+        {},
+        m_swapchain.get_image_format(),
+        vk::SampleCountFlagBits::e1,        // samples
+        vk::AttachmentLoadOp::eClear,       // load op, how are contents treated at start of pass (here, we want to clear it)
+        vk::AttachmentStoreOp::eStore,      // store op, how are contents treated at end of pass (here, we store to mem)
+        vk::AttachmentLoadOp::eDontCare,    // stencil load op
+        vk::AttachmentStoreOp::eDontCare,   // stencil store op
+        vk::ImageLayout::eUndefined,        // initial layout
+        vk::ImageLayout::ePresentSrcKHR     // final layout
+    ));
     
-    uint32_t colorAttachmentRefIndex = renderpass_builder.add_attachment_ref(colorAttachmentIndex, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    uint32_t colorAttachmentRefIndex = renderpass_builder.add_attachment_ref(colorAttachmentIndex, vk::ImageLayout::eColorAttachmentOptimal);
 
-    uint32_t colorSubpassIndex = renderpass_builder.add_subpass({
-        .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-        .colorAttachmentCount = 1,
-        .pColorAttachments = &renderpass_builder.get_attachment_refs()[colorAttachmentRefIndex],
-    });
+    uint32_t colorSubpassIndex = renderpass_builder.add_subpass(vk::SubpassDescription(
+        {},
+        vk::PipelineBindPoint::eGraphics,
+        1,
+        &renderpass_builder.get_attachment_refs()[colorAttachmentRefIndex]
+    ));
 
-    renderpass_builder.add_subpass_dependency({
-        .srcSubpass = VK_SUBPASS_EXTERNAL, // refer to the implicit subpasses before and after our actual one
-        .dstSubpass = colorSubpassIndex, // refers to our 1 and only subpass
-        .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, // wait on the swapchain to finish reading by waiting on the color attachment output
-        .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-        .srcAccessMask = 0,
-        .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-    });
+    renderpass_builder.add_subpass_dependency(vk::SubpassDependency(
+        VK_SUBPASS_EXTERNAL,    // src subpass, refer to the implicit subpasses before and after our actual one
+        colorSubpassIndex,      // dest subpass, refers to our 1 and only subpass
+        vk::PipelineStageFlagBits::eColorAttachmentOutput, // wait on the swapchain to finish reading by waiting on the color attachment output
+        vk::PipelineStageFlagBits::eColorAttachmentOutput,
+        {},                                         // src access mask
+        vk::AccessFlagBits::eColorAttachmentWrite   // dst access mask
+    ));
 
-    m_renderpass = renderpass_builder.create(*m_gpu, *m_swapchain);
+    m_renderpass = renderpass_builder.create(m_device, m_swapchain);
 
     // CREATE DESCRIPTOR SETS
 
-    Vulkan::DescriptorSetLayoutBuilder desc_set_layout_builder;
+    std::vector<vk::DescriptorSetLayoutBinding> descSetLayoutBindings{
+        vk::DescriptorSetLayoutBinding(
+            0,
+            vk::DescriptorType::eUniformBuffer,
+            vk::ShaderStageFlagBits::eVertex,
+            {}
+        )
+    };
 
-    desc_set_layout_builder.add_descriptor_set_layout_binding({
-        .binding = 0,
-        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-        .descriptorCount = 1,
-        .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-        .pImmutableSamplers = nullptr,
-    });
+    vk::DescriptorSetLayoutCreateInfo descSetLayoutCreateInfo(
+        {},
+        descSetLayoutBindings
+    );
 
-    m_descriptor_set_layout = desc_set_layout_builder.create(*m_gpu);
+    m_descriptor_set_layout = (*m_device).createDescriptorSetLayout(descSetLayoutCreateInfo);
 
     // CREATE PIPELINE
 
     Vulkan::PipelineLayoutBuilder layoutBuilder;
 
-    layoutBuilder.add_descriptor_layout(m_descriptor_set_layout->get_descriptor_set_layout());
+    std::vector<vk::DescriptorSetLayout> descSetLayouts{m_descriptor_set_layout};
 
-    m_vk_pipeline_layout = layoutBuilder.create_layout(m_gpu->device);
+    vk::PipelineLayoutCreateInfo pipelineLayoutInfo(
+        {},
+        descSetLayouts
+    );
+
+    m_vk_pipeline_layout = (*m_device).createPipelineLayout(pipelineLayoutInfo);
 
     // load shaders
-    VkShaderModule vertShaderModule = Vulkan::load_shader(m_gpu->device, "D:\\parable-engine\\Parable\\src\\Render\\Shaders\\vert.spv");
-    VkShaderModule fragShaderModule = Vulkan::load_shader(m_gpu->device, "D:\\parable-engine\\Parable\\src\\Render\\Shaders\\frag.spv");
+    vk::ShaderModule vertShaderModule = Vulkan::load_shader(m_device, "D:\\parable-engine\\Parable\\src\\Render\\Shaders\\vert.spv");
+    vk::ShaderModule fragShaderModule = Vulkan::load_shader(m_device, "D:\\parable-engine\\Parable\\src\\Render\\Shaders\\frag.spv");
 
     // push these to be destroyed only when we will never recreate the pipeline again
     // (atm when the Renderer is destroyed)
     m_shader_modules.push_back(vertShaderModule);
     m_shader_modules.push_back(fragShaderModule);
 
-    Vulkan::GraphicsPipelineBuilder graphics_pipeline_builder(m_swapchain->get_extent());
+    Vulkan::GraphicsPipelineBuilder graphics_pipeline_builder(m_swapchain.get_extent());
 
     // flipping as we flip the y axis in glm code for mvp matrices
     graphics_pipeline_builder.info.rasterizer_state.cullMode = VK_CULL_MODE_BACK_BIT;
@@ -234,7 +385,7 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
     texture_image_info.samples = VK_SAMPLE_COUNT_1_BIT;
     texture_image_info.flags = 0; // Optional
 
-    m_texture_image = std::make_unique<Vulkan::Image>(*m_gpu, texture_image_info);
+    m_texture_image = std::make_unique<Vulkan::Image>(*m_gpu, &texture_image_info);
 
     // CREATE VERTEX BUFFER
     // use staging buffer to copy verts into device-local mem (faster memory)

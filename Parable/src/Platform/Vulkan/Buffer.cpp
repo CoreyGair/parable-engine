@@ -160,6 +160,12 @@ std::unique_ptr<Buffer> BufferBuilder::create(GPU& gpu)
     return std::make_unique<Buffer>(gpu, buffer_info, required_memory_properties);
 }
 
+/**
+ * Emplace the new buffer at the back of a vector.
+ * 
+ * @param vec The vector to emplace into.
+ * @param gpu The device used to create the vk buffer.
+ */
 void BufferBuilder::emplace_back_vector(std::vector<Buffer>& vec, GPU& gpu)
 {
     vec.emplace_back(gpu, buffer_info, required_memory_properties);

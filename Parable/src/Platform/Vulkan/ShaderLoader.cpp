@@ -8,23 +8,17 @@ namespace Parable::Vulkan
 {
 
 
-VkShaderModule load_shader(VkDevice device, const std::string& filename)
+vk::ShaderModule load_shader(vk::Device& device, const std::string& filename)
 {
     std::vector<char> code = Util::read_file(filename);
 
-    VkShaderModuleCreateInfo createInfo{};
-    createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    createInfo.codeSize = code.size();
-    createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+    vk::ShaderModuleCreateInfo createInfo(
+        {},
+        code.size(),
+        reinterpret_cast<uint32_t*>(code.data())
+    );
 
-    VkShaderModule shaderModule;
-    VkResult res = vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule);
-    if (res != VK_SUCCESS)
-    {
-        throw VulkanFailedCreateException("shader module", res);
-    }
-
-    return shaderModule;
+    return device.createShaderModule(createInfo);
 }
 
 
