@@ -219,9 +219,9 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
 
     // CREATE RENDERPASS
 
-    Vulkan::RenderpassBuilder renderpass_builder;
+    Vulkan::RenderpassBuilder renderpassBuilder;
 
-    uint32_t colorAttachmentIndex = renderpass_builder.add_attachment(vk::AttachmentDescription(
+    uint32_t colorAttachmentIndex = renderpassBuilder.add_attachment(vk::AttachmentDescription(
         {},
         m_swapchain.get_image_format(),
         vk::SampleCountFlagBits::e1,        // samples
@@ -233,16 +233,16 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
         vk::ImageLayout::ePresentSrcKHR     // final layout
     ));
     
-    uint32_t colorAttachmentRefIndex = renderpass_builder.add_attachment_ref(colorAttachmentIndex, vk::ImageLayout::eColorAttachmentOptimal);
+    uint32_t colorAttachmentRefIndex = renderpassBuilder.add_attachment_ref(colorAttachmentIndex, vk::ImageLayout::eColorAttachmentOptimal);
 
-    uint32_t colorSubpassIndex = renderpass_builder.add_subpass(vk::SubpassDescription(
+    uint32_t colorSubpassIndex = renderpassBuilder.add_subpass(vk::SubpassDescription(
         {},
         vk::PipelineBindPoint::eGraphics,
         1,
-        &renderpass_builder.get_attachment_refs()[colorAttachmentRefIndex]
+        &renderpassBuilder.get_attachment_refs()[colorAttachmentRefIndex]
     ));
 
-    renderpass_builder.add_subpass_dependency(vk::SubpassDependency(
+    renderpassBuilder.add_subpass_dependency(vk::SubpassDependency(
         VK_SUBPASS_EXTERNAL,    // src subpass, refer to the implicit subpasses before and after our actual one
         colorSubpassIndex,      // dest subpass, refers to our 1 and only subpass
         vk::PipelineStageFlagBits::eColorAttachmentOutput, // wait on the swapchain to finish reading by waiting on the color attachment output
@@ -251,7 +251,7 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
         vk::AccessFlagBits::eColorAttachmentWrite   // dst access mask
     ));
 
-    m_renderpass = renderpass_builder.create(m_device, m_swapchain);
+    m_renderpass = renderpassBuilder.create(m_device, m_swapchain);
 
     // CREATE DESCRIPTOR SETS
 
@@ -293,48 +293,78 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
     m_shader_modules.push_back(vertShaderModule);
     m_shader_modules.push_back(fragShaderModule);
 
-    Vulkan::GraphicsPipelineBuilder graphics_pipeline_builder(m_swapchain.get_extent());
+    Vulkan::GraphicsPipelineBuilder graphicsPipelineBuilder(m_swapchain.get_extent());
 
-    // flipping as we flip the y axis in glm code for mvp matrices
-    graphics_pipeline_builder.info.rasterizer_state.cullMode = VK_CULL_MODE_BACK_BIT;
-    graphics_pipeline_builder.info.rasterizer_state.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    graphicsPipelineBuilder.info.inputAssemblyStateCreateInfo = vk::PipelineInputAssemblyStateCreateInfo(
+        {},
+        vk::PrimitiveTopology::eTriangleList,
+        VK_FALSE
+    )
 
-    graphics_pipeline_builder.add_shader_stage({
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-        .stage = VK_SHADER_STAGE_VERTEX_BIT, // this is a vertex shader stage
-        .module = vertShaderModule,
-        .pName = "main",
-    });
-    graphics_pipeline_builder.add_shader_stage({
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-        .stage = VK_SHADER_STAGE_FRAGMENT_BIT, // this is a frag shader stage
-        .module = fragShaderModule,
-        .pName = "main",
-    });
+    graphicsPipelineBuilder.info.viewport.width = (float)m_swapchain.get_extent().width;
+    graphicsPipelineBuilder.info.viewport.height = (float)m_swapchain.get_extent().height;
+    graphicsPipelineBuilder.info.viewport.minDepth = 0.0f;
+    graphicsPipelineBuilder.info.viewport.maxDepth = 1.0f;
 
-    graphics_pipeline_builder.add_blend_attachment({
-            .blendEnable = VK_TRUE,
-            .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
-            .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
-            .colorBlendOp = VK_BLEND_OP_ADD,
-            .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
-            .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
-            .alphaBlendOp = VK_BLEND_OP_ADD,
-            .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
-    });
+    graphicsPipelineBuilder.info.scissor.extent = m_swapchain.get_extent();
 
-    graphics_pipeline_builder.add_binding_description(Vulkan::Vertex::getBindingDescription());
+    graphicsPipelineBuilder.info.rasterizationStateCreateInfo = vk::PipelineRasterizationStateCreateInfo(
+        {},
+        VK_FALSE, // depthClampEnable,
+        VK_FALSE, // rasterizerDiscardEnable
+        vk::::PolygonMode::eFill,
+        {}, // cullMode
+        vk::CullModeFlags::eBackBit,
+        vk::FrontFace::eCounterClockwise,
+        VK_FALSE, // depthBiasEnable
+        {}, // depthBiasConstFactor
+        {}, // depthBiasClamp
+        {}, // depthBiasSlopeFactor
+        1.0f //lineWdith
+    )
+
+    graphicsPipelineBuilder.info.multisampleStateCreateInfo = vk::PipelineMultisampleStateCreateInfo(
+        {},
+        vk::SampleCountFlagBits::e1,
+        VK_FALSE, // sampleShadingEnabled
+    )
+
+    graphicsPipelineBuilder.add_shader_stage(vk::PipelineShaderStageCreateInfo(
+        {},
+        vk::ShaderStageFlagBits::eVertex,
+        vertShaderModule,
+        "main"
+    ));
+    graphicsPipelineBuilder.add_shader_stage(vk::PipelineShaderStageCreateInfo(
+        {},
+        vk::ShaderStageFlagBits::eFragment,
+        fragShaderModule,
+        "main"
+    ));
+
+    graphicsPipelineBuilder.add_blend_attachment(vk::PipelineColorBlendAttachmentState(
+        VK_TRUE,
+        vk::BlendFactor::eSrcAlpha,
+        vk::BlendFactor::eOneMinusSrcAlpha,
+        vk::BlendOp::eAdd,
+        vk::BlendFactor::eSrcOne,
+        vk::BlendFactor::eZero,
+        vk::BlendOp::eAdd,
+        vk::ColorComponentFlagBits::eR || vk::ColorComponentFlagBits::eG || vk::ColorComponentFlagBits::eB || vk::ColorComponentFlagBits::eA
+    ));
+
+    graphicsPipelineBuilder.add_binding_description(Vulkan::Vertex::getBindingDescription());
 
     auto attachment_descs = Vulkan::Vertex::getAttributeDescriptions();
     for (auto a : attachment_descs)
     {
-        graphics_pipeline_builder.add_attachment_description(std::move(a));
+        graphicsPipelineBuilder.add_attachment_description(std::move(a));
     }
 
-    m_graphics_pipeline = graphics_pipeline_builder.create(*m_gpu, m_vk_pipeline_layout, *m_renderpass, colorSubpassIndex);
+    m_graphics_pipeline = graphicsPipelineBuilder.create(m_device, m_vk_pipeline_layout, m_renderpass, colorSubpassIndex);
 
     // CREATE FRAMEBUFFERS
-    m_framebuffers = std::make_unique<Vulkan::Framebuffers>(*m_gpu, m_swapchain->get_views(), *m_renderpass, m_swapchain->get_extent());
+    m_framebuffers = Vulkan::Framebuffers(m_device, m_swapchain->get_views(), m_renderpass, m_swapchain->get_extent());
 
     // CREATE COMMAND POOL
     VkCommandPoolCreateInfo cmd_pool_info{};

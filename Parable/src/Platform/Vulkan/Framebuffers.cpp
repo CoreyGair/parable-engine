@@ -3,7 +3,6 @@
 #include "Core/Base.h"
 
 #include "VulkanExceptions.h"
-#include "GPU.h"
 #include "Renderpass.h"
 
 
@@ -11,8 +10,8 @@ namespace Parable::Vulkan
 {
 
 
-Framebuffers::Framebuffers(GPU& gpu, const std::vector<VkImageView>& image_views, Renderpass& renderpass, VkExtent2D extent)
-: m_gpu(gpu)
+Framebuffers::Framebuffers(Device& device, const std::vector<vk::ImageView>& image_views, Renderpass& renderpass, vk::Extent2D extent)
+: m_device(device)
 {
     resize_framebuffers(image_views.size());
 
@@ -35,7 +34,7 @@ Framebuffers::~Framebuffers()
  * @param renderpass 
  * @param extent 
  */
-void Framebuffers::recreate_framebuffers(const std::vector<VkImageView>& image_views, Renderpass& renderpass, VkExtent2D extent)
+void Framebuffers::recreate_framebuffers(const std::vector<vk::ImageView>& image_views, Renderpass& renderpass, vk::Extent2D extent)
 {
     destroy_framebuffers();
 
@@ -51,28 +50,22 @@ void Framebuffers::recreate_framebuffers(const std::vector<VkImageView>& image_v
  * @param renderpass The renderpass the framebuffers are used for.
  * @param extent The size of the images views (and so the framebuffers).
  */
-void Framebuffers::create_framebuffers(const std::vector<VkImageView>& image_views, Renderpass& renderpass, VkExtent2D extent)
+void Framebuffers::create_framebuffers(const std::vector<vk::ImageView>& image_views, Renderpass& renderpass, vk::Extent2D extent)
 {
     PBL_CORE_ASSERT(image_views.size() == m_framebuffers.size());
 
     for (size_t i = 0; i < image_views.size(); i++) {
-        VkImageView attachments[] = {
-            image_views[i]
-        };
+        vk::FramebufferCreateInfo framebufferInfo(
+            {},
+            renderpass,
+            1, // attachment count
+            &image_views[i], // pAttachments
+            extent.width,
+            extent.height,
+            1 // layers
+        );
 
-        VkFramebufferCreateInfo framebufferInfo{};
-        framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        framebufferInfo.renderPass = renderpass.get_renderpass();
-        framebufferInfo.attachmentCount = 1;
-        framebufferInfo.pAttachments = attachments;
-        framebufferInfo.width = extent.width;
-        framebufferInfo.height = extent.height;
-        framebufferInfo.layers = 1;
-
-        VkResult res = vkCreateFramebuffer(m_gpu.device, &framebufferInfo, nullptr, &m_framebuffers[i].framebuffer);
-        if (res != VK_SUCCESS) {
-            throw VulkanFailedCreateException("frame buffer", res);
-        }
+        m_framebuffers[i].framebuffer = m_device.createFramebuffer(framebufferInfo);
     }
 }
 
@@ -82,7 +75,7 @@ void Framebuffers::create_framebuffers(const std::vector<VkImageView>& image_vie
 void Framebuffers::destroy_framebuffers()
 {
     for (auto f : m_framebuffers) {
-        vkDestroyFramebuffer(m_gpu.device, f.framebuffer, nullptr);
+        m_device.destroyFramebuffer(f.framebuffer);
     }
 }
 
@@ -107,9 +100,9 @@ void Framebuffers::resize_framebuffers(size_t size)
         // destroy extra sync objects
         for(size_t i = curr_buffer_count-1; i > curr_buffer_count-size-1; --i)
         {
-            vkDestroySemaphore(m_gpu.device, m_framebuffers[i].image_available_sem, nullptr);
-            vkDestroySemaphore(m_gpu.device, m_framebuffers[i].render_finish_sem, nullptr);
-            vkDestroyFence(m_gpu.device, m_framebuffers[i].inflight_fence, nullptr);
+            m_device.destroySemaphore(m_framebuffers[i].image_available_sem);
+            m_device.destroySemaphore(m_framebuffers[i].render_finish_sem);
+            m_device.destroyFence(m_framebuffers[i].inflight_fence);
         }
         m_framebuffers.resize(size);
     }
@@ -118,29 +111,17 @@ void Framebuffers::resize_framebuffers(size_t size)
         m_framebuffers.resize(size);
 
         // create the extra sync objects needed
-        VkSemaphoreCreateInfo semaphoreInfo{};
-        semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        vk::SemaphoreCreateInfo semaphoreInfo;
 
-        VkFenceCreateInfo fenceInfo{};
-        fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-        fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT; // create the fence in the signalled state, so we dont wait for it on first frame :)
+        vk::FenceCreateInfo fenceInfo(
+            vk::FenceCreateFlagBits::eSignaled // create the fence in the signalled state, so we dont wait for it on first frame :)
+        );
 
         for(size_t i = curr_buffer_count; i < curr_buffer_count+size; ++i)
-        {
-            VkResult res = vkCreateSemaphore(m_gpu.device, &semaphoreInfo, nullptr, &m_framebuffers[i].image_available_sem);
-            if (res != VK_SUCCESS) {
-                throw VulkanFailedCreateException("semaphore", res);
-            }
-
-            res = vkCreateSemaphore(m_gpu.device, &semaphoreInfo, nullptr, &m_framebuffers[i].render_finish_sem);
-            if (res != VK_SUCCESS) {
-                throw VulkanFailedCreateException("semaphore", res);
-            }
-
-            res = vkCreateFence(m_gpu.device, &fenceInfo, nullptr, &m_framebuffers[i].inflight_fence);
-            if (res != VK_SUCCESS) {
-                throw VulkanFailedCreateException("fence", res);
-            }
+        {   
+            m_framebuffers[i].image_available_sem = m_device.createSemaphore(semaphoreInfo);
+            m_framebuffers[i].render_finish_sem = m_device.createSemaphore(semaphoreInfo);
+            m_framebuffers[i].inflight_fence = m_device.createFence(fenceInfo);
         }
     }
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <pblpch.h>
+
 #include <vulkan/vulkan.hpp>
 #include <Platform/Vulkan/Vertex.h>
 
@@ -11,32 +13,34 @@ namespace Parable::Vulkan
 
 class Renderpass;
 
-struct PipelineCreateInfo
+struct PipelineInfo
 {
-public:
-    vk::PipelineVertexInputStateCreateInfo vertex_input_state;
-    vk::PipelineInputAssemblyStateCreateInfo input_assembly_state;
+    std::optional<vk::PipelineVertexInputStateCreateInfo> vertexInputStateCreateInfo;
+    std::optional<vk::PipelineInputAssemblyStateCreateInfo> inputAssemblyStateCreateInfo;
+
+    std::optional<vk::PipelineTessellationStateCreateInfo> tessellationStateCreateInfo;
+    std::optional<vk::PipelineDepthStencilStateCreateInfo> depthStencilStateCreateInfo;
+    
     vk::Viewport viewport;
     vk::Rect2D scissor;
-    vk::PipelineRasterizationStateCreateInfo rasterizer_state;
-    vk::PipelineMultisampleStateCreateInfo multisampling_state;
-    vk::PipelineColorBlendStateCreateInfo color_blend_state;
+    
+    std::optional<vk::PipelineRasterizationStateCreateInfo> rasterizationStateCreateInfo;
+    std::optional<vk::PipelineMultisampleStateCreateInfo> multisampleStateCreateInfo;
+    std::optional<vk::PipelineColorBlendStateCreateInfo> colorBlendStateCreateInfo;
 
-private:
-    std::vector<vk::PipelineShaderStageCreateInfo> shader_stages;
-    std::vector<vk::PipelineColorBlendAttachmentState> color_blend_attachments;
+    std::optional<vk::PipelineDynamicStateCreateInfo> dynamicStateCreateInfo;
 
-    std::vector<vk::VertexInputBindingDescription> binding_descriptions;
-    std::vector<vk::VertexInputAttributeDescription> attribute_descriptions;
+    std::vector<vk::PipelineShaderStageCreateInfo> shaderStageCreateInfos;
+    std::vector<vk::PipelineColorBlendAttachmentState> colorBlendAttachmentStates;
 
-    friend class GraphicsPipeline;
-    friend class GraphicsPipelineBuilder;
+    std::vector<vk::VertexInputBindingDescription> vertexInputBindingDescriptions;
+    std::vector<vk::VertexInputAttributeDescription> vertexInputAttributeDescriptions;
 };
 
 class GraphicsPipeline
 {
 public:
-    GraphicsPipeline(Device& device, vk::PipelineLayout& layout, Renderpass& renderpass, uint32_t subpass, PipelineCreateInfo& info);
+    GraphicsPipeline(Device& device, vk::PipelineLayout& layout, Renderpass& renderpass, uint32_t subpass, PipelineInfo& info);
 
     void destroy()
     {
@@ -60,6 +64,8 @@ private:
     std::vector<vk::PipelineShaderStageCreateInfo> m_shader_stages;
 
     uint32_t m_subpass_index;
+
+    PipelineInfo info;
 };
 
 class GraphicsPipelineBuilder
@@ -69,43 +75,40 @@ public:
 
     GraphicsPipeline create(Device& device, vk::PipelineLayout& layout, Renderpass& renderpass, uint32_t subpass);
 
-    uint32_t add_shader_stage(vk::PipelineShaderStageCreateInfo stage)
+    /**
+     * Pushes a shader stage and returns its index.
+     */
+    uint32_t add_shader_stage(vk::PipelineShaderStageCreateInfo&& stage)
     {
         shaderStageCreateInfos.push_back(stage);
         return shaderStageCreateInfos.size()-1;
     }
-
+    /**
+     * Pushes a blend attachment and returns its index.
+     */
     uint32_t add_blend_attachment(vk::PipelineColorBlendAttachmentState&& attachment)
     {
         colorBlendAttachmentStates.push_back(attachment);
         return colorBlendAttachmentStates.size()-1;
     }
-
+    /**
+     * Pushes a binding description and returns its index.
+     */
     uint32_t add_binding_description(vk::VertexInputBindingDescription&& binding_description)
     {
         vertexInputBindingDescriptions.push_back(binding_description);
         return vertexInputBindingDescriptions.size()-1;
     }
-
+    /**
+     * Pushes an attachment description and returns its index.
+     */
     uint32_t add_attachment_description(vk::VertexInputAttributeDescription&& attribute_description)
     {
         vertexInputAttributeDescriptions.push_back(attribute_description);
         return vertexInputAttributeDescriptions.size()-1;
     }
 
-    vk::PipelineVertexInputStateCreateInfo vertexInputStateCreateInfo;
-    vk::PipelineInputAssemblyStateCreateInfo InputAssemblyStateCreateInfo;
-    vk::Viewport viewport;
-    vk::Rect2D scissor;
-    vk::PipelineRasterizationStateCreateInfo rasterizationStateCreateInfo;
-    vk::PipelineMultisampleStateCreateInfo multisampleStateCreateInfo;
-    vk::PipelineColorBlendStateCreateInfo colorBlendStateCreateInfo;
-
-    std::vector<vk::PipelineShaderStageCreateInfo> shaderStageCreateInfos;
-    std::vector<vk::PipelineColorBlendAttachmentState> colorBlendAttachmentStates;
-
-    std::vector<vk::VertexInputBindingDescription> vertexInputBindingDescriptions;
-    std::vector<vk::VertexInputAttributeDescription> vertexInputAttributeDescriptions;
+    PipelineInfo info;
 
 };
 

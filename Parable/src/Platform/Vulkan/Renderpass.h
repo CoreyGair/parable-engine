@@ -56,6 +56,8 @@ public:
         return *this;
     }
 
+    operator Renderpass&() { return m_renderpass; }
+
     vk::RenderPass get_renderpass() const { return m_renderpass; }
 
     void recreate_renderpass(Swapchain& swapchain);
