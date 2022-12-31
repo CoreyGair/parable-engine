@@ -23,3 +23,4 @@
 #include "Platform/Vulkan/ShaderLoader.h"
 #include "Platform/Vulkan/GraphicsPipeline.h"
 #include "Platform/Vulkan/Framebuffers.h"
+#include "Platform/Vulkan/CommandPool.h"

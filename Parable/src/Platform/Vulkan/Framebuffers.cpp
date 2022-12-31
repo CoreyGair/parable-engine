@@ -18,13 +18,6 @@ Framebuffers::Framebuffers(Device& device, const std::vector<vk::ImageView>& ima
     create_framebuffers(image_views, renderpass, extent);
 }
 
-Framebuffers::~Framebuffers()
-{
-    destroy_framebuffers();
-
-    resize_framebuffers(0);
-}
-
 /**
  * Recreates the vulkan framebuffers using some new image views.
  * 

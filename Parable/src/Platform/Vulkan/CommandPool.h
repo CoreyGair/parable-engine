@@ -2,29 +2,34 @@
 
 #include "Core/Base.h"
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
+
+#include "Device.h"
 
 namespace Parable::Vulkan
 {
 
 
-class GPU;
-
 class CommandPool
 {
 public:
-    CommandPool(GPU& gpu, VkCommandPoolCreateInfo& info);
-    ~CommandPool();
-    
-    VkCommandPool get_command_pool() const { return m_command_pool; }
+    CommandPool(Device& device, vk::CommandPoolCreateInfo& info);
 
-    std::vector<VkCommandBuffer> create_command_buffers(VkCommandBufferLevel level, uint32_t count);
-    void free_command_buffers(std::vector<VkCommandBuffer>& buffers);
+    void destroy()
+    {
+        m_device.destroyCommandPool(m_command_pool);
+    }
+    
+    operator vk::CommandPool&() { return m_command_pool; }
+    vk::CommandPool& operator*() { return m_command_pool; }
+
+    std::vector<vk::CommandBuffer> create_command_buffers(vk::CommandBufferLevel level, uint32_t count);
+    void free_command_buffers(std::vector<vk::CommandBuffer>& buffers);
 
 private:
-    GPU& m_gpu;
+    Device m_device;
 
-    VkCommandPool m_command_pool;
+    vk::CommandPool m_command_pool;
 };
 
 

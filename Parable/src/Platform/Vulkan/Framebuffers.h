@@ -24,7 +24,12 @@ public:
         m_framebuffers = std::move(other.m_framebuffers);
     }
 
-    ~Framebuffers();
+    void destroy()
+    {
+        destroy_framebuffers();
+
+        resize_framebuffers(0);
+    }
 
     const FramebufferData& operator[](size_t i) const { return m_framebuffers[i]; }
 

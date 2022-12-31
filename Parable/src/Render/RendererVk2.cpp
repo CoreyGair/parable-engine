@@ -367,12 +367,12 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
     m_framebuffers = Vulkan::Framebuffers(m_device, m_swapchain->get_views(), m_renderpass, m_swapchain->get_extent());
 
     // CREATE COMMAND POOL
-    VkCommandPoolCreateInfo cmd_pool_info{};
-    cmd_pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    cmd_pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-    cmd_pool_info.queueFamilyIndex = m_gpu->get_queue_family_indices().graphics_family.value();
+    vk::CommandPoolCreateInfo cmdPoolInfo(
+        vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+        queueFamilyIndices.graphics_family
+    );
 
-    m_command_pool = std::make_unique<Vulkan::CommandPool>(*m_gpu, cmd_pool_info);
+    m_command_pool = Vulkan::CommandPool(m_device, cmdPoolInfo);
 
     // CREATE texture image
     // read in image

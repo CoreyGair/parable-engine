@@ -8,42 +8,31 @@ namespace Parable::Vulkan
 {
 
 
-CommandPool::CommandPool(GPU& gpu, VkCommandPoolCreateInfo& info) : m_gpu(gpu)
+CommandPool::CommandPool(Device& device, vk::CommandPoolCreateInfo& info)
+    : m_device(device)
 {
-    VkResult result = vkCreateCommandPool(m_gpu.device, &info, nullptr, &m_command_pool);
-    if (result != VK_SUCCESS) {
-        throw VulkanFailedCreateException("command pool", result);
-    }
+    m_command_pool = m_device.createCommandPool(info);
 }
 
-CommandPool::~CommandPool()
+std::vector<vk::CommandBuffer> CommandPool::create_command_buffers(vk::CommandBufferLevel level, uint32_t count)
 {
-    vkDestroyCommandPool(m_gpu.device, m_command_pool, nullptr);
-}
-
-std::vector<VkCommandBuffer> CommandPool::create_command_buffers(VkCommandBufferLevel level, uint32_t count)
-{
-    std::vector<VkCommandBuffer> buffers;
+    std::vector<vk::CommandBuffer> buffers;
     buffers.resize(count);
 
-    VkCommandBufferAllocateInfo info = {
-        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-        .commandPool = m_command_pool,
-        .level = level,
-        .commandBufferCount = count,
-    };
+    vk::CommandBufferAllocateInfo info(
+        m_command_pool,
+        level,
+        count
+    );
     
-    VkResult result = vkAllocateCommandBuffers(m_gpu.device, &info, buffers.data());
-    if (result != VK_SUCCESS) {
-        throw VulkanFailedCreateException("command buffer", result);
-    }
+    m_device.allocateCommandBuffers(info, buffers.data());
 
     return std::move(buffers);
 }
 
 void CommandPool::free_command_buffers(std::vector<VkCommandBuffer>& buffers)
 {
-    vkFreeCommandBuffers(m_gpu.device, m_command_pool, buffers.size(), buffers.data());
+    m_device.freeCommandBuffers(m_command_pool, buffers);
 }
 
 

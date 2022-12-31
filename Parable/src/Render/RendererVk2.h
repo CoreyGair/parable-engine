@@ -75,11 +75,11 @@ private:
 
     vk::PipelineLayout m_vk_pipeline_layout;
 
-    std::unique_ptr<Vulkan::GraphicsPipeline> m_graphics_pipeline;
+    Vulkan::GraphicsPipeline m_graphics_pipeline;
 
-    std::unique_ptr<Vulkan::Framebuffers> m_framebuffers;
+    Vulkan::Framebuffers m_framebuffers;
 
-    std::unique_ptr<Vulkan::CommandPool> m_command_pool;
+    Vulkan::CommandPool m_command_pool;
 
     std::unique_ptr<Vulkan::Image> m_texture_image;
 
