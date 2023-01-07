@@ -4,12 +4,12 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include "Device.h"
 
 namespace Parable::Vulkan
 {
 
 
-class Device;
 class Swapchain;
 
 /**
@@ -40,23 +40,28 @@ public:
         std::vector<vk::SubpassDescription>&& subpasses, 
         std::vector<vk::SubpassDependency>&& subpass_dependencies
     );
+    operator vk::RenderPass&() { return m_renderpass; }
+    vk::RenderPass& operator*() { return m_renderpass; }
 
     Renderpass(Renderpass&& other) = default;
     Renderpass& operator=(Renderpass&& other)
     {
-        Device m_device = other.m_device;
-        vk::RenderPass m_renderpass = std::move(other.m_renderpass);
+        m_device = other.m_device;
+        m_renderpass = other.m_renderpass;
 
-        std::vector<vk::AttachmentDescription> m_attachments = std::move(other.m_attachments);
-        std::vector<AttachmentFormat> m_attachment_formats = std::move(m_attachment_formats);
-        std::vector<vk::AttachmentReference> m_attachment_refs = std::move(m_attachment_refs);
-        std::vector<vk::SubpassDescription> m_subpasses = std::move(m_subpasses);
-        std::vector<vk::SubpassDependency> m_subpass_deps = std::move(m_subpass_deps);
+        m_attachments = std::move(other.m_attachments);
+        m_attachment_formats = std::move(other.m_attachment_formats);
+        m_attachment_refs = std::move(other.m_attachment_refs);
+        m_subpasses = std::move(other.m_subpasses);
+        m_subpass_deps = std::move(other.m_subpass_deps);
 
         return *this;
     }
 
-    operator Renderpass&() { return m_renderpass; }
+    void destroy()
+    {
+        (*m_device).destroyRenderPass(m_renderpass);
+    }
 
     vk::RenderPass get_renderpass() const { return m_renderpass; }
 

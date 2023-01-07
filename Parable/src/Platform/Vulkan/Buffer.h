@@ -1,61 +1,89 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-
+#include <vulkan/vulkan.hpp>
+#include "Device.h"
+#include "PhysicalDevice.h"
 
 namespace Parable::Vulkan
 {
 
 
-class GPU;
-
 class Buffer
 {
 public:
-    Buffer(GPU& gpu, VkBufferCreateInfo& info, VkMemoryPropertyFlags required_memory_properties);
-    ~Buffer();
+    Buffer() = default;
+    Buffer(Device& device, PhysicalDevice& physicalDevice, vk::BufferCreateInfo& info, vk::MemoryPropertyFlags requiredMemoryProperties);
+    Buffer(Buffer&& other) noexcept
+        : m_device(other.m_device),
+        m_buffer(other.m_buffer),
+        m_buffer_size(other.m_buffer_size),
+        m_buffer_memory(other.m_buffer_memory),
+        m_buffer_map(m_buffer_map)
+    {}
 
-    void write(void* data, VkDeviceSize offset, VkDeviceSize size);
+    void destroy()
+    {
+        if (m_buffer_map) {
+            unmap();
+        }
+        (*m_device).destroyBuffer(m_buffer);
+        m_device.free_memory(m_buffer_memory);
+    }
 
-    void map(VkDeviceSize offset, VkDeviceSize size);
+    Buffer& operator=(Buffer&& other)
+    {
+        m_device = other.m_device;
+
+        m_buffer = other.m_buffer;
+        m_buffer_size = other.m_buffer_size;
+        m_buffer_memory = other.m_buffer_memory;
+
+        m_buffer_map = other.m_buffer_map;
+
+        return *this;
+    }
+
+    operator vk::Buffer&() { return m_buffer; }
+
+    void write(void* data, vk::DeviceSize offset, vk::DeviceSize size);
+
+    void map(vk::DeviceSize offset, vk::DeviceSize size);
     void unmap();
 
-    VkBuffer get_buffer() const { return m_buffer; }
-    VkDeviceSize get_size() const { return m_buffer_size; }
+    vk::Buffer get_buffer() const { return m_buffer; }
+    vk::DeviceSize get_size() const { return m_buffer_size; }
     void* get_map() const { return m_buffer_map; }
 
-    void copy_from(Buffer& src, VkDeviceSize src_offset, VkDeviceSize dst_offset, VkDeviceSize size, VkCommandBuffer transfer_command_buffer);
-    void copy_from(Buffer& src, VkCommandBuffer transfer_command_buffer);
+    void copy_from(Buffer& src, vk::DeviceSize srcOffset, vk::DeviceSize dstOffset, vk::DeviceSize size, vk::CommandBuffer transferCommandBuffer);
+    void copy_from(Buffer& src, vk::CommandBuffer transferCommandBuffer);
 
-    void copy_to(Buffer& dst, VkDeviceSize src_offset, VkDeviceSize dst_offset, VkDeviceSize size, VkCommandBuffer transfer_command_buffer);
-    void copy_to(Buffer& dst, VkCommandBuffer transfer_command_buffer);
+    void copy_to(Buffer& dst, vk::DeviceSize srcOffset, vk::DeviceSize dstOffset, vk::DeviceSize size, vk::CommandBuffer transferCommandBuffer);
+    void copy_to(Buffer& dst, vk::CommandBuffer transferCommandBuffer);
 
 private:
-    GPU& m_gpu;
+    Device m_device;
 
-    VkBuffer m_buffer;
-    VkDeviceSize m_buffer_size;
-    VkDeviceMemory m_buffer_memory;
-
+    vk::Buffer m_buffer;
+    vk::DeviceSize m_buffer_size;
+    /**
+     * The device-local memory backing this buffer.
+     */
+    vk::DeviceMemory m_buffer_memory;
+    /**
+     * Pointer to where this buffer is currently mapped (null if not mapped).
+     */
     void* m_buffer_map = nullptr;
 };
 
 class BufferBuilder
 {
 public:
-    BufferBuilder()
-    {
-        buffer_info = {
-            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-        };
-    }
+    Buffer create(Device& device, PhysicalDevice& physicalDevice);
 
-    std::unique_ptr<Buffer> create(GPU& gpu);
+    void emplace_back_vector(std::vector<Buffer>& vec, Device& device, PhysicalDevice& physicalDevice);
 
-    void emplace_back_vector(std::vector<Buffer>& vec, GPU& gpu);
-
-    VkBufferCreateInfo buffer_info;
-    VkMemoryPropertyFlags required_memory_properties = 0;
+    vk::BufferCreateInfo buffer_info;
+    vk::MemoryPropertyFlags required_memory_properties = {};
 };
 
 

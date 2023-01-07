@@ -11,10 +11,5 @@ namespace Parable::Vulkan
 {
 
 
-Device::Device(vk::PhysicalDevice& physicalDevice, vk::DeviceCreateInfo& deviceCreateInfo)
-{
-    m_device = physicalDevice.createDevice(deviceCreateInfo);
-}
-
 
 }

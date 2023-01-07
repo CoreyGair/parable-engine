@@ -1,34 +1,30 @@
 #include "Image.h"
 
-#include "GPU.h"
-
 #include "VulkanExceptions.h"
+
+#include "PhysicalDevice.h"
 
 namespace Parable::Vulkan
 {
 
 
-Image::Image(GPU& gpu, VkImageCreateInfo& image_info)
-    : m_gpu(gpu)
+/**
+ * @brief Constructs a vk::Image object, and allocates some device local memory for it.
+ * 
+ * @param device 
+ * @param physicalDevice
+ * @param imageInfo 
+ */
+Image::Image(Device& device, PhysicalDevice& physicalDevice, vk::ImageCreateInfo& imageInfo)
+    : m_device(device)
 {
-    VkResult result = vkCreateImage(m_gpu.device, &image_info, nullptr, &m_image);
+    m_image = (*m_device).createImage(imageInfo);
 
-    if (result != VK_SUCCESS)
-    {
-        throw VulkanFailedCreateException("image", result);
-    }
+    VkMemoryRequirements memRequirements = (*m_device).getImageMemoryRequirements(m_image);
 
-    VkMemoryRequirements mem_requirements;
-    vkGetImageMemoryRequirements(m_gpu.device, m_image, &mem_requirements);
+    m_image_memory = m_device.allocate_memory(memRequirements.size, physicalDevice.pick_memory_type(memRequirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal));
 
-    m_image_memory = m_gpu.allocate_device_memory(mem_requirements.size, gpu.pick_memory_type(mem_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT));
-
-    vkBindImageMemory(m_gpu.device, m_image, m_image_memory, 0);
-}
-
-Image::~Image()
-{
-
+    (*m_device).bindImageMemory(m_image, m_image_memory, 0);
 }
 
 

@@ -100,6 +100,24 @@ SwapChainSupportDetails PhysicalDevice::get_swapchain_support_details_from_physi
     return details;
 }
 
+uint32_t PhysicalDevice::pick_memory_type(uint32_t suitableTypes, vk::MemoryPropertyFlags requiredProperties)
+{
+    vk::PhysicalDeviceMemoryProperties memProperties = m_physical_device.getMemoryProperties();
+
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; ++i) {
+        // check if the type is in the suitable types
+        // and if all the required properties are available
+        if (
+            (suitableTypes & (1 << i)) &&
+            ((memProperties.memoryTypes[i].propertyFlags & requiredProperties) == requiredProperties)
+        ) {
+            return i;
+        }
+    }
+
+    throw VulkanResourceException("No suitable memory type.");
+}
+
 vk::PhysicalDevice& PhysicalDevicePicker::pick(std::vector<vk::PhysicalDevice>& physicalDevices)
 {
     int maxScore = std::numeric_limits<int>::min();

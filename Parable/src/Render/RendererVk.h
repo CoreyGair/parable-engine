@@ -4,27 +4,17 @@
 
 #include "pblpch.h"
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
+
+#include "Platform/Vulkan/VulkanWrapper.h"
 
 class GLFWwindow;
 
-namespace Parable::Vulkan
-{
-class GPU;
-class Swapchain;
-class Renderpass;
-class GraphicsPipeline;
-class Framebuffers;
-class Buffer;
-class CommandPool;
-class DescriptorSetLayout;
-class DescriptorPool;
-class DescriptorSets;
-class Image;
-}
 
 namespace Parable 
 {
+
+namespace Vulkan { class Vertex; }
 
 
 class RendererVk : public Renderer
@@ -41,46 +31,58 @@ private:
 
     void recreate_swapchain();
 
-    void record_command_buffer(VkCommandBuffer command_buffer, uint32_t imageIndex);
+    void record_command_buffer(vk::CommandBuffer commandBuffer, uint32_t imageIndex);
 
     GLFWwindow* m_window;
 
-    std::unique_ptr<Vulkan::GPU> m_gpu;
-
-    VkQueue m_vk_graphics_queue = VK_NULL_HANDLE;
-
-    VkQueue m_vk_presentation_queue = VK_NULL_HANDLE;
-
-    VkQueue m_vk_transfer_queue = VK_NULL_HANDLE;
-
-    std::unique_ptr<Vulkan::Swapchain> m_swapchain;
-
-    std::unique_ptr<Vulkan::Renderpass> m_renderpass;
-
-    std::vector<VkShaderModule> m_shader_modules;
+    vk::Instance m_instance;
     
-    std::unique_ptr<Vulkan::DescriptorSetLayout> m_descriptor_set_layout;
+    vk::SurfaceKHR m_surface;
 
-    std::unique_ptr<Vulkan::DescriptorPool> m_descriptor_pool;
+    Vulkan::PhysicalDevice m_physical_device;
 
-    std::unique_ptr<Vulkan::DescriptorSets> m_descriptor_sets;
+    Vulkan::Device m_device;
 
-    VkPipelineLayout m_vk_pipeline_layout = VK_NULL_HANDLE;
+    vk::Queue m_graphics_queue;
+    vk::Queue m_present_queue;
+    vk::Queue m_transfer_queue;
 
-    std::unique_ptr<Vulkan::GraphicsPipeline> m_graphics_pipeline;
+    Vulkan::Swapchain m_swapchain;
 
-    std::unique_ptr<Vulkan::Framebuffers> m_framebuffers;
+    Vulkan::Renderpass m_renderpass;
 
-    std::unique_ptr<Vulkan::CommandPool> m_command_pool;
+    std::vector<vk::ShaderModule> m_shader_modules;
+    
+    vk::DescriptorSetLayout m_descriptor_set_layout;
 
-    std::unique_ptr<Vulkan::Image> m_texture_image;
+    vk::DescriptorPool m_descriptor_pool;
 
-    std::unique_ptr<Vulkan::Buffer> m_vertex_buffer;
-    std::unique_ptr<Vulkan::Buffer> m_index_buffer;
+    Vulkan::DescriptorSets m_descriptor_sets;
+
+    vk::PipelineLayout m_pipeline_layout;
+
+    Vulkan::GraphicsPipeline m_graphics_pipeline;
+
+    Vulkan::Framebuffers m_framebuffers;
+
+    Vulkan::CommandPool m_command_pool;
+
+    Vulkan::RecreatableImage m_depth_image;
+    vk::ImageView m_depth_image_view;
+
+    Vulkan::Image m_texture_image;
+    vk::ImageView m_texture_image_view;
+    vk::Sampler m_texture_sampler;
+
+    std::vector<Vulkan::Vertex> m_vertices;
+    std::vector<uint32_t> m_indices;
+
+    Vulkan::Buffer m_vertex_buffer;
+    Vulkan::Buffer m_index_buffer;
 
     std::vector<Vulkan::Buffer> m_uniform_buffers;
 
-    std::vector<VkCommandBuffer> m_vk_command_buffers;
+    std::vector<vk::CommandBuffer> m_command_buffers;
 
     const size_t MAX_FRAMES_IN_FLIGHT = 2;
     int m_current_frame = 0;

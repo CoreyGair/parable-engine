@@ -2,34 +2,45 @@
 
 #include "pblpch.h"
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
+#include "Device.h"
 
 namespace Parable::Vulkan
 {
 
 
-class GPU;
-class DescriptorPool;
-
 class DescriptorSets
 {
 public:
-    DescriptorSets(GPU& gpu, DescriptorPool& descriptor_pool, std::vector<VkDescriptorSetLayout>& layout);
-    ~DescriptorSets();
+    DescriptorSets() = default;
+    DescriptorSets(DescriptorSets&& other) = default;
+    DescriptorSets(Device& device, vk::DescriptorPool& descriptorPool, std::vector<vk::DescriptorSetLayout>& layouts);
 
-    VkDescriptorSet& operator[](int i) { return m_descriptor_sets[i]; }
+    DescriptorSets& operator=(DescriptorSets&& other)
+    {
+        m_device = other.m_device;
+        m_descriptor_pool = other.m_descriptor_pool;
+        m_descriptor_sets = std::move(other.m_descriptor_sets);
 
-    void update_descriptor_set(size_t descriptor_set_index, uint32_t binding, VkDescriptorBufferInfo& buffer_info);
+        return *this;
+    }
 
-    const std::vector<VkDescriptorSet>& get_descriptor_sets() { return m_descriptor_sets; }
+    void destroy() 
+    {
+        (*m_device).freeDescriptorSets(m_descriptor_pool, m_descriptor_sets);
+    }
+
+    vk::DescriptorSet& operator[](int i) { return m_descriptor_sets[i]; }
+
+    const std::vector<vk::DescriptorSet>& get_descriptor_sets() { return m_descriptor_sets; }
 
 private:
-    GPU& m_gpu;
+    Device m_device;
 
     // the pool from which these sets were allocated
-    DescriptorPool& m_descriptor_pool;
+    vk::DescriptorPool m_descriptor_pool;
 
-    std::vector<VkDescriptorSet> m_descriptor_sets;
+    std::vector<vk::DescriptorSet> m_descriptor_sets;
 };
 
 

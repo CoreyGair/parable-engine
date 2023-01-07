@@ -6,19 +6,14 @@ set(PARABLE_SRCS_CORE       ${CMAKE_CURRENT_SOURCE_DIR}/Core/Application.cpp
 set(PARABLE_SRCS_EVENTS     ${CMAKE_CURRENT_SOURCE_DIR}/Events/EventBuffer.cpp
                             )
 
-set(PARABLE_SRCS_PLATFORM   ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/GPU.cpp
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Renderpass.cpp
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/DescriptorSetLayout.cpp
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/DescriptorPool.cpp
+set(PARABLE_SRCS_PLATFORM   ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Renderpass.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/DescriptorSets.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Image.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/GraphicsPipeline.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Framebuffers.cpp
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/PipelineLayoutBuilder.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Buffer.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/CommandPool.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/ShaderLoader.cpp
-
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Device.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/PhysicalDevice.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Swapchain.cpp
@@ -56,7 +51,6 @@ set(PARABLE_SRCS_EXCEPTION
                                 )
 
 set(PARABLE_SRCS_RENDER     ${CMAKE_CURRENT_SOURCE_DIR}/Render/RendererVk.cpp
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Render/RendererVk2.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Render/RenderLayer.cpp
                             )
 

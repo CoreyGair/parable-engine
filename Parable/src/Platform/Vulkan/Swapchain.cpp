@@ -75,7 +75,8 @@ void Swapchain::create_swapchain()
         surfaceFormat.format,       // img format
         surfaceFormat.colorSpace,   // img color space
         extent,                     // img extent
-        1                           // img array layers
+        1,                          // img array layers
+        vk::ImageUsageFlagBits::eColorAttachment    // imageUsage
     );
     
     uint32_t queue_family_indices[] = {queueIndices.graphics_family, queueIndices.presentation_family};

@@ -31,16 +31,17 @@ void GraphicsPipeline::recreate_pipeline(vk::PipelineLayout& layout, Renderpass&
 
 void GraphicsPipeline::create_pipeline(vk::PipelineLayout& layout, Renderpass& renderpass, uint32_t subpass)
 {
+    // generate vertexInputStateCreateInfo based on binding descriptions
+    vk::PipelineVertexInputStateCreateInfo vertexInputStateCreateInfo = vk::PipelineVertexInputStateCreateInfo(
+        {},
+        info.vertexInputBindingDescriptions,
+        info.vertexInputAttributeDescriptions
+    );
+
     // attach all the state which could change between pipeline creations
     info.colorBlendStateCreateInfo.attachmentCount = info.colorBlendAttachmentStates.size();
     info.colorBlendStateCreateInfo.pAttachments = info.colorBlendAttachmentStates.data();
-
-    info.vertexInputStateCreateInfo.vertexBindingDescriptionCount = info.vertexInputBindingDescriptions.size();
-    info.vertexInputStateCreateInfo.pVertexBindingDescriptions = info.vertexInputBindingDescriptions.data();
-
-    info.vertexInputStateCreateInfo.vertexAttributeDescriptionCount = info.vertexInputAttributeDescriptions.size();
-    info.vertexInputStateCreateInfo.pVertexAttributeDescriptions = info.vertexInputAttributeDescriptions.data();
-
+    
     vk::PipelineViewportStateCreateInfo viewportStateCreateInfo(
         {},
         1,
@@ -50,15 +51,16 @@ void GraphicsPipeline::create_pipeline(vk::PipelineLayout& layout, Renderpass& r
     );
     
     vk::GraphicsPipelineCreateInfo pipelineInfo(
+        {},
         info.shaderStageCreateInfos,
-        info.vertexInputStateCreateInfo ? &info.vertexInputStateCreateInfo.value() : nullptr,
+        &vertexInputStateCreateInfo,
         info.inputAssemblyStateCreateInfo ? &info.inputAssemblyStateCreateInfo.value() : nullptr,
         info.tessellationStateCreateInfo ? &info.tessellationStateCreateInfo.value() : nullptr,
         &viewportStateCreateInfo,
         info.rasterizationStateCreateInfo ? &info.rasterizationStateCreateInfo.value() : nullptr,
         info.multisampleStateCreateInfo ? &info.multisampleStateCreateInfo.value() : nullptr,
         info.depthStencilStateCreateInfo ? &info.depthStencilStateCreateInfo.value() : nullptr,
-        info.colorBlendStateCreateInfo ? &info.colorBlendStateCreateInfo.value() : nullptr,
+        &info.colorBlendStateCreateInfo,
         info.dynamicStateCreateInfo ? &info.dynamicStateCreateInfo.value() : nullptr, // dynamic state
         layout,
         renderpass,
@@ -67,12 +69,18 @@ void GraphicsPipeline::create_pipeline(vk::PipelineLayout& layout, Renderpass& r
         {}  // base pipeline index
     );
 
-    m_pipeline = m_device.createGraphicsPipelines(std::vector<vk::GraphicsPipelineCreateInfo>{pipelineInfo});
+    vk::ResultValue<std::vector<vk::Pipeline>> result = (*m_device).createGraphicsPipelines({}, {pipelineInfo});
+
+    if (result.result != vk::Result::eSuccess) {
+        throw std::runtime_error("failed to create pipeline");
+    }
+
+    m_pipeline = result.value[0];
 }
 
 void GraphicsPipeline::destroy_pipeline()
 {
-    vkDestroyPipeline(m_gpu.device, m_pipeline, nullptr);
+    (*m_device).destroyPipeline(m_pipeline);
 }
 
 

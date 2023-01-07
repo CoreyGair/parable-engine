@@ -22,11 +22,11 @@ Renderpass::Renderpass(
     std::vector<vk::SubpassDependency>&& subpass_dependencies
 )
     : m_device(device),
-    m_attachments(attachments),
-    m_attachment_formats(attachment_formats),
-    m_attachment_refs(attachment_refs),
-    m_subpasses(subpasses),
-    m_subpass_deps(subpass_dependencies)
+    m_attachments(std::move(attachments)),
+    m_attachment_formats(std::move(attachment_formats)),
+    m_attachment_refs(std::move(attachment_refs)),
+    m_subpasses(std::move(subpasses)),
+    m_subpass_deps(std::move(subpass_dependencies))
 {
     PBL_CORE_ASSERT(m_attachments.size() == m_attachment_formats.size());
 
@@ -59,7 +59,7 @@ void Renderpass::create_renderpass(Swapchain& swapchain)
 
     vk::RenderPassCreateInfo renderpass_info({}, m_attachments, m_subpasses, m_subpass_deps); 
 
-    (*m_device).createRenderPass(renderpass_info);
+    m_renderpass = (*m_device).createRenderPass(renderpass_info);
 }
 
 Renderpass RenderpassBuilder::create(Device& device, Swapchain& swapchain)

@@ -8,6 +8,8 @@ namespace Parable::Vulkan
 {
 
 
+class PhysicalDevicePicker;
+
 /**
  * Wraps vk::PhysicalDevice.
  * 
@@ -47,12 +49,14 @@ public:
      * @param surface The surface for the queues to work on.
      * @return OptionalQueueFamilyIndices contains optional types for each family index.
      */
-    static inline OptionalQueueFamilyIndices get_optional_queue_family_indices_from_physical_device(vk::PhysicalDevice& physicalDevice, vk::SurfaceKHR& surface);
+    static OptionalQueueFamilyIndices get_optional_queue_family_indices_from_physical_device(vk::PhysicalDevice& physicalDevice, vk::SurfaceKHR& surface);
 
     /**
      * Gets the details of the swap chain support for a device and surface pair.
      */
-    static inline SwapChainSupportDetails get_swapchain_support_details_from_physical_device(vk::PhysicalDevice& physicalDevice, vk::SurfaceKHR& surface);
+    static SwapChainSupportDetails get_swapchain_support_details_from_physical_device(vk::PhysicalDevice& physicalDevice, vk::SurfaceKHR& surface);
+
+    uint32_t pick_memory_type(uint32_t suitableTypes, vk::MemoryPropertyFlags requiredProperties);
 
 private:
     vk::PhysicalDevice m_physical_device;
