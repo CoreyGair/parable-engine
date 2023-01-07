@@ -13,7 +13,9 @@
 
 
 // TODO: check .cpp files, some are unused (impl moved to header, may be worth doing for all?)
-
+// TODO: enforce consistent style over these wrappers
+//          - should they all be header-only
+//          - consistent styles (all have same vk:: type conversions, ctors, calling conventions, etc)
 
 #include "Platform/Vulkan/Device.h"
 #include "Platform/Vulkan/PhysicalDevice.h"

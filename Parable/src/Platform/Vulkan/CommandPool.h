@@ -36,9 +36,7 @@ public:
             count
         );
         
-        std::vector<vk::CommandBuffer> buffers = (*m_device).allocateCommandBuffers(info);
-
-        return std::move(buffers);
+        return (*m_device).allocateCommandBuffers(info);
     }
     void free_command_buffers(std::vector<vk::CommandBuffer>& buffers)
     {
