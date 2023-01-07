@@ -20,10 +20,10 @@ class Layer;
 class LayerStack
 {
 private:
-    std::vector<Layer*> m_layers;
+    std::vector<UPtr<Layer>> m_layers;
 
 public:
-    void push(Layer* layer) { m_layers.push_back(layer); }
+    void push(UPtr<Layer> layer) { m_layers.push_back(std::move(layer)); }
 
     auto cbegin() { return m_layers.cbegin(); }
     auto cend() { return m_layers.cend(); }

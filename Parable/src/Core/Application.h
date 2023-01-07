@@ -41,7 +41,7 @@ class Application
         void on_update();
     
     protected:
-        void push_layer(Layer* layer);
+        void push_layer(UPtr<Layer> layer);
 
         /**
          * Buffer of events to be processed.

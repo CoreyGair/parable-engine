@@ -8,6 +8,9 @@
 
 #include "ECS/ECS.h"
 
+#include "Render/RenderLayer.h"
+#include "Render/RendererVk.h"
+
 //TEMP FOR TEST
 #include "Debug/EventLogLayer.h"
 #include "Input/InputLayer.h"
@@ -16,10 +19,6 @@ namespace Parable
 {
 
 Application* Application::s_instance = nullptr; 
-
-class A : public ECS::Component<A> {
-    int val = 0;
-};
 
 Application::Application()
 {
@@ -37,9 +36,11 @@ Application::Application()
     m_window = std::make_unique<Window>(1600,900,std::string("Parable Engine"), false);
     m_window->set_app_event_callback(PBL_BIND_MEMBER_EVENT_HANDLER(Application::on_event));
 
-    // TEMP TEST LAYERS
-    m_layer_stack.push(new Input::InputLayer());
-    m_layer_stack.push(new EventLogLayer(0));
+    m_layer_stack.push(std::make_unique<RenderLayer>(std::make_unique<RendererVk>(m_window->get_glfw_window())));
+
+    m_layer_stack.push(std::make_unique<Input::InputLayer>());
+
+    m_layer_stack.push(std::make_unique<EventLogLayer>(0));
 }
 
 /**
@@ -127,9 +128,9 @@ void Application::process_events()
 /**
  * Add an engine layer.
  */
-void Application::push_layer(Layer* layer)
+void Application::push_layer(UPtr<Layer> layer)
 {
-    m_layer_stack.push(layer);
+    m_layer_stack.push(std::move(layer));
 }
 
 

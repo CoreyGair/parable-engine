@@ -16,7 +16,7 @@ namespace Parable{
 enum class EventType 
 {
     None = 0,
-	WindowClose,WindowResize,
+	WindowClosed,WindowResized,WindowFocused,WindowMinimised,
 	KeyPressed,KeyRepeated,KeyReleased,
 	MouseMoved,MouseEnter,MouseExit,MouseBtnPressed,MouseBtnReleased,MouseScrolled
 };

@@ -3,7 +3,6 @@
 #include "Core/Base.h"
 #include "Events/Event.h"
 
-
 class GLFWwindow;
 
 namespace Parable
@@ -22,14 +21,13 @@ struct WindowData
     int height;
     std::string name;
     bool fullscreen;
+    bool focused;
+    bool minimised;
     EventCallbackFn event_callback;
 };
 
 /**
  * Manages the glfw window.
- * 
- * 
- * 
  */
 class Window
 {
@@ -41,6 +39,8 @@ private:
 public:
     Window(int width, int height, std::string name, bool fullscreen);
     ~Window();
+
+    GLFWwindow* get_glfw_window() const { return m_glfw_window; }
 
     void on_update();
 
