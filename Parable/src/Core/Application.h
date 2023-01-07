@@ -9,6 +9,8 @@
 
 #include "Window/Window.h"
 
+#include "Time.h"
+
 #include "ECS/ECS.h"
 
 int main(int argc, char** argv);
@@ -65,6 +67,9 @@ class Application
          * The main application window.
          */
         std::unique_ptr<Window> m_window;
+
+        // timekeeper (contains delta time)
+        Time time;
 
         bool m_running = true;
         bool m_minimised = false;

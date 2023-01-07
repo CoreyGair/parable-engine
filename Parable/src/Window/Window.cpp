@@ -3,7 +3,6 @@
 #include "Events/WindowEvent.h"
 #include "Events/InputEvent.h"
 
-#include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 
 namespace Parable
@@ -32,6 +31,7 @@ Window::Window(int width, int height, std::string name, bool fullscreen)
     glfwSetErrorCallback(glfw_error_callback);
 
     m_glfw_window = glfwCreateWindow(width, height, name.c_str(), fullscreen ? glfwGetPrimaryMonitor() : nullptr, nullptr);
+
     PBL_CORE_ASSERT_MSG(m_glfw_window, "Window creation failed!");
 
     // at first these were member vars, but this would require capturing &this in the callback lambdas below

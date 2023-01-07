@@ -56,6 +56,8 @@ void Application::run()
 
     while(m_running)
     {
+        time.start_frame();
+
         // invoke update for the ecs
         //m_ecs.on_update();
 
@@ -69,6 +71,8 @@ void Application::run()
         {
             process_events();
         }
+
+        time.end_frame();
     }
 
 }
