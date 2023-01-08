@@ -89,7 +89,7 @@ bool InputManager::mouse_btn_pressed(MouseBtnPressedEvent& e)
 bool InputManager::mouse_btn_released(MouseBtnReleasedEvent& e)
 {
     InputCode btn = (InputCode)e.get_button();
-    m_input_state.mouse_btn_down[btn - (int)KeyCode::FIRST] = false;
+    m_input_state.mouse_btn_down[btn - (int)MouseButton::FIRST] = false;
     notify_contexts_of_input_released(btn);
     return true;
 }
