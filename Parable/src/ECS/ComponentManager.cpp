@@ -144,6 +144,8 @@ bool ComponentManager::has_component(Entity e, ComponentTypeID c)
 {
 	if (e >= (*m_entity_component_map).get_map().size()) throw NullEntityException((std::string("Entity ") + std::to_string(e) + std::string(" is not currently in use!")).c_str());
 
+    // TODO: think the first part of this should be in the above throw
+    //      if (*m_entity_component_map)[e] is null then e is not an entity
 	return (*m_entity_component_map)[e] != nullptr && (*m_entity_component_map)[e][c] != nullptr;
 }
 
