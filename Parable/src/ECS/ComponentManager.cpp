@@ -288,6 +288,7 @@ void ComponentManager::ComponentChunkManager::destroy_component(IComponent* comp
 
 	// find index of chunk which holds component
 	// basically see which address range the component is in
+    // TODO: what happens here if component_location (so the component ptr) is not in any chunk???
 	size_t chunk_index = 0;
 	for(; chunk_index < m_chunks_components.size(); ++chunk_index)
 	{
