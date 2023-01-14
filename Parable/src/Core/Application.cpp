@@ -13,12 +13,12 @@
 #include "Render/Renderer.h"
 
 // TEMP to test renderer
-#include "Render/RenderVk/MeshManager.h"
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <chrono>
+#include "Render/Handles.h"
 
 
 //TEMP FOR TEST
@@ -30,8 +30,8 @@ namespace Parable
 
 Application* Application::s_instance = nullptr; 
 
-MeshVk* pMeshA = nullptr;
-MeshVk* pMeshB = nullptr;
+MeshHandle meshA;
+MeshHandle meshB;
 
 glm::mat4 startMatA = glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(0.5f,0.5f,0.5f)), glm::vec3(-1.5f, 0.0f, 0.0f));
 glm::mat4 startMatB = glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(0.5f,0.5f,0.5f)), glm::vec3(1.5f, 0.0f, 0.0f));
@@ -57,20 +57,16 @@ Application::Application()
     Renderer::Init(m_window->get_glfw_window());
     m_layer_stack.push(std::make_unique<RenderLayer>());
 
-    // load some meshes to test
-    auto& meshA = Renderer::get_instance()->load_mesh("D:\\parable-engine\\Parable\\src\\Render\\Models\\unit_cube.obj");
-    meshA.set_transform(startMatA);
+    // load some meshes to test    
+    meshA = Renderer::get_instance()->load_mesh("D:\\parable-engine\\Parable\\src\\Render\\Models\\unit_cube.obj");
+    Renderer::get_instance()->set_mesh_transform(meshA, startMatA);
 
-    auto& meshB = Renderer::get_instance()->load_mesh("D:\\parable-engine\\Parable\\src\\Render\\Models\\unit_cube.obj");
-    meshB.set_transform(startMatB);
+    meshB = Renderer::get_instance()->load_mesh("D:\\parable-engine\\Parable\\src\\Render\\Models\\unit_cube.obj");
+    Renderer::get_instance()->set_mesh_transform(meshB, startMatB);
 
     m_layer_stack.push(std::make_unique<Input::InputLayer>());
 
     m_layer_stack.push(std::make_unique<EventLogLayer>(0));
-
-    // TEMP, save meshes to update in update()
-    pMeshA = &meshA;
-    pMeshB = &meshB;
 }
 
 /**
@@ -95,8 +91,8 @@ void Application::run()
         auto currMatA = glm::rotate(startMatA, elapsedTime * glm::radians(90.0f), glm::vec3(0.0f,0.0f,1.0f));
         auto currMatB = glm::rotate(startMatB, -elapsedTime * glm::radians(45.0f), glm::vec3(0.0f,0.0f,1.0f));
 
-        //pMeshA->set_transform(currMatA);
-        pMeshB->set_transform(currMatB);
+        Renderer::get_instance()->set_mesh_transform(meshA, currMatA);
+        Renderer::get_instance()->set_mesh_transform(meshB, currMatB);
 
         // invoke update for the ecs
         //m_ecs.on_update();

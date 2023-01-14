@@ -26,7 +26,14 @@ public:
     Renderer(GLFWwindow* window);
     ~Renderer();
 
-    MeshHandle load_mesh(std::string path) override;
+    MeshHandle load_mesh(std::string path) override
+    {
+        return m_mesh_manager.load_mesh(path);
+    }
+    void set_mesh_transform(MeshHandle handle, glm::mat4& transform) override
+    {
+        m_mesh_manager.set_mesh_transform(handle, transform);
+    }
 
     void on_update() override;
 

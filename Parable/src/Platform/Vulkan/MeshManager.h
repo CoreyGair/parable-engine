@@ -37,6 +37,8 @@ public:
 
     MeshHandle load_mesh(std::string path);
 
+    void set_mesh_transform(MeshHandle handle, glm::mat4& transform);
+
     std::vector<Mesh>& get_meshes() { return m_meshes; }
 
 private:

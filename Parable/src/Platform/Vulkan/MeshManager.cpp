@@ -166,5 +166,12 @@ MeshHandle MeshManager::load_mesh(std::string path)
     return MeshHandle{0,m_meshes.size()-1};
 }
 
+void MeshManager::set_mesh_transform(MeshHandle handle, glm::mat4& transform)
+{
+    PBL_CORE_ASSERT(handle.mesh < m_meshes.size());
+
+    m_meshes[handle.mesh].set_transform(transform);
+}
+
 
 }

@@ -724,11 +724,6 @@ Renderer::~Renderer()
     m_instance.destroy();
 }
 
-MeshHandle Renderer::load_mesh(std::string path)
-{
-    return m_mesh_manager.load_mesh(path);
-}
-
 /**
  * Recreates the swapchain and all dependent components.
  * 
