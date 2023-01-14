@@ -3,9 +3,10 @@
 #include <pblpch.h>
 
 #include <vulkan/vulkan.hpp>
-#include <Platform/Vulkan/Vertex.h>
 
 #include "Device.h"
+#include "Vertex.h"
+
 
 namespace Parable::Vulkan
 {

@@ -19,7 +19,7 @@ class Device
 {
 public:
     Device() = default;
-    Device(Device& other)
+    Device(const Device& other)
     { 
         m_device = other.m_device;
     }

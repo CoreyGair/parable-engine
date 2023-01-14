@@ -20,7 +20,7 @@ class WindowMinimiseEvent;
 class RenderLayer : public Layer
 {
 public:
-    RenderLayer(std::unique_ptr<Renderer> renderer) : Layer("RenderLayer"), m_renderer(std::move(renderer)) {}
+    RenderLayer() : Layer("RenderLayer"), m_renderer(Renderer::get_instance()) {}
 
     void on_update() override;
     void on_event(Event* e) override;
@@ -29,7 +29,7 @@ private:
     bool on_window_resize(WindowResizeEvent& e);
     bool on_window_minimise(WindowMinimiseEvent& e);
 
-    std::unique_ptr<Renderer> m_renderer;
+    Renderer* m_renderer;
 };
 
 

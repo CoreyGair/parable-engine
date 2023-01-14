@@ -9,7 +9,17 @@
 #include "ECS/ECS.h"
 
 #include "Render/RenderLayer.h"
-#include "Render/RendererVk.h"
+// could find a way to not have this, let render layer init??
+#include "Render/Renderer.h"
+
+// TEMP to test renderer
+#include "Render/RenderVk/MeshManager.h"
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <chrono>
+
 
 //TEMP FOR TEST
 #include "Debug/EventLogLayer.h"
@@ -19,6 +29,14 @@ namespace Parable
 {
 
 Application* Application::s_instance = nullptr; 
+
+MeshVk* pMeshA = nullptr;
+MeshVk* pMeshB = nullptr;
+
+glm::mat4 startMatA = glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(0.5f,0.5f,0.5f)), glm::vec3(-1.5f, 0.0f, 0.0f));
+glm::mat4 startMatB = glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(0.5f,0.5f,0.5f)), glm::vec3(1.5f, 0.0f, 0.0f));
+
+auto startTime = std::chrono::high_resolution_clock::now();
 
 Application::Application()
 {
@@ -36,11 +54,23 @@ Application::Application()
     m_window = std::make_unique<Window>(1600,900,std::string("Parable Engine"), false);
     m_window->set_app_event_callback(PBL_BIND_MEMBER_EVENT_HANDLER(Application::on_event));
 
-    m_layer_stack.push(std::make_unique<RenderLayer>(std::make_unique<RendererVk>(m_window->get_glfw_window())));
+    Renderer::Init(m_window->get_glfw_window());
+    m_layer_stack.push(std::make_unique<RenderLayer>());
+
+    // load some meshes to test
+    auto& meshA = Renderer::get_instance()->load_mesh("D:\\parable-engine\\Parable\\src\\Render\\Models\\unit_cube.obj");
+    meshA.set_transform(startMatA);
+
+    auto& meshB = Renderer::get_instance()->load_mesh("D:\\parable-engine\\Parable\\src\\Render\\Models\\unit_cube.obj");
+    meshB.set_transform(startMatB);
 
     m_layer_stack.push(std::make_unique<Input::InputLayer>());
 
     m_layer_stack.push(std::make_unique<EventLogLayer>(0));
+
+    // TEMP, save meshes to update in update()
+    pMeshA = &meshA;
+    pMeshB = &meshB;
 }
 
 /**
@@ -57,6 +87,16 @@ void Application::run()
     while(m_running)
     {
         time.start_frame();
+
+        // TEMP, rotate meshes for test
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        float elapsedTime = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+        auto currMatA = glm::rotate(startMatA, elapsedTime * glm::radians(90.0f), glm::vec3(0.0f,0.0f,1.0f));
+        auto currMatB = glm::rotate(startMatB, -elapsedTime * glm::radians(45.0f), glm::vec3(0.0f,0.0f,1.0f));
+
+        //pMeshA->set_transform(currMatA);
+        pMeshB->set_transform(currMatB);
 
         // invoke update for the ecs
         //m_ecs.on_update();

@@ -28,52 +28,6 @@ Buffer::Buffer(Device& device, PhysicalDevice& physicalDevice, vk::BufferCreateI
 }
 
 /**
- * Write some data into this buffer.
- * 
- * Note this assumes the buffer is host coherent; it does not explicitly flush.
- * 
- * @param data The data to write.
- * @param offset The offset into the buffer to write at.
- * @param size The size of data to be written.
- */
-void Buffer::write(void* data, vk::DeviceSize offset, vk::DeviceSize size)
-{
-    PBL_CORE_ASSERT(size <= m_buffer_size);
-    PBL_CORE_ASSERT(!m_buffer_map);
-
-    void* bufferMap = (*m_device).mapMemory(m_buffer_memory, offset, size);
-    memcpy(bufferMap, data, (size_t)size);
-    (*m_device).unmapMemory(m_buffer_memory);
-}
-
-/**
- * Maps this buffer to host memory.
- * 
- * This is intended for long term persistent maps, for one-off writes use Buffer::write instead.
- * 
- * @param offset The offset into the buffer to map at.
- * @param size The size of the map.
- */
-void Buffer::map(vk::DeviceSize offset, vk::DeviceSize size)
-{
-    PBL_CORE_ASSERT(size <= m_buffer_size);
-    PBL_CORE_ASSERT(!m_buffer_map);
-
-    m_buffer_map = (*m_device).mapMemory(m_buffer_memory, offset, size);
-}
-
-/**
- * Unmaps this buffer from host memory.
- */
-void Buffer::unmap()
-{
-    PBL_CORE_ASSERT(m_buffer_map);
-
-    (*m_device).unmapMemory(m_buffer_memory);
-    m_buffer_map = nullptr;
-}
-
-/**
  * Creates a vulkan transfer command to copy data from another buffer to this one.
  * 
  * @param src The source buffer to copy from.

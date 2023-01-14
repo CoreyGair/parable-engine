@@ -1,4 +1,4 @@
-#include "RendererVk.h"
+#include "Renderer.h"
 
 #include "pblpch.h"
 #include "Core/Base.h"
@@ -19,14 +19,12 @@
 //
 
 // obj file loader, again temp
-#define TINYOBJLOADER_IMPLEMENTATION
+//#define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
 
 #include <vulkan/vulkan.hpp>
-#include "Platform/Vulkan/VulkanWrapper.h"
-#include "Platform/Vulkan/VulkanExceptions.h"
-
-#include "Platform/Vulkan/Vertex.h"
+#include "Wrapper/VulkanWrapper.h"
+#include "Wrapper/VulkanExceptions.h"
 
 #include <GLFW/glfw3.h>
 
@@ -34,20 +32,16 @@
 
 #include <fstream>
 
-namespace Parable
+#include "UniformBufferObjects.h"
+
+
+namespace Parable::Vulkan
 {
 
 
-struct UniformBufferObject {
-    glm::mat4 model;
-    glm::mat4 view;
-    glm::mat4 proj;
-};
 
-RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
+Renderer::Renderer(GLFWwindow* window) : m_window(window)
 {
-    VkResult res; // TODO: remove
-
     // CREATE instance
     vk::ApplicationInfo applicationInfo(
         // TODO: set this to the game name somehow
@@ -110,7 +104,7 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
 
     // CREATE physical device
     {
-        Vulkan::PhysicalDevicePicker physicalDevicePicker;
+        PhysicalDevicePicker physicalDevicePicker;
 
         // needs geom shaders & anisotropy
         // TODO: optionally use anisotropy based on avail
@@ -121,7 +115,7 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
 
         // need all queues
         physicalDevicePicker.add_filter([&](vk::PhysicalDevice& pd) {
-            return Vulkan::PhysicalDevice::get_optional_queue_family_indices_from_physical_device(pd, m_surface).is_complete();
+            return PhysicalDevice::get_optional_queue_family_indices_from_physical_device(pd, m_surface).is_complete();
         });
 
         // need required exts
@@ -139,7 +133,7 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
 
         // need swapchain support for the surface
         physicalDevicePicker.add_filter([&](vk::PhysicalDevice& pd) {
-            Vulkan::SwapChainSupportDetails support = Vulkan::PhysicalDevice::get_swapchain_support_details_from_physical_device(pd, m_surface);
+            SwapChainSupportDetails support = PhysicalDevice::get_swapchain_support_details_from_physical_device(pd, m_surface);
             return !support.formats.empty() && !support.present_modes.empty();
         });
 
@@ -166,11 +160,11 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
             return (int)max_mem_size / 1000000;
         });
 
-        m_physical_device = Vulkan::PhysicalDevice(m_instance, physicalDevicePicker);
+        m_physical_device = PhysicalDevice(m_instance, physicalDevicePicker);
     }
 
     // get queue families
-    Vulkan::QueueFamilyIndices queueFamilyIndices = m_physical_device.get_queue_family_indices(m_surface);
+    QueueFamilyIndices queueFamilyIndices = m_physical_device.get_queue_family_indices(m_surface);
 
     std::set<uint32_t> uniqueQueueFamilies;
     uniqueQueueFamilies.insert(queueFamilyIndices.graphics_family);
@@ -206,7 +200,7 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
         &deviceFeatures
     );
     
-    m_device = Vulkan::Device(m_physical_device, deviceCreateInfo);
+    m_device = Device(m_physical_device, deviceCreateInfo);
 
     // GET QUEUES
     m_graphics_queue = (*m_device).getQueue(queueFamilyIndices.graphics_family, 0);
@@ -214,13 +208,13 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
     m_transfer_queue = (*m_device).getQueue(queueFamilyIndices.transfer_family, 0);
 
     // CREATE SWAP CHAIN
-    m_swapchain = Vulkan::Swapchain(m_device, m_physical_device, m_surface, window);
+    m_swapchain = Swapchain(m_device, m_physical_device, m_surface, window);
 
     PBL_CORE_ASSERT(m_swapchain.get_views().size() > 0);
 
     // CREATE RENDERPASS
 
-    Vulkan::RenderpassBuilder renderpassBuilder;
+    RenderpassBuilder renderpassBuilder;
 
     uint32_t colorAttachmentIndex = renderpassBuilder.add_attachment(vk::AttachmentDescription(
         {},
@@ -245,7 +239,7 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
         vk::AttachmentStoreOp::eDontCare,
         vk::ImageLayout::eUndefined,
         vk::ImageLayout::eDepthStencilAttachmentOptimal
-    ), Vulkan::AttachmentFormat::CONSTANT);
+    ), AttachmentFormat::CONSTANT);
     uint32_t depthAttachmentRefIndex = renderpassBuilder.add_attachment_ref(depthAttachmentIndex, vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
     uint32_t colorSubpassIndex = renderpassBuilder.add_subpass(vk::SubpassDescription(
@@ -270,35 +264,82 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
 
     m_renderpass = renderpassBuilder.create(m_device, m_swapchain);
 
-    // CREATE DESCRIPTOR SETS
+    // REMOVE
+    // // CREATE DESCRIPTOR SETS
 
-    std::vector<vk::DescriptorSetLayoutBinding> descSetLayoutBindings{
+    // std::vector<vk::DescriptorSetLayoutBinding> descSetLayoutBindings{
+    //     vk::DescriptorSetLayoutBinding(
+    //         0, // binding
+    //         vk::DescriptorType::eUniformBuffer,
+    //         1, // descriptorCount
+    //         vk::ShaderStageFlagBits::eVertex,
+    //         {}
+    //     ),
+    //     vk::DescriptorSetLayoutBinding(
+    //         1,
+    //         vk::DescriptorType::eCombinedImageSampler,
+    //         1,
+    //         vk::ShaderStageFlagBits::eFragment,
+    //         {}
+    //     )
+    // };
+
+    // vk::DescriptorSetLayoutCreateInfo descSetLayoutCreateInfo(
+    //     {},
+    //     descSetLayoutBindings
+    // );
+
+    // m_descriptor_set_layout = (*m_device).createDescriptorSetLayout(descSetLayoutCreateInfo);
+
+    // CREATE layout for the per-frame descriptor set
+
+    vk::DescriptorSetLayoutBinding perFrameDescriptorSetBindings[] = {
+        // bindig for view + projection matrices
         vk::DescriptorSetLayoutBinding(
-            0, // binding
+            0,
             vk::DescriptorType::eUniformBuffer,
-            1, // descriptorCount
+            1,
             vk::ShaderStageFlagBits::eVertex,
-            {}
-        ),
-        vk::DescriptorSetLayoutBinding(
-            1,
-            vk::DescriptorType::eCombinedImageSampler,
-            1,
-            vk::ShaderStageFlagBits::eFragment,
             {}
         )
     };
-
-    vk::DescriptorSetLayoutCreateInfo descSetLayoutCreateInfo(
+    
+    m_frame_descriptor_set_layout = (*m_device).createDescriptorSetLayout(vk::DescriptorSetLayoutCreateInfo(
         {},
-        descSetLayoutBindings
-    );
+        perFrameDescriptorSetBindings
+    ));
 
-    m_descriptor_set_layout = (*m_device).createDescriptorSetLayout(descSetLayoutCreateInfo);
+    // CREATE layout for the per-draw descriptor set
+
+    vk::DescriptorSetLayoutBinding perDrawDescriptorSetBindings[] = {
+        // binding for model mat
+        vk::DescriptorSetLayoutBinding(
+            0,
+            vk::DescriptorType::eUniformBuffer,
+            1,
+            vk::ShaderStageFlagBits::eVertex,
+            {}
+        ),
+        // bindig for combined tex sampler
+        // would become part of per material set
+        // TODO: replace with binding for tex + sampler (more efficient?)
+        // vk::DescriptorSetLayoutBinding(
+        //     1,
+        //     vk::DescriptorType::eCombinedImageSampler,
+        //     1,
+        //     vk::ShaderStageFlagBits::eFragment,
+        //     {}
+        // )
+    };
+    
+    m_draw_descriptor_set_layout = (*m_device).createDescriptorSetLayout(vk::DescriptorSetLayoutCreateInfo(
+        {},
+        perDrawDescriptorSetBindings
+    ));
 
     // CREATE PIPELINE
 
-    std::vector<vk::DescriptorSetLayout> descSetLayouts{m_descriptor_set_layout};
+    vk::DescriptorSetLayout descSetLayouts[] = {m_frame_descriptor_set_layout,m_draw_descriptor_set_layout};
 
     vk::PipelineLayoutCreateInfo pipelineLayoutInfo(
         {},
@@ -308,15 +349,15 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
     m_pipeline_layout = (*m_device).createPipelineLayout(pipelineLayoutInfo);
 
     // load shaders
-    vk::ShaderModule vertShaderModule = Vulkan::load_shader(m_device, "D:\\parable-engine\\Parable\\src\\Render\\Shaders\\vert.spv");
-    vk::ShaderModule fragShaderModule = Vulkan::load_shader(m_device, "D:\\parable-engine\\Parable\\src\\Render\\Shaders\\frag.spv");
+    vk::ShaderModule vertShaderModule = load_shader(m_device, "D:\\parable-engine\\Parable\\src\\Render\\Shaders\\vert.spv");
+    vk::ShaderModule fragShaderModule = load_shader(m_device, "D:\\parable-engine\\Parable\\src\\Render\\Shaders\\frag.spv");
 
     // push these to be destroyed only when we will never recreate the pipeline again
     // (atm when the Renderer is destroyed)
     m_shader_modules.push_back(vertShaderModule);
     m_shader_modules.push_back(fragShaderModule);
 
-    Vulkan::GraphicsPipelineBuilder graphicsPipelineBuilder;
+    GraphicsPipelineBuilder graphicsPipelineBuilder;
     
     graphicsPipelineBuilder.info.inputAssemblyStateCreateInfo = vk::PipelineInputAssemblyStateCreateInfo(
         {},
@@ -385,9 +426,9 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
         vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA
     ));
 
-    graphicsPipelineBuilder.add_binding_description(Vulkan::Vertex::getBindingDescription());
+    graphicsPipelineBuilder.add_binding_description(Vertex::getBindingDescription());
 
-    auto attachment_descs = Vulkan::Vertex::getAttributeDescriptions();
+    auto attachment_descs = Vertex::getAttributeDescriptions();
     for (auto a : attachment_descs)
     {
         graphicsPipelineBuilder.add_attachment_description(std::move(a));
@@ -401,7 +442,7 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
         queueFamilyIndices.graphics_family
     );
 
-    m_command_pool = Vulkan::CommandPool(m_device, cmdPoolInfo);
+    m_command_pool = CommandPool(m_device, cmdPoolInfo);
 
     // CREATE depth image
     vk::ImageCreateInfo depthImgCreateInfo = vk::ImageCreateInfo(
@@ -418,7 +459,7 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
         0, nullptr, // queueFamilyIndices for concurrent sharing
         vk::ImageLayout::eUndefined
     );
-    m_depth_image = Vulkan::RecreatableImage(m_device, m_physical_device, depthImgCreateInfo);
+    m_depth_image = RecreatableImage(m_device, m_physical_device, depthImgCreateInfo);
 
     m_depth_image_view = (*m_device).createImageView(vk::ImageViewCreateInfo(
         {},
@@ -437,7 +478,7 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
 
     // CREATE FRAMEBUFFERS
     // dependent on m_depth_image_view, so after its creation above
-    m_framebuffers = Vulkan::Framebuffers(m_device, m_swapchain.get_views(), {m_depth_image_view}, m_renderpass, m_swapchain.get_extent());
+    m_framebuffers = Framebuffers(m_device, m_swapchain.get_views(), {m_depth_image_view}, m_renderpass, m_swapchain.get_extent());
 
     // CREATE texture image
     // read in image
@@ -449,13 +490,13 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
     }
 
     // set up staging buf
-    Vulkan::BufferBuilder textureStagingBufferBuilder;
+    BufferBuilder textureStagingBufferBuilder;
     textureStagingBufferBuilder.buffer_info.size = image_size;
     textureStagingBufferBuilder.buffer_info.usage  = vk::BufferUsageFlagBits::eTransferSrc;
     textureStagingBufferBuilder.buffer_info.sharingMode = vk::SharingMode::eExclusive;
     textureStagingBufferBuilder.required_memory_properties = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
 
-    Vulkan::Buffer textureStagingBuffer = textureStagingBufferBuilder.create(m_device, m_physical_device);
+    Buffer textureStagingBuffer = textureStagingBufferBuilder.create(m_device, m_physical_device);
 
     // write tex to staging
     textureStagingBuffer.write(pixels, 0, image_size);
@@ -479,7 +520,7 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
         vk::ImageLayout::eUndefined
     );
 
-    m_texture_image = Vulkan::Image(m_device, m_physical_device, textureImageInfo);
+    m_texture_image = Image(m_device, m_physical_device, textureImageInfo);
 
     // now copy the staging buf into the texture
     // first have to transition it to transfer dst optimal layout, as that is what copyFromBuffer expects
@@ -539,159 +580,52 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
         )
     );
 
-    // LOAD model
-    tinyobj::attrib_t attrib;
-    std::vector<tinyobj::shape_t> shapes;
-    std::vector<tinyobj::material_t> materials;
-    std::string warn, err;
-    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, "D:\\parable-engine\\Parable\\src\\Render\\Models\\viking_room.obj")) {
-        throw std::runtime_error(warn + err);
-    }
+    // CREATE per frame uniform buffers
+    vk::DeviceSize perFrameUniformBufferSize = sizeof(PerFrameUniformBufferObject);
 
-    std::unordered_map<Vulkan::Vertex, uint32_t> uniqueVertices{};
-    // collect all the shapes to one vertices array
-    for (const auto& shape : shapes) {
-        for (const auto& index : shape.mesh.indices) {
-            Vulkan::Vertex vertex{
-                .pos = {
-                    attrib.vertices[3 * index.vertex_index + 0],
-                    attrib.vertices[3 * index.vertex_index + 1],
-                    attrib.vertices[3 * index.vertex_index + 2]
-                },
-                .color = {1.0f, 1.0f, 1.0f},
-                .texCoord = {
-                    attrib.texcoords[2 * index.texcoord_index + 0],
-                    1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
-                }
-            };
-            
-            if (uniqueVertices.find(vertex) == uniqueVertices.end()) {
-                uniqueVertices[vertex] = static_cast<uint32_t>(m_vertices.size());
-                m_vertices.push_back(vertex);
-            }
-
-            m_indices.push_back(uniqueVertices[vertex]);
-        }
-    }
-
-    // CREATE VERTEX BUFFER
-    // use staging buffer to copy verts into device-local mem (faster memory)
-    vk::DeviceSize vertexListSize = sizeof(m_vertices[0]) * m_vertices.size();
-
-    Vulkan::BufferBuilder vertexStagingBufBuilder;
-    vertexStagingBufBuilder.buffer_info.size = vertexListSize;
-    vertexStagingBufBuilder.buffer_info.usage  = vk::BufferUsageFlagBits::eTransferSrc;
-    vertexStagingBufBuilder.buffer_info.sharingMode = vk::SharingMode::eExclusive;
-    vertexStagingBufBuilder.required_memory_properties = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
-
-    Vulkan::Buffer vertexStagingBuffer = vertexStagingBufBuilder.create(m_device, m_physical_device);
-
-    // write the verts into the staging buffer
-    vertexStagingBuffer.write((void*)m_vertices.data(), 0, vertexListSize);
-
-    Vulkan::BufferBuilder vertexBufBuilder;
-    vertexBufBuilder.buffer_info.size = vertexListSize;
-    vertexBufBuilder.buffer_info.usage  = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer;
-    vertexBufBuilder.buffer_info.sharingMode = vk::SharingMode::eExclusive;
-    vertexBufBuilder.required_memory_properties = vk::MemoryPropertyFlagBits::eDeviceLocal;
-
-    m_vertex_buffer = vertexBufBuilder.create(m_device, m_physical_device);
-
-    // CREATE INDEX BUFFER
-    // use staging buffer to copy indices into device-local mem (faster memory)
-    VkDeviceSize indexListSize = sizeof(m_indices[0]) * m_indices.size();
-
-    Vulkan::BufferBuilder indexStagingBufBuilder;
-    indexStagingBufBuilder.buffer_info.size = indexListSize;
-    indexStagingBufBuilder.buffer_info.usage  = vk::BufferUsageFlagBits::eTransferSrc;
-    indexStagingBufBuilder.buffer_info.sharingMode = vk::SharingMode::eExclusive;
-    indexStagingBufBuilder.required_memory_properties = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
-
-    Vulkan::Buffer indexStagingBuffer = indexStagingBufBuilder.create(m_device, m_physical_device);
-
-    // write the verts into the staging buffer
-    indexStagingBuffer.write((void*)m_indices.data(), 0, indexListSize);
-
-    Vulkan::BufferBuilder index_buf_builder;
-    index_buf_builder.buffer_info.size = indexListSize;
-    index_buf_builder.buffer_info.usage  = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer;
-    index_buf_builder.buffer_info.sharingMode = vk::SharingMode::eExclusive;
-    index_buf_builder.required_memory_properties = vk::MemoryPropertyFlagBits::eDeviceLocal;
-
-    m_index_buffer = index_buf_builder.create(m_device, m_physical_device);
-
-    // copy from staging into vertex and indices
-    // create a single time command buffer to do the transfer
-    auto vertIndTransferCmdBuffer = m_command_pool.begin_single_time_command();
-    m_vertex_buffer.copy_from(vertexStagingBuffer, vertIndTransferCmdBuffer);
-    m_index_buffer.copy_from(indexStagingBuffer, vertIndTransferCmdBuffer);
-    vertIndTransferCmdBuffer.end_and_submit(m_graphics_queue);
-
-    vertexStagingBuffer.destroy();
-    indexStagingBuffer.destroy();
-
-    // CREATE UNIFORM BUFFERS
-
-    vk::DeviceSize uniformBufferSize = sizeof(UniformBufferObject);
-
-    m_uniform_buffers.reserve(MAX_FRAMES_IN_FLIGHT);
-
-    Vulkan::BufferBuilder uniformBufferBuilder;
-
-    uniformBufferBuilder.buffer_info.size = uniformBufferSize;
-    uniformBufferBuilder.buffer_info.usage = vk::BufferUsageFlagBits::eUniformBuffer;
-    uniformBufferBuilder.buffer_info.sharingMode = vk::SharingMode::eExclusive;
-    uniformBufferBuilder.required_memory_properties = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
+    BufferBuilder perFrameUniformBufferBuilder;
+    perFrameUniformBufferBuilder.buffer_info.size = perFrameUniformBufferSize;
+    perFrameUniformBufferBuilder.buffer_info.usage = vk::BufferUsageFlagBits::eUniformBuffer;
+    perFrameUniformBufferBuilder.buffer_info.sharingMode = vk::SharingMode::eExclusive;
+    perFrameUniformBufferBuilder.required_memory_properties = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        uniformBufferBuilder.emplace_back_vector(m_uniform_buffers, m_device, m_physical_device);
+        perFrameUniformBufferBuilder.emplace_back_vector(m_frame_uniform_buffers, m_device, m_physical_device);
 
         // keep persistently mapped
-        m_uniform_buffers[i].map(0, uniformBufferSize);
+        m_frame_uniform_buffers[i].map(0, perFrameUniformBufferSize);
     }
-
-    // CREATE descriptor pool
-    vk::DescriptorPoolSize descriptorPoolSizes[] = {
+    
+    // CREATE pool for frame descriptor sets
+    vk::DescriptorPoolSize frameDescriptorPoolSizes[] = {
         vk::DescriptorPoolSize(
             vk::DescriptorType::eUniformBuffer,
             static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)
-        ),
-        vk::DescriptorPoolSize(
-            vk::DescriptorType::eCombinedImageSampler,
-            static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT)
-        ),
+        )
     };
 
-    vk::DescriptorPoolCreateInfo poolInfo(
+    m_frame_descriptor_pool = (*m_device).createDescriptorPool(vk::DescriptorPoolCreateInfo(
         {},
-        static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT), // maxSets
-        descriptorPoolSizes
-    );
+        static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
+        frameDescriptorPoolSizes
+    ));
 
-    m_descriptor_pool = (*m_device).createDescriptorPool(poolInfo);
-
-    // CREATE descriptor sets
-    std::vector<vk::DescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_descriptor_set_layout);
-    m_descriptor_sets = Vulkan::DescriptorSets(m_device, m_descriptor_pool, layouts);
+    // CREATE frame descriptor sets
+    std::vector<vk::DescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_frame_descriptor_set_layout);
+    m_frame_descriptor_sets = DescriptorSets(m_device, m_frame_descriptor_pool, layouts);
 
     // populate descriptors
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
     {
         vk::DescriptorBufferInfo uniformBufferInfo(
-            m_uniform_buffers[i],
+            m_frame_uniform_buffers[i],
             0,
-            sizeof(UniformBufferObject)
-        );
-
-        vk::DescriptorImageInfo texImageInfo(
-            m_texture_sampler,
-            m_texture_image_view,
-            vk::ImageLayout::eShaderReadOnlyOptimal
+            sizeof(PerFrameUniformBufferObject)
         );
 
         vk::WriteDescriptorSet descriptorWrites[] = {
             vk::WriteDescriptorSet(
-                m_descriptor_sets[i],
+                m_frame_descriptor_sets[i],
                 0, // binding
                 0, // arrayElement
                 1, // descriptorCount
@@ -699,27 +633,58 @@ RendererVk::RendererVk(GLFWwindow* window) : m_window(window)
                 {},                     // pImageInfo
                 &uniformBufferInfo,     // pBufferInfo
                 {}                      // pTexelBufferView
-            ),
-            vk::WriteDescriptorSet(
-                m_descriptor_sets[i],
-                1, // binding
-                0, // arrayElement
-                1, // descriptorCount
-                vk::DescriptorType::eCombinedImageSampler,
-                &texImageInfo,  // pImageInfo
-                {},             // pBufferInfo
-                {}              // pTexelBufferView
-            ),
+            )
         };
 
         (*m_device).updateDescriptorSets(descriptorWrites, {});
     }
 
+    // Write static view and proj mats
+    // temp for now
+    {
+        PerFrameUniformBufferObject ubo{};
+        
+        ubo.view = glm::lookAt(glm::vec3(0.0f, 3.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        // perspective projection, 45 degree vertical fov
+        ubo.proj = glm::perspective(glm::radians(45.0f), m_swapchain.get_extent().width / (float) m_swapchain.get_extent().height, 0.1f, 10.0f);
+
+        // glm designed for opengl
+        // opengl Y coord is inverted
+        ubo.proj[1][1] *= -1;
+        
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+        {
+            memcpy(m_frame_uniform_buffers[i].get_map(), &ubo, sizeof(ubo));
+        }
+    }
+
     // CREATE COMMAND BUFFERS
     m_command_buffers = m_command_pool.create_command_buffers(vk::CommandBufferLevel::ePrimary, MAX_FRAMES_IN_FLIGHT);
+
+    // CREATE mesh manager
+    vk::DescriptorPoolSize drawDescriptorPoolSizes[] = {
+        vk::DescriptorPoolSize(
+            vk::DescriptorType::eUniformBuffer,
+            static_cast<uint32_t>(MAX_MESHES)
+        )
+    };
+
+    m_draw_descriptor_pool = (*m_device).createDescriptorPool(vk::DescriptorPoolCreateInfo(
+        {},
+        static_cast<uint32_t>(MAX_MESHES),
+        drawDescriptorPoolSizes
+    ));
+
+    vk::CommandPoolCreateInfo transferCmdPoolInfo(
+        vk::CommandPoolCreateFlagBits::eTransient,
+        queueFamilyIndices.transfer_family
+    );
+    CommandPool transferCmdPool(m_device, transferCmdPoolInfo);
+
+    m_mesh_manager = MeshManager(m_device, m_physical_device, transferCmdPool, m_transfer_queue, m_draw_descriptor_pool, m_draw_descriptor_set_layout);
 }
 
-RendererVk::~RendererVk()
+Renderer::~Renderer()
 {
     // wait until the device has finished working
     (*m_device).waitIdle();
@@ -731,21 +696,20 @@ RendererVk::~RendererVk()
     (*m_device).destroyPipelineLayout(m_pipeline_layout);
     m_renderpass.destroy();
 
-    for (auto& buf : m_uniform_buffers)
+    for (auto& buf : m_frame_uniform_buffers)
     {
         buf.destroy();
     }
 
-    (*m_device).destroyDescriptorPool(m_descriptor_pool);
+    (*m_device).destroyDescriptorPool(m_frame_descriptor_pool);
+    (*m_device).destroyDescriptorPool(m_draw_descriptor_pool);
 
     (*m_device).destroySampler(m_texture_sampler);
     (*m_device).destroyImageView(m_texture_image_view);
     m_texture_image.destroy();
 
-    (*m_device).destroyDescriptorSetLayout(m_descriptor_set_layout);
-
-    m_index_buffer.destroy();
-    m_vertex_buffer.destroy();
+    (*m_device).destroyDescriptorSetLayout(m_frame_descriptor_set_layout);
+    (*m_device).destroyDescriptorSetLayout(m_draw_descriptor_set_layout);
 
     m_command_pool.destroy();
 
@@ -760,12 +724,17 @@ RendererVk::~RendererVk()
     m_instance.destroy();
 }
 
+MeshHandle Renderer::load_mesh(std::string path)
+{
+    return m_mesh_manager.load_mesh(path);
+}
+
 /**
  * Recreates the swapchain and all dependent components.
  * 
  * Useful when a property about the swapchain changes (e.g. window resize)
  */
-void RendererVk::recreate_swapchain()
+void Renderer::recreate_swapchain()
 {
     PBL_CORE_TRACE("Vulkan: Swapchain recreated.");
 
@@ -798,7 +767,7 @@ void RendererVk::recreate_swapchain()
     m_framebuffers.recreate_framebuffers(m_swapchain.get_views(), {m_depth_image_view}, m_renderpass, m_swapchain.get_extent());
 }
 
-void RendererVk::record_command_buffer(vk::CommandBuffer commandBuffer, uint32_t imageIndex)
+void Renderer::record_command_buffer(vk::CommandBuffer commandBuffer, uint32_t imageIndex)
 {
     // tel vulkan we are starting to record to a command buff
     commandBuffer.begin(vk::CommandBufferBeginInfo());
@@ -818,17 +787,22 @@ void RendererVk::record_command_buffer(vk::CommandBuffer commandBuffer, uint32_t
     // the render pass begins
     commandBuffer.beginRenderPass(renderpassInfo, vk::SubpassContents::eInline);
 
-    // command: bind the pipeling
+    // bind the pipeline
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_graphics_pipeline);
 
-    commandBuffer.bindVertexBuffers(0, {m_vertex_buffer}, {0});
-    commandBuffer.bindIndexBuffer(m_index_buffer, 0, vk::IndexType::eUint32);
+    // bind per frame descriptor set
+    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_pipeline_layout, 0, 1, &m_frame_descriptor_sets[m_current_frame], 0, nullptr);
 
-    // bind the descriptor set for this frame
-    commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_pipeline_layout, 0, 1, &m_descriptor_sets[m_current_frame], 0, nullptr);
+    // draw meshes
+    for (auto& mesh : m_mesh_manager.get_meshes())
+    {
+        commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_pipeline_layout, 1, {mesh.get_descriptor_set()}, {});
 
-    // draw
-    commandBuffer.drawIndexed(static_cast<uint32_t>(m_indices.size()), 1, 0, 0, 0);
+        commandBuffer.bindVertexBuffers(0, {mesh.get_vertex_buffer()}, {0});
+        commandBuffer.bindIndexBuffer(mesh.get_index_buffer(), 0, vk::IndexType::eUint32);
+
+        commandBuffer.drawIndexed(mesh.get_index_count(), 1, 0, 0, 0);
+    }
 
     // end render pass
     commandBuffer.endRenderPass();
@@ -840,7 +814,7 @@ void RendererVk::record_command_buffer(vk::CommandBuffer commandBuffer, uint32_t
 /**
  * Called every frame, draw stuff
  */
-void RendererVk::on_update()
+void Renderer::on_update()
 {
     if (m_paused)
     {
@@ -848,7 +822,7 @@ void RendererVk::on_update()
         return;
     }
 
-    const Vulkan::FramebufferData& framebufferData = m_framebuffers[m_current_frame];
+    const FramebufferData& framebufferData = m_framebuffers[m_current_frame];
 
     // wait for prev frame to finish
     vk::Result waitResult = (*m_device).waitForFences(1, &framebufferData.inflight_fence, VK_TRUE, UINT64_MAX);
@@ -869,29 +843,6 @@ void RendererVk::on_update()
     }
 
     uint32_t imageIndex = imageResult.value;
-
-    // update uniforms
-    // temp just to demo for now
-    {
-        static auto startTime = std::chrono::high_resolution_clock::now();
-
-        auto currentTime = std::chrono::high_resolution_clock::now();
-        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-
-        UniformBufferObject ubo{};
-        // rotate model on y axis 90 degree per sec
-        ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        // looking down at 45 deg angle
-        ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        // perspective projection, 45 degree vertical fov
-        ubo.proj = glm::perspective(glm::radians(45.0f), m_swapchain.get_extent().width / (float) m_swapchain.get_extent().height, 0.1f, 10.0f);
-
-        // glm designed for opengl
-        // opengl Y coord is inverted
-        ubo.proj[1][1] *= -1;
-
-        memcpy(m_uniform_buffers[m_current_frame].get_map(), &ubo, sizeof(ubo));
-    }
 
     // reset the fence once we know we will render stuff
     vk::Result resetResult = (*m_device).resetFences(1, &framebufferData.inflight_fence);
