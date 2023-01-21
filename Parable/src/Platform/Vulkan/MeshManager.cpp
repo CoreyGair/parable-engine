@@ -117,60 +117,12 @@ MeshHandle MeshManager::load_mesh(std::string path)
 
     vertexStagingBuffer.destroy();
     indexStagingBuffer.destroy();
-
-    // create draw uniform buffer
-    BufferBuilder drawUniformBufferBuilder;
-    drawUniformBufferBuilder.buffer_info.size = sizeof(PerDrawUniformBufferObject);
-    drawUniformBufferBuilder.buffer_info.usage = vk::BufferUsageFlagBits::eUniformBuffer;
-    drawUniformBufferBuilder.buffer_info.sharingMode = vk::SharingMode::eExclusive;
-    drawUniformBufferBuilder.required_memory_properties = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
-
-    Buffer drawUniformBuffer = drawUniformBufferBuilder.create(m_device, m_physical_device);
-
-    // create draw descriptor set
-    vk::DescriptorSetAllocateInfo drawDescriptorSetInfo(
-        m_draw_descriptor_pool,
-        1,
-        &m_draw_descriptor_set_layout
-    );
-
-    vk::DescriptorSet drawDescriptorSet = (*m_device).allocateDescriptorSets(drawDescriptorSetInfo)[0];
-
-    // populate draw descriptor set
-    vk::DescriptorBufferInfo drawUniformBufferInfo(
-        drawUniformBuffer,
-        0,
-        sizeof(PerDrawUniformBufferObject)
-    );
-
-    vk::WriteDescriptorSet drawDescriptorWrites[] = {
-        vk::WriteDescriptorSet(
-            drawDescriptorSet,
-            0, // binding
-            0, // arrayElement
-            1, // descriptorCount
-            vk::DescriptorType::eUniformBuffer,
-            {},                     // pImageInfo
-            &drawUniformBufferInfo,     // pBufferInfo
-            {}                      // pTexelBufferView
-        )
-    };
-
-    (*m_device).updateDescriptorSets(drawDescriptorWrites, {});
-
     
-    m_meshes.emplace_back(std::move(vertBuf), std::move(indexBuf), static_cast<uint32_t>(indices.size()), drawDescriptorSet, std::move(drawUniformBuffer));
+    m_meshes.emplace_back(std::move(vertBuf), std::move(indexBuf), static_cast<uint32_t>(indices.size()));
 
     // atm, we dont use the chunk field
     // just put the index of the mesh
-    return MeshHandle{0,m_meshes.size()-1};
-}
-
-void MeshManager::set_mesh_transform(MeshHandle handle, glm::mat4& transform)
-{
-    PBL_CORE_ASSERT(handle.mesh < m_meshes.size());
-
-    m_meshes[handle.mesh].set_transform(transform);
+    return MeshHandle{m_meshes.size()-1};
 }
 
 

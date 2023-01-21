@@ -20,6 +20,13 @@ namespace Parable::Vulkan
 namespace Vulkan { class Vertex; }
 
 
+struct DrawCall
+{
+    MeshHandle mesh;
+    glm::mat4 transform;
+};
+
+
 class Renderer : public Parable::Renderer
 {
 public:
@@ -30,9 +37,10 @@ public:
     {
         return m_mesh_manager.load_mesh(path);
     }
-    void set_mesh_transform(MeshHandle handle, glm::mat4& transform) override
+
+    void draw(MeshHandle mesh, glm::mat4& transform) override
     {
-        m_mesh_manager.set_mesh_transform(handle, transform);
+        m_draw_calls.push_back(DrawCall{mesh,transform});
     }
 
     void on_update() override;
@@ -102,6 +110,8 @@ private:
     std::vector<vk::CommandBuffer> m_command_buffers;
 
     MeshManager m_mesh_manager;
+
+    std::vector<DrawCall> m_draw_calls;
 
     const size_t MAX_FRAMES_IN_FLIGHT = 2;
     int m_current_frame = 0;

@@ -59,10 +59,7 @@ Application::Application()
 
     // load some meshes to test    
     meshA = Renderer::get_instance()->load_mesh("D:\\parable-engine\\Parable\\src\\Render\\Models\\unit_cube.obj");
-    Renderer::get_instance()->set_mesh_transform(meshA, startMatA);
-
     meshB = Renderer::get_instance()->load_mesh("D:\\parable-engine\\Parable\\src\\Render\\Models\\unit_cube.obj");
-    Renderer::get_instance()->set_mesh_transform(meshB, startMatB);
 
     m_layer_stack.push(std::make_unique<Input::InputLayer>());
 
@@ -91,8 +88,8 @@ void Application::run()
         auto currMatA = glm::rotate(startMatA, elapsedTime * glm::radians(90.0f), glm::vec3(0.0f,0.0f,1.0f));
         auto currMatB = glm::rotate(startMatB, -elapsedTime * glm::radians(45.0f), glm::vec3(0.0f,0.0f,1.0f));
 
-        Renderer::get_instance()->set_mesh_transform(meshA, currMatA);
-        Renderer::get_instance()->set_mesh_transform(meshB, currMatB);
+        Renderer::get_instance()->draw(meshA, currMatA);
+        Renderer::get_instance()->draw(meshB, currMatB);
 
         // invoke update for the ecs
         //m_ecs.on_update();

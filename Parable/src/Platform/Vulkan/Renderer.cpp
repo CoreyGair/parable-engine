@@ -264,33 +264,6 @@ Renderer::Renderer(GLFWwindow* window) : m_window(window)
 
     m_renderpass = renderpassBuilder.create(m_device, m_swapchain);
 
-    // REMOVE
-    // // CREATE DESCRIPTOR SETS
-
-    // std::vector<vk::DescriptorSetLayoutBinding> descSetLayoutBindings{
-    //     vk::DescriptorSetLayoutBinding(
-    //         0, // binding
-    //         vk::DescriptorType::eUniformBuffer,
-    //         1, // descriptorCount
-    //         vk::ShaderStageFlagBits::eVertex,
-    //         {}
-    //     ),
-    //     vk::DescriptorSetLayoutBinding(
-    //         1,
-    //         vk::DescriptorType::eCombinedImageSampler,
-    //         1,
-    //         vk::ShaderStageFlagBits::eFragment,
-    //         {}
-    //     )
-    // };
-
-    // vk::DescriptorSetLayoutCreateInfo descSetLayoutCreateInfo(
-    //     {},
-    //     descSetLayoutBindings
-    // );
-
-    // m_descriptor_set_layout = (*m_device).createDescriptorSetLayout(descSetLayoutCreateInfo);
-
     // CREATE layout for the per-frame descriptor set
 
     vk::DescriptorSetLayoutBinding perFrameDescriptorSetBindings[] = {
@@ -311,39 +284,48 @@ Renderer::Renderer(GLFWwindow* window) : m_window(window)
 
     // CREATE layout for the per-draw descriptor set
 
-    vk::DescriptorSetLayoutBinding perDrawDescriptorSetBindings[] = {
-        // binding for model mat
-        vk::DescriptorSetLayoutBinding(
-            0,
-            vk::DescriptorType::eUniformBuffer,
-            1,
-            vk::ShaderStageFlagBits::eVertex,
-            {}
-        ),
-        // bindig for combined tex sampler
-        // would become part of per material set
-        // TODO: replace with binding for tex + sampler (more efficient?)
-        // vk::DescriptorSetLayoutBinding(
-        //     1,
-        //     vk::DescriptorType::eCombinedImageSampler,
-        //     1,
-        //     vk::ShaderStageFlagBits::eFragment,
-        //     {}
-        // )
-    };
+    // vk::DescriptorSetLayoutBinding perDrawDescriptorSetBindings[] = {
+    //     // binding for model mat
+    //     // vk::DescriptorSetLayoutBinding(
+    //     //     0,
+    //     //     vk::DescriptorType::eUniformBuffer,
+    //     //     1,
+    //     //     vk::ShaderStageFlagBits::eVertex,
+    //     //     {}
+    //     // ),
+    //     // bindig for combined tex sampler
+    //     // would become part of per material set
+    //     // TODO: replace with binding for tex + sampler (more efficient?)
+    //     // vk::DescriptorSetLayoutBinding(
+    //     //     1,
+    //     //     vk::DescriptorType::eCombinedImageSampler,
+    //     //     1,
+    //     //     vk::ShaderStageFlagBits::eFragment,
+    //     //     {}
+    //     // )
+    // };
     
-    m_draw_descriptor_set_layout = (*m_device).createDescriptorSetLayout(vk::DescriptorSetLayoutCreateInfo(
-        {},
-        perDrawDescriptorSetBindings
-    ));
+    // m_draw_descriptor_set_layout = (*m_device).createDescriptorSetLayout(vk::DescriptorSetLayoutCreateInfo(
+    //     {},
+    //     perDrawDescriptorSetBindings
+    // ));
 
     // CREATE PIPELINE
 
-    vk::DescriptorSetLayout descSetLayouts[] = {m_frame_descriptor_set_layout,m_draw_descriptor_set_layout};
+    vk::DescriptorSetLayout descSetLayouts[] = {
+        m_frame_descriptor_set_layout,
+        // m_draw_descriptor_set_layout
+    };
+
+    // using push constants for model matrix
+    vk::PushConstantRange pushConstRanges[] = {
+        vk::PushConstantRange(vk::ShaderStageFlagBits::eVertex, 0, sizeof(glm::mat4))
+    };
 
     vk::PipelineLayoutCreateInfo pipelineLayoutInfo(
         {},
-        descSetLayouts
+        descSetLayouts,
+        pushConstRanges
     );
 
     m_pipeline_layout = (*m_device).createPipelineLayout(pipelineLayoutInfo);
@@ -669,23 +651,20 @@ Renderer::Renderer(GLFWwindow* window) : m_window(window)
         )
     };
 
-    m_draw_descriptor_pool = (*m_device).createDescriptorPool(vk::DescriptorPoolCreateInfo(
-        {},
-        static_cast<uint32_t>(MAX_MESHES),
-        drawDescriptorPoolSizes
-    ));
-
     vk::CommandPoolCreateInfo transferCmdPoolInfo(
         vk::CommandPoolCreateFlagBits::eTransient,
         queueFamilyIndices.transfer_family
     );
     CommandPool transferCmdPool(m_device, transferCmdPoolInfo);
 
-    m_mesh_manager = MeshManager(m_device, m_physical_device, transferCmdPool, m_transfer_queue, m_draw_descriptor_pool, m_draw_descriptor_set_layout);
+    m_mesh_manager = MeshManager(m_device, m_physical_device, transferCmdPool, m_transfer_queue);
 }
 
 Renderer::~Renderer()
 {
+    // TODO: make sure this is complete
+    // ive added a lot to this class, not sure ive kept the cleanup up to date
+
     // wait until the device has finished working
     (*m_device).waitIdle();
 
@@ -709,7 +688,7 @@ Renderer::~Renderer()
     m_texture_image.destroy();
 
     (*m_device).destroyDescriptorSetLayout(m_frame_descriptor_set_layout);
-    (*m_device).destroyDescriptorSetLayout(m_draw_descriptor_set_layout);
+    // (*m_device).destroyDescriptorSetLayout(m_draw_descriptor_set_layout);
 
     m_command_pool.destroy();
 
@@ -789,14 +768,22 @@ void Renderer::record_command_buffer(vk::CommandBuffer commandBuffer, uint32_t i
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_pipeline_layout, 0, 1, &m_frame_descriptor_sets[m_current_frame], 0, nullptr);
 
     // draw meshes
-    for (auto& mesh : m_mesh_manager.get_meshes())
+    DrawCall* prevDrawCall = nullptr;
+    for (auto& drawCall : m_draw_calls)
     {
-        commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_pipeline_layout, 1, {mesh.get_descriptor_set()}, {});
+        Mesh& m = m_mesh_manager.get_mesh(drawCall.mesh);
 
-        commandBuffer.bindVertexBuffers(0, {mesh.get_vertex_buffer()}, {0});
-        commandBuffer.bindIndexBuffer(mesh.get_index_buffer(), 0, vk::IndexType::eUint32);
+        if (prevDrawCall == nullptr || prevDrawCall->mesh != drawCall.mesh)
+        {
+            commandBuffer.bindVertexBuffers(0, {m.get_vertex_buffer()}, {0});
+            commandBuffer.bindIndexBuffer(m.get_index_buffer(), 0, vk::IndexType::eUint32);
+        }
 
-        commandBuffer.drawIndexed(mesh.get_index_count(), 1, 0, 0, 0);
+        commandBuffer.pushConstants(m_pipeline_layout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(glm::mat4), &drawCall.transform);
+
+        commandBuffer.drawIndexed(m.get_index_count(), 1, 0, 0, 0);
+
+        prevDrawCall = &drawCall;
     }
 
     // end render pass
@@ -804,6 +791,9 @@ void Renderer::record_command_buffer(vk::CommandBuffer commandBuffer, uint32_t i
 
     // stop recording to buff
     commandBuffer.end();
+
+    // clear draw calls, we are done with them this frame
+    m_draw_calls.clear();
 }
 
 /**

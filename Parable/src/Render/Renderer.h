@@ -33,7 +33,8 @@ public:
     virtual ~Renderer() {};
 
     virtual MeshHandle load_mesh(std::string path) = 0;
-    virtual void set_mesh_transform(MeshHandle handle, glm::mat4& transform) = 0;
+
+    virtual void draw(MeshHandle mesh, glm::mat4& transform) = 0;
 
     virtual void on_update() = 0;
 
