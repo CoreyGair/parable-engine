@@ -33,6 +33,9 @@ Application* Application::s_instance = nullptr;
 MeshHandle meshA;
 MeshHandle meshB;
 
+MaterialHandle matA;
+MaterialHandle matB;
+
 glm::mat4 startMatA = glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(0.5f,0.5f,0.5f)), glm::vec3(-1.5f, 0.0f, 0.0f));
 glm::mat4 startMatB = glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(0.5f,0.5f,0.5f)), glm::vec3(1.5f, 0.0f, 0.0f));
 
@@ -60,6 +63,9 @@ Application::Application()
     // load some meshes to test    
     meshA = Renderer::get_instance()->load_mesh("D:\\parable-engine\\Parable\\src\\Render\\Models\\unit_cube.obj");
     meshB = Renderer::get_instance()->load_mesh("D:\\parable-engine\\Parable\\src\\Render\\Models\\unit_cube.obj");
+    // load textures to test
+    matA = Renderer::get_instance()->load_material("D:\\parable-engine\\Parable\\src\\Render\\Textures\\texture.jpg");
+    matB = Renderer::get_instance()->load_material("D:\\parable-engine\\Parable\\src\\Render\\Textures\\viking_room.png");
 
     m_layer_stack.push(std::make_unique<Input::InputLayer>());
 
@@ -88,8 +94,8 @@ void Application::run()
         auto currMatA = glm::rotate(startMatA, elapsedTime * glm::radians(90.0f), glm::vec3(0.0f,0.0f,1.0f));
         auto currMatB = glm::rotate(startMatB, -elapsedTime * glm::radians(45.0f), glm::vec3(0.0f,0.0f,1.0f));
 
-        Renderer::get_instance()->draw(meshA, currMatA);
-        Renderer::get_instance()->draw(meshB, currMatB);
+        Renderer::get_instance()->draw(meshA, matA, currMatA);
+        Renderer::get_instance()->draw(meshB, matB, currMatB);
 
         // invoke update for the ecs
         //m_ecs.on_update();

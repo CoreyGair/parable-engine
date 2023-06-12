@@ -47,8 +47,8 @@ MeshHandle MeshManager::load_mesh(std::string path)
                 },
                 // temp, only if tex coords present
                 .texCoord = {
-                    attrib.texcoords.size() > 0 ? attrib.texcoords[2 * index.texcoord_index + 0] : 0,
-                    attrib.texcoords.size() > 0 ? 1.0f - attrib.texcoords[2 * index.texcoord_index + 1] : 0
+                    attrib.texcoords.size() > 0 ? attrib.texcoords[2 * index.vertex_index + 0] : 0,
+                    attrib.texcoords.size() > 0 ? 1.0f - attrib.texcoords[2 * index.vertex_index + 1] : 0
                 }
             };
             

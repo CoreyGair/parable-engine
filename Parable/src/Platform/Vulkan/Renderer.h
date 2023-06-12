@@ -23,6 +23,7 @@ namespace Vulkan { class Vertex; }
 struct DrawCall
 {
     MeshHandle mesh;
+    MaterialHandle material;
     glm::mat4 transform;
 };
 
@@ -38,9 +39,11 @@ public:
         return m_mesh_manager.load_mesh(path);
     }
 
-    void draw(MeshHandle mesh, glm::mat4& transform) override
+    MaterialHandle load_material(std::string texturePath) override;
+
+    void draw(MeshHandle mesh, MaterialHandle material, glm::mat4& transform) override
     {
-        m_draw_calls.push_back(DrawCall{mesh,transform});
+        m_draw_calls.push_back(DrawCall{mesh,material,transform});
     }
 
     void on_update() override;
@@ -81,11 +84,18 @@ private:
      */
     vk::DescriptorSetLayout m_frame_descriptor_set_layout;
     /**
+     * Descriptor set layout for per-material data.
+     * 
+     * atm, just binds a texture 
+     */
+    vk::DescriptorSetLayout m_material_descriptor_set_layout;
+    /**
      * Descriptor set layout for per-object data, bound once per draw.
      */
     vk::DescriptorSetLayout m_draw_descriptor_set_layout;
 
     vk::DescriptorPool m_frame_descriptor_pool;
+    vk::DescriptorPool m_material_descriptor_pool;
     vk::DescriptorPool m_draw_descriptor_pool;
 
     DescriptorSets m_frame_descriptor_sets;
@@ -101,9 +111,10 @@ private:
     RecreatableImage m_depth_image;
     vk::ImageView m_depth_image_view;
 
-    Image m_texture_image;
-    vk::ImageView m_texture_image_view;
-    vk::Sampler m_texture_sampler;
+    std::vector<Image> m_textures;
+    std::vector<vk::ImageView> m_texture_views;
+    std::vector<vk::Sampler> m_texture_samplers;
+    std::vector<vk::DescriptorSet> m_texture_descriptor_sets;
 
     std::vector<Buffer> m_frame_uniform_buffers;
 

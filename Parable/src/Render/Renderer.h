@@ -34,7 +34,9 @@ public:
 
     virtual MeshHandle load_mesh(std::string path) = 0;
 
-    virtual void draw(MeshHandle mesh, glm::mat4& transform) = 0;
+    virtual MaterialHandle load_material(std::string texturePath) = 0;
+
+    virtual void draw(MeshHandle mesh, MaterialHandle material, glm::mat4& transform) = 0;
 
     virtual void on_update() = 0;
 

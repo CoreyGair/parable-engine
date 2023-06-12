@@ -85,7 +85,6 @@ Renderer::Renderer(GLFWwindow* window) : m_window(window)
     //     }
     // }
 
-
     vk::InstanceCreateInfo instanceCreateInfo(
         {}, 
         &applicationInfo,            // app info
@@ -282,6 +281,25 @@ Renderer::Renderer(GLFWwindow* window) : m_window(window)
         perFrameDescriptorSetBindings
     ));
 
+    // CREATE layout for the per-material
+
+    vk::DescriptorSetLayoutBinding perMaterialDescriptorSetBindings[] = {
+        // bindig for texture
+        vk::DescriptorSetLayoutBinding(
+            0,
+            vk::DescriptorType::eCombinedImageSampler,
+            1,
+            vk::ShaderStageFlagBits::eFragment,
+            {}
+        )
+    };
+    
+    m_material_descriptor_set_layout = (*m_device).createDescriptorSetLayout(vk::DescriptorSetLayoutCreateInfo(
+        {},
+        perMaterialDescriptorSetBindings
+    ));
+
+
     // CREATE layout for the per-draw descriptor set
 
     // vk::DescriptorSetLayoutBinding perDrawDescriptorSetBindings[] = {
@@ -314,6 +332,7 @@ Renderer::Renderer(GLFWwindow* window) : m_window(window)
 
     vk::DescriptorSetLayout descSetLayouts[] = {
         m_frame_descriptor_set_layout,
+        m_material_descriptor_set_layout,
         // m_draw_descriptor_set_layout
     };
 
@@ -431,6 +450,7 @@ Renderer::Renderer(GLFWwindow* window) : m_window(window)
         {},
         vk::ImageType::e2D,
         vk::Format::eD32Sfloat, // TODO: in future, check if this is avaliable or use suitable alternative
+        // ALSO TODO: investigate performance between this 32bit float and a 24bit format (aparently will be faster to use a 24bit integer format, unless high precision really needed)
         {m_swapchain.get_extent().width, m_swapchain.get_extent().height, 1},
         1, // mipLevels
         1, // arrayLayers
@@ -462,106 +482,6 @@ Renderer::Renderer(GLFWwindow* window) : m_window(window)
     // dependent on m_depth_image_view, so after its creation above
     m_framebuffers = Framebuffers(m_device, m_swapchain.get_views(), {m_depth_image_view}, m_renderpass, m_swapchain.get_extent());
 
-    // CREATE texture image
-    // read in image
-    int tex_width, tex_height, tex_channels;
-    stbi_uc* pixels = stbi_load("D:\\parable-engine\\Parable\\src\\Render\\Textures\\viking_room.png", &tex_width, &tex_height, &tex_channels, STBI_rgb_alpha);
-    vk::DeviceSize image_size = tex_width * tex_height * 4;
-    if (!pixels) {
-        throw std::runtime_error("failed to load texture image!");
-    }
-
-    // set up staging buf
-    BufferBuilder textureStagingBufferBuilder;
-    textureStagingBufferBuilder.buffer_info.size = image_size;
-    textureStagingBufferBuilder.buffer_info.usage  = vk::BufferUsageFlagBits::eTransferSrc;
-    textureStagingBufferBuilder.buffer_info.sharingMode = vk::SharingMode::eExclusive;
-    textureStagingBufferBuilder.required_memory_properties = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
-
-    Buffer textureStagingBuffer = textureStagingBufferBuilder.create(m_device, m_physical_device);
-
-    // write tex to staging
-    textureStagingBuffer.write(pixels, 0, image_size);
-
-    // free texture
-    stbi_image_free(pixels);
-
-    // create image
-    vk::ImageCreateInfo textureImageInfo(
-        {},
-        vk::ImageType::e2D,
-        vk::Format::eR8G8B8A8Srgb,
-        vk::Extent3D(static_cast<uint32_t>(tex_width), static_cast<uint32_t>(tex_height), 1),
-        1, // mipLevels
-        1, // arrayLevels
-        vk::SampleCountFlagBits::e1,
-        vk::ImageTiling::eOptimal,
-        vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
-        vk::SharingMode::eExclusive,
-        {},
-        vk::ImageLayout::eUndefined
-    );
-
-    m_texture_image = Image(m_device, m_physical_device, textureImageInfo);
-
-    // now copy the staging buf into the texture
-    // first have to transition it to transfer dst optimal layout, as that is what copyFromBuffer expects
-    // need to use 2 single time command buffers as have to wait for transition to submit and fin before copying
-    auto transitionCmd = m_command_pool.begin_single_time_command();
-    m_texture_image.transition_layout(transitionCmd, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
-    transitionCmd.end_and_submit(m_graphics_queue);
-
-    auto texCopyCmd = m_command_pool.begin_single_time_command();
-    m_texture_image.copy_from_buffer(texCopyCmd, textureStagingBuffer, static_cast<uint32_t>(tex_width), static_cast<uint32_t>(tex_height));
-    texCopyCmd.end_and_submit(m_graphics_queue);
-
-    // now can transition texture to shader optimal
-    transitionCmd = m_command_pool.begin_single_time_command();
-    m_texture_image.transition_layout(transitionCmd, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
-    transitionCmd.end_and_submit(m_graphics_queue);
-
-    textureStagingBuffer.destroy();
-
-    // CREATE texture image view
-    m_texture_image_view = (*m_device).createImageView(
-        vk::ImageViewCreateInfo(
-            {},
-            m_texture_image,
-            vk::ImageViewType::e2D,
-            vk::Format::eR8G8B8A8Srgb,
-            {},
-            vk::ImageSubresourceRange(
-                vk::ImageAspectFlagBits::eColor,
-                0, // baseMipLevel
-                1, // levelCount
-                0, // baseArrayLayer
-                1  // layerCount
-            )
-        )
-    );
-
-    // CREATE texture image sampler
-    m_texture_sampler = (*m_device).createSampler(
-        vk::SamplerCreateInfo(
-            {},
-            vk::Filter::eLinear,    // magFilter
-            vk::Filter::eLinear,    // minFilter
-            vk::SamplerMipmapMode::eLinear, // mipmapMode
-            vk::SamplerAddressMode::eRepeat,    // addressModeU
-            vk::SamplerAddressMode::eRepeat,    // addressModeV
-            vk::SamplerAddressMode::eRepeat,    // addressModeW
-            0.0f,   // mipLodBias
-            true,   // anisotropyEnable
-            (*m_physical_device).getProperties().limits.maxSamplerAnisotropy, // maxAnisotropy,
-            false,  // compareEnable
-            vk::CompareOp::eAlways,
-            0.0f,   // minLod
-            0.0f,   // maxLod
-            vk::BorderColor::eIntOpaqueBlack,   // borderColor
-            false   // unnormalizedCoordinates
-        )
-    );
-
     // CREATE per frame uniform buffers
     vk::DeviceSize perFrameUniformBufferSize = sizeof(PerFrameUniformBufferObject);
 
@@ -590,6 +510,21 @@ Renderer::Renderer(GLFWwindow* window) : m_window(window)
         {},
         static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT),
         frameDescriptorPoolSizes
+    ));
+
+    // CREATE pool for material descriptor sets
+    // for now, allocates just a large amt for dev
+    vk::DescriptorPoolSize materialDescriptorPoolSizes[] = {
+        vk::DescriptorPoolSize(
+            vk::DescriptorType::eCombinedImageSampler,
+            static_cast<uint32_t>(1000)
+        )
+    };
+
+    m_material_descriptor_pool = (*m_device).createDescriptorPool(vk::DescriptorPoolCreateInfo(
+        {},
+        static_cast<uint32_t>(1000),
+        materialDescriptorPoolSizes
     ));
 
     // CREATE frame descriptor sets
@@ -683,12 +618,15 @@ Renderer::~Renderer()
     (*m_device).destroyDescriptorPool(m_frame_descriptor_pool);
     (*m_device).destroyDescriptorPool(m_draw_descriptor_pool);
 
-    (*m_device).destroySampler(m_texture_sampler);
-    (*m_device).destroyImageView(m_texture_image_view);
-    m_texture_image.destroy();
+    for (int i = 0; i < m_textures.size(); ++i)
+    {
+        (*m_device).destroySampler(m_texture_samplers[i]);
+        (*m_device).destroyImageView(m_texture_views[i]);
+        m_textures[i].destroy();
+    }
 
     (*m_device).destroyDescriptorSetLayout(m_frame_descriptor_set_layout);
-    // (*m_device).destroyDescriptorSetLayout(m_draw_descriptor_set_layout);
+    (*m_device).destroyDescriptorSetLayout(m_material_descriptor_set_layout);
 
     m_command_pool.destroy();
 
@@ -701,6 +639,147 @@ Renderer::~Renderer()
 
     m_instance.destroySurfaceKHR(m_surface);
     m_instance.destroy();
+}
+
+/**
+ * Currently just loads a texture, with the material handle pointing to said texture.
+ * 
+ * @param texturePath 
+ * @return MaterialHandle 
+ */
+MaterialHandle Renderer::load_material(std::string texturePath)
+{
+    // CREATE texture image
+    // read in image
+    int tex_width, tex_height, tex_channels;
+    stbi_uc* pixels = stbi_load(texturePath.c_str(), &tex_width, &tex_height, &tex_channels, STBI_rgb_alpha);
+    vk::DeviceSize image_size = tex_width * tex_height * 4;
+    if (!pixels) {
+        throw std::runtime_error("failed to load texture image!");
+    }
+
+    // set up staging buf
+    BufferBuilder textureStagingBufferBuilder;
+    textureStagingBufferBuilder.buffer_info.size = image_size;
+    textureStagingBufferBuilder.buffer_info.usage  = vk::BufferUsageFlagBits::eTransferSrc;
+    textureStagingBufferBuilder.buffer_info.sharingMode = vk::SharingMode::eExclusive;
+    textureStagingBufferBuilder.required_memory_properties = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
+
+    Buffer textureStagingBuffer = textureStagingBufferBuilder.create(m_device, m_physical_device);
+
+    // write tex to staging
+    textureStagingBuffer.write(pixels, 0, image_size);
+
+    // free texture
+    stbi_image_free(pixels);
+
+    // create image
+    vk::ImageCreateInfo textureImageInfo(
+        {},
+        vk::ImageType::e2D,
+        vk::Format::eR8G8B8A8Srgb,
+        vk::Extent3D(static_cast<uint32_t>(tex_width), static_cast<uint32_t>(tex_height), 1),
+        1, // mipLevels
+        1, // arrayLevels
+        vk::SampleCountFlagBits::e1,
+        vk::ImageTiling::eOptimal,
+        vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
+        vk::SharingMode::eExclusive,
+        {},
+        vk::ImageLayout::eUndefined
+    );
+
+    Image& texture = m_textures.emplace_back(m_device, m_physical_device, textureImageInfo);
+
+    // now copy the staging buf into the texture
+    // first have to transition it to transfer dst optimal layout, as that is what copyFromBuffer expects
+    // need to use 2 single time command buffers as have to wait for transition to submit and fin before copying
+    auto transitionCmd = m_command_pool.begin_single_time_command();
+    texture.transition_layout(transitionCmd, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
+    transitionCmd.end_and_submit(m_graphics_queue);
+
+    auto texCopyCmd = m_command_pool.begin_single_time_command();
+    texture.copy_from_buffer(texCopyCmd, textureStagingBuffer, static_cast<uint32_t>(tex_width), static_cast<uint32_t>(tex_height));
+    texCopyCmd.end_and_submit(m_graphics_queue);
+
+    // now can transition texture to shader optimal
+    transitionCmd = m_command_pool.begin_single_time_command();
+    texture.transition_layout(transitionCmd, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
+    transitionCmd.end_and_submit(m_graphics_queue);
+
+    textureStagingBuffer.destroy();
+
+    // CREATE texture image view
+    vk::ImageView view = (*m_device).createImageView(
+        vk::ImageViewCreateInfo(
+            {},
+            texture,
+            vk::ImageViewType::e2D,
+            vk::Format::eR8G8B8A8Srgb,
+            {},
+            vk::ImageSubresourceRange(
+                vk::ImageAspectFlagBits::eColor,
+                0, // baseMipLevel
+                1, // levelCount
+                0, // baseArrayLayer
+                1  // layerCount
+            )
+        )
+    );
+    m_texture_views.push_back(view);
+
+    // CREATE texture image sampler
+    vk::Sampler sampler = (*m_device).createSampler(
+        vk::SamplerCreateInfo(
+            {},
+            vk::Filter::eLinear,    // magFilter
+            vk::Filter::eLinear,    // minFilter
+            vk::SamplerMipmapMode::eLinear, // mipmapMode
+            vk::SamplerAddressMode::eRepeat,    // addressModeU
+            vk::SamplerAddressMode::eRepeat,    // addressModeV
+            vk::SamplerAddressMode::eRepeat,    // addressModeW
+            0.0f,   // mipLodBias
+            true,   // anisotropyEnable
+            (*m_physical_device).getProperties().limits.maxSamplerAnisotropy, // maxAnisotropy,
+            false,  // compareEnable
+            vk::CompareOp::eAlways,
+            0.0f,   // minLod
+            0.0f,   // maxLod
+            vk::BorderColor::eIntOpaqueBlack,   // borderColor
+            false   // unnormalizedCoordinates
+        )
+    );
+    m_texture_samplers.push_back(sampler);
+
+    // CREATE texture descriptor set
+    m_texture_descriptor_sets.push_back(
+        (*m_device).allocateDescriptorSets(
+            vk::DescriptorSetAllocateInfo(m_material_descriptor_pool,1,&m_material_descriptor_set_layout)
+        )[0]
+    );
+
+    vk::DescriptorImageInfo texInfo(
+        sampler,
+        view,
+        vk::ImageLayout::eShaderReadOnlyOptimal
+    );
+
+    vk::WriteDescriptorSet descriptorWrites[] = {
+        vk::WriteDescriptorSet(
+            m_texture_descriptor_sets[m_texture_descriptor_sets.size()-1],
+            0, // binding
+            0, // arrayElement
+            1, // descriptorCount
+            vk::DescriptorType::eCombinedImageSampler,
+            &texInfo,               // pImageInfo
+            {},                     // pBufferInfo
+            {}                      // pTexelBufferView
+        )
+    };
+
+    (*m_device).updateDescriptorSets(descriptorWrites, {});
+
+    return MaterialHandle{m_textures.size()-1};
 }
 
 /**
@@ -772,6 +851,11 @@ void Renderer::record_command_buffer(vk::CommandBuffer commandBuffer, uint32_t i
     for (auto& drawCall : m_draw_calls)
     {
         Mesh& m = m_mesh_manager.get_mesh(drawCall.mesh);
+
+        if (prevDrawCall == nullptr || prevDrawCall->material != drawCall.material)
+        {
+            commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_pipeline_layout, 1, 1, &m_texture_descriptor_sets[drawCall.material.material], 0, nullptr);
+        }
 
         if (prevDrawCall == nullptr || prevDrawCall->mesh != drawCall.mesh)
         {
