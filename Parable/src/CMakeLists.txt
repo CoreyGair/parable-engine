@@ -4,6 +4,9 @@ set(PARABLE_SRCS_CORE       ${CMAKE_CURRENT_SOURCE_DIR}/Core/Application.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Core/Time.cpp
                             )
 
+set(PARABLE_SRCS_ASSET  ${CMAKE_CURRENT_SOURCE_DIR}/Asset/Asset.cpp
+                        )
+
 set(PARABLE_SRCS_EVENTS     ${CMAKE_CURRENT_SOURCE_DIR}/Events/EventBuffer.cpp
                             )
 
@@ -59,6 +62,7 @@ set(PARABLE_SRCS_RENDER     ${CMAKE_CURRENT_SOURCE_DIR}/Render/Renderer.cpp
                             )
 
 set(PARABLE_SRCS    ${PARABLE_SRCS_CORE}
+                    ${PARABLE_SRCS_ASSET}
                     ${PARABLE_SRCS_EVENTS}
                     ${PARABLE_SRCS_PLATFORM}
                     ${PARABLE_SRCS_WINDOW}
