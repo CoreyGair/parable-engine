@@ -40,6 +40,7 @@ private:
     // at the moment, doesnt own any of this
     // could change to using references to then just reference RendererVk's members
     // and then can be constructed by member initialisation list
+    // (then again, this doesnt actually matter as these types aren't RAII, plus refs are just an extra indirection for potentially hot paths)
     Device m_device;
     PhysicalDevice m_physical_device;
     CommandPool m_command_pool;
