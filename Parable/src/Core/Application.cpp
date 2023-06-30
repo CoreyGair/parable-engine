@@ -8,9 +8,9 @@
 
 #include "ECS/ECS.h"
 
-#include "Render/RenderLayer.h"
+#include "Renderer/RenderLayer.h"
 // could find a way to not have this, let render layer init??
-#include "Render/Renderer.h"
+#include "Renderer/Renderer.h"
 
 // TEMP to test renderer
 #define GLM_FORCE_RADIANS
@@ -18,7 +18,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <chrono>
-#include "Render/Handles.h"
+#include "Renderer/Handles.h"
+#include "Asset/AssetDescriptor.h"
 
 
 //TEMP FOR TEST
@@ -30,11 +31,14 @@ namespace Parable
 
 Application* Application::s_instance = nullptr; 
 
-MeshHandle meshA;
-MeshHandle meshB;
+AssetDescriptor cubeMeshDescriptor = 0;
+AssetDescriptor texADescriptor = 1;
+AssetDescriptor texBDescriptor = 2;
 
-MaterialHandle matA;
-MaterialHandle matB;
+MeshHandle cubeMesh;
+
+TextureHandle matA;
+TextureHandle matB;
 
 glm::mat4 startMatA = glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(0.5f,0.5f,0.5f)), glm::vec3(-1.5f, 0.0f, 0.0f));
 glm::mat4 startMatB = glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(0.5f,0.5f,0.5f)), glm::vec3(1.5f, 0.0f, 0.0f));
@@ -60,12 +64,12 @@ Application::Application()
     Renderer::Init(m_window->get_glfw_window());
     m_layer_stack.push(std::make_unique<RenderLayer>());
 
-    // load some meshes to test    
-    meshA = Renderer::get_instance()->load_mesh("D:\\parable-engine\\Parable\\src\\Render\\Models\\unit_cube.obj");
-    meshB = Renderer::get_instance()->load_mesh("D:\\parable-engine\\Parable\\src\\Render\\Models\\unit_cube.obj");
+    // load test mesh
+    cubeMesh = Renderer::get_instance()->load_mesh(cubeMeshDescriptor);
+
     // load textures to test
-    matA = Renderer::get_instance()->load_material("D:\\parable-engine\\Parable\\src\\Render\\Textures\\texture.jpg");
-    matB = Renderer::get_instance()->load_material("D:\\parable-engine\\Parable\\src\\Render\\Textures\\viking_room.png");
+    matA = Renderer::get_instance()->load_texture(texADescriptor);
+    matB = Renderer::get_instance()->load_texture(texBDescriptor);
 
     m_layer_stack.push(std::make_unique<Input::InputLayer>());
 
@@ -94,8 +98,8 @@ void Application::run()
         auto currMatA = glm::rotate(startMatA, elapsedTime * glm::radians(90.0f), glm::vec3(0.0f,0.0f,1.0f));
         auto currMatB = glm::rotate(startMatB, -elapsedTime * glm::radians(45.0f), glm::vec3(0.0f,0.0f,1.0f));
 
-        Renderer::get_instance()->draw(meshA, matA, currMatA);
-        Renderer::get_instance()->draw(meshB, matB, currMatB);
+        Renderer::get_instance()->draw(cubeMesh, matA, currMatA);
+        Renderer::get_instance()->draw(cubeMesh, matB, currMatB);
 
         // invoke update for the ecs
         //m_ecs.on_update();

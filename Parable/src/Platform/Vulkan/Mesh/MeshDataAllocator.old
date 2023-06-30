@@ -1,0 +1,115 @@
+#include "MeshDataAllocator.h"
+
+#include <vulkan/vulkan.hpp>
+
+#include "../Wrapper/Buffer.h"
+#include "../Wrapper/Vertex.h"
+
+namespace Parable::Vulkan
+{
+
+
+MeshDataAllocator::MeshDataAllocator(PhysicalDevice physical_device, Device device, uint32_t transfer_family)
+    : m_physical_device(physical_device),
+    m_device(device),
+    // TODO: be sure about concurrency and the transfer queue
+    // for now we just pick a single transfer queue
+    // could make a SynchronisedQueue abstraction to allow using the (usually single) transfer queue in many places
+    m_transfer_queue((*m_device).getQueue(transfer_family, 0))
+{
+    vk::CommandPoolCreateInfo cmd_pool_info(   
+        // TODO: this depends on how we will handle mesh loads
+        //          will we immediate load (which case, transient is fine maybe as just create command and submit right away, do research)
+        //          or will we batch loads (maybe can not use transient, build command buffer as load()s are called and submit at once)
+        //              but then again, how many loads are we really going to get per frame??
+        //      leave comment as ongoing thoughts (as architecture changes)
+        vk::CommandPoolCreateFlagBits::eTransient,
+        transfer_family
+    );
+    m_command_pool = CommandPool(m_device, cmd_pool_info);
+
+    BufferBuilder vertex_buffer_builder;
+    vertex_buffer_builder.buffer_info.size = m_vertex_buffer_size;
+    vertex_buffer_builder.buffer_info.usage = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer;
+    vertex_buffer_builder.buffer_info.sharingMode = vk::SharingMode::eExclusive;
+    vertex_buffer_builder.required_memory_properties = vk::MemoryPropertyFlagBits::eDeviceLocal;
+
+    m_vertex_buffer = vertex_buffer_builder.create(m_device, m_physical_device);
+
+    BufferBuilder index_buffer_builder;
+    index_buffer_builder.buffer_info.size = m_index_buffer_size;
+    index_buffer_builder.buffer_info.usage = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer;
+    index_buffer_builder.buffer_info.sharingMode = vk::SharingMode::eExclusive;
+    index_buffer_builder.required_memory_properties = vk::MemoryPropertyFlagBits::eDeviceLocal;
+
+    m_index_buffer = index_buffer_builder.create(m_device, m_physical_device);
+}
+
+MeshDataAllocator::~MeshDataAllocator()
+{
+    m_vertex_buffer.destroy();
+    m_index_buffer.destroy();
+
+    m_command_pool.destroy();
+}
+
+std::optional<MeshDataAllocation> MeshDataAllocator::allocate(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
+{
+    PBL_CORE_ASSERT(vertices.size() > 0); PBL_CORE_ASSERT(indices.size() > 0);
+
+    vk::DeviceSize vertices_size = sizeof(vertices[0]) * vertices.size();
+    vk::DeviceSize indices_size = sizeof(indices[0]) * indices.size();
+
+    // check if either buffer lacks the required space
+    if (vertices_size > m_vertex_buffer_size - m_vertex_free_range_start || indices_size > m_index_buffer_size - m_index_free_range_start)
+    {
+        return std::nullopt;
+    }
+
+    vk::DeviceSize vertex_offset = m_vertex_free_range_start;
+    m_vertex_free_range_start += vertices_size;
+
+    vk::DeviceSize index_offset = m_index_free_range_start;
+    m_index_free_range_start += indices_size;
+
+    // copy data to staging buffers
+    // TODO: in future can pre-allocate staging buffers and keep around
+    //      prealloc some sensible size, and grow if need to load larger model
+    //          (or could use multiple transfer commands??)
+    BufferBuilder vertex_staging_buffer_builder;
+    vertex_staging_buffer_builder.buffer_info.size = vertices_size;
+    vertex_staging_buffer_builder.buffer_info.usage  = vk::BufferUsageFlagBits::eTransferSrc;
+    vertex_staging_buffer_builder.buffer_info.sharingMode = vk::SharingMode::eExclusive;
+    vertex_staging_buffer_builder.required_memory_properties = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
+
+    Buffer vertex_staging_buffer = vertex_staging_buffer_builder.create(m_device, m_physical_device);
+    vertex_staging_buffer.write((void*)vertices.data(), 0, vertices_size);
+
+    BufferBuilder index_staging_buffer_builder;
+    index_staging_buffer_builder.buffer_info.size = indices_size;
+    index_staging_buffer_builder.buffer_info.usage  = vk::BufferUsageFlagBits::eTransferSrc;
+    index_staging_buffer_builder.buffer_info.sharingMode = vk::SharingMode::eExclusive;
+    index_staging_buffer_builder.required_memory_properties = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
+
+    Buffer index_staging_buffer = index_staging_buffer_builder.create(m_device, m_physical_device);
+    index_staging_buffer.write((void*)indices.data(), 0, indices_size);
+
+    // transfer to main buffers
+    CommandPool::SingleTimeCommandBuffer cmd_buffer = m_command_pool.begin_single_time_command();
+
+    m_vertex_buffer.copy_from(vertex_staging_buffer, 0, vertex_offset, vertices_size, cmd_buffer);
+    m_index_buffer.copy_from(index_staging_buffer, 0, index_offset, indices_size, cmd_buffer);
+
+    cmd_buffer.end_and_submit(m_transfer_queue);
+
+    vertex_staging_buffer.destroy();
+    index_staging_buffer.destroy();
+
+    return MeshDataAllocation{
+        .vertex_offset = vertex_offset,
+        .index_offset = index_offset
+    };
+}
+
+
+}

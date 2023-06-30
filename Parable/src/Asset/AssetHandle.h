@@ -1,38 +1,47 @@
 #pragma once
 
-#include "pblpch.h"
-
-#include "Core/Base.h"
-
-#include "Asset.h"
-
 namespace Parable
 {
 
+    
+class AssetStateBlock;
 
-/***
- * A handle to a loaded (in-memory) Asset.
-*/
-template<IsAsset T>
-class Handle
+class AssetHandle 
 {
 private:
-    T& m_asset;
+    AssetStateBlock* m_state_block;
 
 public:
-    Handle<T>(T& asset) : m_asset(asset) { m_asset.on_handle_create(); }
-    Handle<T>(const Handle<T>& other) : Handle<T>(other.m_asset) {}
-    Handle<T>(Handle<T>&& other) : m_asset(other.m_asset) {}
+    AssetHandle() = default;
+    AssetHandle(AssetStateBlock* state_block);
 
-    ~Handle<T>()
+    AssetHandle(AssetHandle& other) : AssetHandle(other.m_state_block) {}
+    AssetHandle(AssetHandle&& other) : AssetHandle(other.m_state_block) 
     {
-        m_asset.on_handle_destroy();
+        other.m_state_block = nullptr;
     }
 
-    // TODO: any other worthwhile converters?
-    explicit operator T&() { return m_asset; }
-    T& get() { return m_asset; }
+    ~AssetHandle();
+
+    AssetHandle& operator=(const AssetHandle& other)
+    {
+        m_state_block = other.m_state_block;
+        return *this;
+    }
+    AssetHandle& operator=(AssetHandle&& other)
+    {
+        m_state_block = other.m_state_block;
+        other.m_state_block = nullptr;
+        return *this;
+    }
+    
+    operator bool() const
+    {
+        return m_state_block;
+    }
+
+    AssetStateBlock* get_state_block() const { return m_state_block; }
 };
 
 
-} 
+}

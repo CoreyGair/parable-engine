@@ -37,6 +37,9 @@
 #define BIT(x) (1 << x)
 #define BITS(n) BIT(n+1)-1
 
+#define KB(x) 1000 * x
+#define MB(x) 1000000 * x
+
 // might be faster using pure lambdas, is like this as its the first way I could understand to do this
 #define PBL_BIND_MEMBER_EVENT_HANDLER(func) std::bind(std::mem_fn(&func), this, std::placeholders::_1)
 

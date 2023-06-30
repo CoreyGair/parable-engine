@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Render/Renderer.h"
+#include "Renderer/Renderer.h"
 
 #include "pblpch.h"
 
@@ -8,25 +8,28 @@
 
 #include "Wrapper/VulkanWrapper.h"
 
-#include "MeshManager.h"
-
 
 class GLFWwindow;
 
 
+namespace Parable
+{
+    namespace Vulkan { class Mesh; }
+    using Mesh = Vulkan::Mesh;
+}
+
 namespace Parable::Vulkan
 {
 
-namespace Vulkan { class Vertex; }
 
+class MeshStore;
 
 struct DrawCall
 {
     MeshHandle mesh;
-    MaterialHandle material;
+    TextureHandle texture;
     glm::mat4 transform;
 };
-
 
 class Renderer : public Parable::Renderer
 {
@@ -34,16 +37,13 @@ public:
     Renderer(GLFWwindow* window);
     ~Renderer();
 
-    MeshHandle load_mesh(std::string path) override
-    {
-        return m_mesh_manager.load_mesh(path);
-    }
+    MeshHandle load_mesh(AssetDescriptor descriptor) override;
 
-    MaterialHandle load_material(std::string texturePath) override;
+    TextureHandle load_texture(AssetDescriptor descriptor) override;
 
-    void draw(MeshHandle mesh, MaterialHandle material, glm::mat4& transform) override
+    void draw(MeshHandle mesh, TextureHandle texture, glm::mat4& transform) override
     {
-        m_draw_calls.push_back(DrawCall{mesh,material,transform});
+        m_draw_calls.push_back(DrawCall{mesh,texture,transform});
     }
 
     void on_update() override;
@@ -120,7 +120,7 @@ private:
 
     std::vector<vk::CommandBuffer> m_command_buffers;
 
-    MeshManager m_mesh_manager;
+    UPtr<Vulkan::MeshStore> m_mesh_store;
 
     std::vector<DrawCall> m_draw_calls;
 

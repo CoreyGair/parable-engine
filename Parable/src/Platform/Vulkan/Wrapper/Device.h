@@ -31,6 +31,7 @@ public:
 
     operator vk::Device&() { return m_device; }
     vk::Device& operator*() { return m_device; }
+    vk::Device* operator->() { return &m_device; }
 
     /**
      * Destroy the underlying vulkan device.

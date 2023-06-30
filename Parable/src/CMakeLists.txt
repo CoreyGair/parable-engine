@@ -4,11 +4,14 @@ set(PARABLE_SRCS_CORE       ${CMAKE_CURRENT_SOURCE_DIR}/Core/Application.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Core/Time.cpp
                             )
 
+set(PARABLE_SRCS_ASSET      ${CMAKE_CURRENT_SOURCE_DIR}/Asset/AssetHandle.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Asset/AssetRegistry.cpp
+                            )
+                            
 set(PARABLE_SRCS_EVENTS     ${CMAKE_CURRENT_SOURCE_DIR}/Events/EventBuffer.cpp
                             )
 
 set(PARABLE_SRCS_PLATFORM   ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Renderer.cpp
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/MeshManager.cpp
 
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Wrapper/Renderpass.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Wrapper/DescriptorSets.cpp
@@ -16,12 +19,16 @@ set(PARABLE_SRCS_PLATFORM   ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Renderer
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Wrapper/GraphicsPipeline.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Wrapper/Framebuffers.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Wrapper/Buffer.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Wrapper/BufferSuballocator.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Wrapper/CommandPool.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Wrapper/ShaderLoader.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Wrapper/Device.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Wrapper/PhysicalDevice.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Wrapper/Swapchain.cpp
 
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Mesh/Mesh.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Mesh/MeshStore.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Mesh/MeshLoader.cpp
                             )
 
 set(PARABLE_SRCS_WINDOW     ${CMAKE_CURRENT_SOURCE_DIR}/Window/Window.cpp
@@ -54,11 +61,12 @@ set(PARABLE_SRCS_ECS    ${CMAKE_CURRENT_SOURCE_DIR}/ECS/EntityManager.cpp
 set(PARABLE_SRCS_EXCEPTION      
                                 )
 
-set(PARABLE_SRCS_RENDER     ${CMAKE_CURRENT_SOURCE_DIR}/Render/Renderer.cpp
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Render/RenderLayer.cpp
+set(PARABLE_SRCS_RENDER     ${CMAKE_CURRENT_SOURCE_DIR}/Renderer/Renderer.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Renderer/RenderLayer.cpp
                             )
 
 set(PARABLE_SRCS    ${PARABLE_SRCS_CORE}
+                    ${PARABLE_SRCS_ASSET}
                     ${PARABLE_SRCS_EVENTS}
                     ${PARABLE_SRCS_PLATFORM}
                     ${PARABLE_SRCS_WINDOW}

@@ -3,7 +3,6 @@
 #include "pblpch.h"
 #include "Core/Base.h"
 
-#define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
 
 #include "Wrapper/Vertex.h"

@@ -29,10 +29,12 @@ public:
     }
 
     operator vk::Image&() { return m_image; }
+    vk::Image operator*() { return m_image; }
+    vk::Image* operator->() { return &m_image; }
 
     void destroy()
     {
-        (*m_device).destroyImage(m_image);
+        m_device->destroyImage(m_image);
         m_device.free_memory(m_image_memory);
     }
 

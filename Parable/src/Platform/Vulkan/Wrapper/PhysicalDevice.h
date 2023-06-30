@@ -28,7 +28,8 @@ public:
     PhysicalDevice(vk::Instance& instance, PhysicalDevicePicker& picker);
 
     operator vk::PhysicalDevice&() { return m_physical_device; }
-    vk::PhysicalDevice& operator*() { return m_physical_device; }
+    vk::PhysicalDevice operator*() { return m_physical_device; }
+    vk::PhysicalDevice* operator->() { return &m_physical_device; }
 
     /**
      * Gets the details of the swap chain support for this device and a surface.

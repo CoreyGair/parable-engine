@@ -1,0 +1,63 @@
+@startuml
+
+enum AssetType {
+    None
+    Mesh
+    Texture
+    Material
+    Audio
+}
+
+enum AssetState {
+    Unloaded
+    Loading
+    Loaded
+}
+
+struct AssetDescriptor {
+    uint64_t
+}
+note top of AssetDescriptor
+    Type alias
+end note
+
+struct AssetLoadInfo {
+    - const map<string,string> m_string_attributes
+    - const map<string,AssetDescriptor> m_descriptor_attributes
+    + optional<const string&> get_string(string&)
+    + optional<AssetDescriptor> get_descriptor(string&)
+}
+AssetLoadInfo *-- "many" AssetDescriptor
+
+class AssetRegistry {
+    - {static} map<AssetDescriptor,unique_ptr<AssetLoadInfo>> descriptor_to_load_info
+    + {static} optional<const AssetLoadInfo&> resolve(AssetDescriptor)
+}
+AssetRegistry "1" *-- "many" AssetLoadInfo
+AssetRegistry -- AssetDescriptor
+
+abstract class AssetStore<class T> {
+    - map<AssetDescriptor, AssetStoreEntry<T>> m_assets
+    # {abstract} T load_asset(AssetLoadInfo&)
+    # {abstract} void release_asset(T&)
+    # {abstract} void on_clear()
+    + void clear()
+    + Handle<T> get_handle(AssetDescriptor)
+}
+
+class AssetStoreEntry<class T> {
+    - int m_reference_count
+    + T m_asset
+    + AssetStoreEntry& operator++()
+    + AssetStoreEntry& operator--()
+}
+
+class Handle<class T> {
+    - AssetStoreEntry<T>& m_asset_entry
+    + Handle<T>()
+    + \~Handle<T>()
+    + T& operator*()
+    + T* operator->()
+}
+
+@enduml

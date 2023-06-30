@@ -2,19 +2,18 @@
 
 #include "Core/Base.h"
 
-#include "Handles.h"
 #include <glm/fwd.hpp>
 
-class GLFWwindow;
+#include "Handles.h"
+#include "Asset/AssetDescriptor.h"
 
+class GLFWwindow;
 
 namespace Parable
 {
 
 
 class RenderLayer;
-
-class MeshVk;
 
 class Renderer
 {
@@ -32,11 +31,11 @@ public:
 
     virtual ~Renderer() {};
 
-    virtual MeshHandle load_mesh(std::string path) = 0;
+    virtual MeshHandle load_mesh(AssetDescriptor descriptor) = 0;
 
-    virtual MaterialHandle load_material(std::string texturePath) = 0;
+    virtual TextureHandle load_texture(AssetDescriptor descriptor) = 0;
 
-    virtual void draw(MeshHandle mesh, MaterialHandle material, glm::mat4& transform) = 0;
+    virtual void draw(MeshHandle mesh, TextureHandle texture, glm::mat4& transform) = 0;
 
     virtual void on_update() = 0;
 

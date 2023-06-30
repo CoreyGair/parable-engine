@@ -17,16 +17,17 @@ public:
     CommandPool(Device& device, vk::CommandPoolCreateInfo& info)
         : m_device(device)
     {
-        m_command_pool = (*m_device).createCommandPool(info);
+        m_command_pool = m_device->createCommandPool(info);
     }
 
     void destroy()
     {
-        (*m_device).destroyCommandPool(m_command_pool);
+        m_device->destroyCommandPool(m_command_pool);
     }
     
     operator vk::CommandPool&() { return m_command_pool; }
     vk::CommandPool& operator*() { return m_command_pool; }
+    vk::CommandPool* operator->() { return &m_command_pool; }
 
     std::vector<vk::CommandBuffer> create_command_buffers(vk::CommandBufferLevel level, uint32_t count)
     {
@@ -36,11 +37,11 @@ public:
             count
         );
         
-        return (*m_device).allocateCommandBuffers(info);
+        return m_device->allocateCommandBuffers(info);
     }
     void free_command_buffers(std::vector<vk::CommandBuffer>& buffers)
     {
-        (*m_device).freeCommandBuffers(m_command_pool, buffers);
+        m_device->freeCommandBuffers(m_command_pool, buffers);
     }
 
     class SingleTimeCommandBuffer
@@ -49,7 +50,7 @@ public:
         SingleTimeCommandBuffer(CommandPool& cmdPool)
             : m_command_pool(cmdPool)
         {
-            m_command_buffer = (*m_command_pool.m_device).allocateCommandBuffers(vk::CommandBufferAllocateInfo(
+            m_command_buffer = m_command_pool.m_device->allocateCommandBuffers(vk::CommandBufferAllocateInfo(
                 m_command_pool,
                 vk::CommandBufferLevel::ePrimary,
                 1
@@ -83,20 +84,25 @@ public:
         }
         operator vk::CommandBuffer&() { return m_command_buffer; }
 
-        void end_and_submit(vk::Queue& queue)
+        void end_and_submit(vk::Queue& queue, vk::Fence fence)
         {
             PBL_CORE_ASSERT(!m_has_submitted);
 
             m_command_buffer.end();
 
-            queue.submit({vk::SubmitInfo(0, nullptr, {}, 1, &m_command_buffer)});
+            queue.submit({vk::SubmitInfo(0, nullptr, {}, 1, &m_command_buffer)}, fence);
             queue.waitIdle();
 
-            (*m_command_pool.m_device).freeCommandBuffers(m_command_pool, {m_command_buffer});
+            m_command_pool.m_device->freeCommandBuffers(m_command_pool, {m_command_buffer});
 
             #ifdef PBL_DEBUG
             m_has_submitted = true;
             #endif
+        }
+
+        void end_and_submit(vk::Queue& queue)
+        {
+            end_and_submit(queue, vk::Fence{});
         }
 
     private:

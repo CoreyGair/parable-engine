@@ -26,6 +26,8 @@
 #include "Wrapper/VulkanWrapper.h"
 #include "Wrapper/VulkanExceptions.h"
 
+#include "Mesh/MeshStore.h"
+
 #include <GLFW/glfw3.h>
 
 #include "Window/Window.h"
@@ -592,7 +594,27 @@ Renderer::Renderer(GLFWwindow* window) : m_window(window)
     );
     CommandPool transferCmdPool(m_device, transferCmdPoolInfo);
 
-    m_mesh_manager = MeshManager(m_device, m_physical_device, transferCmdPool, m_transfer_queue);
+    // CREATE mesh store
+
+    // vertex + index bufs
+    BufferBuilder vertex_buffer_builder;
+    vertex_buffer_builder.buffer_info.size = MB(2);
+    vertex_buffer_builder.buffer_info.usage = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer;
+    vertex_buffer_builder.buffer_info.sharingMode = vk::SharingMode::eExclusive;
+    vertex_buffer_builder.required_memory_properties = vk::MemoryPropertyFlagBits::eDeviceLocal;
+
+    Buffer vertex_buffer = vertex_buffer_builder.create(m_device, m_physical_device);
+
+    BufferBuilder index_buffer_builder;
+    index_buffer_builder.buffer_info.size = MB(2);
+    index_buffer_builder.buffer_info.usage = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer;
+    index_buffer_builder.buffer_info.sharingMode = vk::SharingMode::eExclusive;
+    index_buffer_builder.required_memory_properties = vk::MemoryPropertyFlagBits::eDeviceLocal;
+
+    Buffer index_buffer = index_buffer_builder.create(m_device, m_physical_device);
+
+    UPtr<MeshLoader> mesh_loader = std::make_unique<MeshLoader>(m_physical_device, m_device, m_transfer_queue, queueFamilyIndices.transfer_family);
+    m_mesh_store = std::make_unique<MeshStore>(vertex_buffer, index_buffer, std::move(mesh_loader));
 }
 
 Renderer::~Renderer()
@@ -641,145 +663,152 @@ Renderer::~Renderer()
     m_instance.destroy();
 }
 
+MeshHandle Renderer::load_mesh(AssetDescriptor descriptor)
+{
+    return m_mesh_store->load(descriptor);
+}
+
 /**
  * Currently just loads a texture, with the material handle pointing to said texture.
  * 
  * @param texturePath 
  * @return MaterialHandle 
  */
-MaterialHandle Renderer::load_material(std::string texturePath)
+TextureHandle Renderer::load_texture(AssetDescriptor descriptor)
 {
-    // CREATE texture image
-    // read in image
-    int tex_width, tex_height, tex_channels;
-    stbi_uc* pixels = stbi_load(texturePath.c_str(), &tex_width, &tex_height, &tex_channels, STBI_rgb_alpha);
-    vk::DeviceSize image_size = tex_width * tex_height * 4;
-    if (!pixels) {
-        throw std::runtime_error("failed to load texture image!");
-    }
+    // TODO: implement
 
-    // set up staging buf
-    BufferBuilder textureStagingBufferBuilder;
-    textureStagingBufferBuilder.buffer_info.size = image_size;
-    textureStagingBufferBuilder.buffer_info.usage  = vk::BufferUsageFlagBits::eTransferSrc;
-    textureStagingBufferBuilder.buffer_info.sharingMode = vk::SharingMode::eExclusive;
-    textureStagingBufferBuilder.required_memory_properties = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
+    // // CREATE texture image
+    // // read in image
+    // int tex_width, tex_height, tex_channels;
+    // stbi_uc* pixels = stbi_load(texturePath.c_str(), &tex_width, &tex_height, &tex_channels, STBI_rgb_alpha);
+    // vk::DeviceSize image_size = tex_width * tex_height * 4;
+    // if (!pixels) {
+    //     throw std::runtime_error("failed to load texture image!");
+    // }
 
-    Buffer textureStagingBuffer = textureStagingBufferBuilder.create(m_device, m_physical_device);
+    // // set up staging buf
+    // BufferBuilder textureStagingBufferBuilder;
+    // textureStagingBufferBuilder.buffer_info.size = image_size;
+    // textureStagingBufferBuilder.buffer_info.usage  = vk::BufferUsageFlagBits::eTransferSrc;
+    // textureStagingBufferBuilder.buffer_info.sharingMode = vk::SharingMode::eExclusive;
+    // textureStagingBufferBuilder.required_memory_properties = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
 
-    // write tex to staging
-    textureStagingBuffer.write(pixels, 0, image_size);
+    // Buffer textureStagingBuffer = textureStagingBufferBuilder.create(m_device, m_physical_device);
 
-    // free texture
-    stbi_image_free(pixels);
+    // // write tex to staging
+    // textureStagingBuffer.write(pixels, 0, image_size);
 
-    // create image
-    vk::ImageCreateInfo textureImageInfo(
-        {},
-        vk::ImageType::e2D,
-        vk::Format::eR8G8B8A8Srgb,
-        vk::Extent3D(static_cast<uint32_t>(tex_width), static_cast<uint32_t>(tex_height), 1),
-        1, // mipLevels
-        1, // arrayLevels
-        vk::SampleCountFlagBits::e1,
-        vk::ImageTiling::eOptimal,
-        vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
-        vk::SharingMode::eExclusive,
-        {},
-        vk::ImageLayout::eUndefined
-    );
+    // // free texture
+    // stbi_image_free(pixels);
 
-    Image& texture = m_textures.emplace_back(m_device, m_physical_device, textureImageInfo);
+    // // create image
+    // vk::ImageCreateInfo textureImageInfo(
+    //     {},
+    //     vk::ImageType::e2D,
+    //     vk::Format::eR8G8B8A8Srgb,
+    //     vk::Extent3D(static_cast<uint32_t>(tex_width), static_cast<uint32_t>(tex_height), 1),
+    //     1, // mipLevels
+    //     1, // arrayLevels
+    //     vk::SampleCountFlagBits::e1,
+    //     vk::ImageTiling::eOptimal,
+    //     vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
+    //     vk::SharingMode::eExclusive,
+    //     {},
+    //     vk::ImageLayout::eUndefined
+    // );
 
-    // now copy the staging buf into the texture
-    // first have to transition it to transfer dst optimal layout, as that is what copyFromBuffer expects
-    // need to use 2 single time command buffers as have to wait for transition to submit and fin before copying
-    auto transitionCmd = m_command_pool.begin_single_time_command();
-    texture.transition_layout(transitionCmd, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
-    transitionCmd.end_and_submit(m_graphics_queue);
+    // Image& texture = m_textures.emplace_back(m_device, m_physical_device, textureImageInfo);
 
-    auto texCopyCmd = m_command_pool.begin_single_time_command();
-    texture.copy_from_buffer(texCopyCmd, textureStagingBuffer, static_cast<uint32_t>(tex_width), static_cast<uint32_t>(tex_height));
-    texCopyCmd.end_and_submit(m_graphics_queue);
+    // // now copy the staging buf into the texture
+    // // first have to transition it to transfer dst optimal layout, as that is what copyFromBuffer expects
+    // // need to use 2 single time command buffers as have to wait for transition to submit and fin before copying
+    // auto transitionCmd = m_command_pool.begin_single_time_command();
+    // texture.transition_layout(transitionCmd, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
+    // transitionCmd.end_and_submit(m_graphics_queue);
 
-    // now can transition texture to shader optimal
-    transitionCmd = m_command_pool.begin_single_time_command();
-    texture.transition_layout(transitionCmd, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
-    transitionCmd.end_and_submit(m_graphics_queue);
+    // auto texCopyCmd = m_command_pool.begin_single_time_command();
+    // texture.copy_from_buffer(texCopyCmd, textureStagingBuffer, static_cast<uint32_t>(tex_width), static_cast<uint32_t>(tex_height));
+    // texCopyCmd.end_and_submit(m_graphics_queue);
 
-    textureStagingBuffer.destroy();
+    // // now can transition texture to shader optimal
+    // transitionCmd = m_command_pool.begin_single_time_command();
+    // texture.transition_layout(transitionCmd, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
+    // transitionCmd.end_and_submit(m_graphics_queue);
 
-    // CREATE texture image view
-    vk::ImageView view = (*m_device).createImageView(
-        vk::ImageViewCreateInfo(
-            {},
-            texture,
-            vk::ImageViewType::e2D,
-            vk::Format::eR8G8B8A8Srgb,
-            {},
-            vk::ImageSubresourceRange(
-                vk::ImageAspectFlagBits::eColor,
-                0, // baseMipLevel
-                1, // levelCount
-                0, // baseArrayLayer
-                1  // layerCount
-            )
-        )
-    );
-    m_texture_views.push_back(view);
+    // textureStagingBuffer.destroy();
 
-    // CREATE texture image sampler
-    vk::Sampler sampler = (*m_device).createSampler(
-        vk::SamplerCreateInfo(
-            {},
-            vk::Filter::eLinear,    // magFilter
-            vk::Filter::eLinear,    // minFilter
-            vk::SamplerMipmapMode::eLinear, // mipmapMode
-            vk::SamplerAddressMode::eRepeat,    // addressModeU
-            vk::SamplerAddressMode::eRepeat,    // addressModeV
-            vk::SamplerAddressMode::eRepeat,    // addressModeW
-            0.0f,   // mipLodBias
-            true,   // anisotropyEnable
-            (*m_physical_device).getProperties().limits.maxSamplerAnisotropy, // maxAnisotropy,
-            false,  // compareEnable
-            vk::CompareOp::eAlways,
-            0.0f,   // minLod
-            0.0f,   // maxLod
-            vk::BorderColor::eIntOpaqueBlack,   // borderColor
-            false   // unnormalizedCoordinates
-        )
-    );
-    m_texture_samplers.push_back(sampler);
+    // // CREATE texture image view
+    // vk::ImageView view = (*m_device).createImageView(
+    //     vk::ImageViewCreateInfo(
+    //         {},
+    //         texture,
+    //         vk::ImageViewType::e2D,
+    //         vk::Format::eR8G8B8A8Srgb,
+    //         {},
+    //         vk::ImageSubresourceRange(
+    //             vk::ImageAspectFlagBits::eColor,
+    //             0, // baseMipLevel
+    //             1, // levelCount
+    //             0, // baseArrayLayer
+    //             1  // layerCount
+    //         )
+    //     )
+    // );
+    // m_texture_views.push_back(view);
 
-    // CREATE texture descriptor set
-    m_texture_descriptor_sets.push_back(
-        (*m_device).allocateDescriptorSets(
-            vk::DescriptorSetAllocateInfo(m_material_descriptor_pool,1,&m_material_descriptor_set_layout)
-        )[0]
-    );
+    // // CREATE texture image sampler
+    // vk::Sampler sampler = (*m_device).createSampler(
+    //     vk::SamplerCreateInfo(
+    //         {},
+    //         vk::Filter::eLinear,    // magFilter
+    //         vk::Filter::eLinear,    // minFilter
+    //         vk::SamplerMipmapMode::eLinear, // mipmapMode
+    //         vk::SamplerAddressMode::eRepeat,    // addressModeU
+    //         vk::SamplerAddressMode::eRepeat,    // addressModeV
+    //         vk::SamplerAddressMode::eRepeat,    // addressModeW
+    //         0.0f,   // mipLodBias
+    //         true,   // anisotropyEnable
+    //         (*m_physical_device).getProperties().limits.maxSamplerAnisotropy, // maxAnisotropy,
+    //         false,  // compareEnable
+    //         vk::CompareOp::eAlways,
+    //         0.0f,   // minLod
+    //         0.0f,   // maxLod
+    //         vk::BorderColor::eIntOpaqueBlack,   // borderColor
+    //         false   // unnormalizedCoordinates
+    //     )
+    // );
+    // m_texture_samplers.push_back(sampler);
 
-    vk::DescriptorImageInfo texInfo(
-        sampler,
-        view,
-        vk::ImageLayout::eShaderReadOnlyOptimal
-    );
+    // // CREATE texture descriptor set
+    // m_texture_descriptor_sets.push_back(
+    //     (*m_device).allocateDescriptorSets(
+    //         vk::DescriptorSetAllocateInfo(m_material_descriptor_pool,1,&m_material_descriptor_set_layout)
+    //     )[0]
+    // );
 
-    vk::WriteDescriptorSet descriptorWrites[] = {
-        vk::WriteDescriptorSet(
-            m_texture_descriptor_sets[m_texture_descriptor_sets.size()-1],
-            0, // binding
-            0, // arrayElement
-            1, // descriptorCount
-            vk::DescriptorType::eCombinedImageSampler,
-            &texInfo,               // pImageInfo
-            {},                     // pBufferInfo
-            {}                      // pTexelBufferView
-        )
-    };
+    // vk::DescriptorImageInfo texInfo(
+    //     sampler,
+    //     view,
+    //     vk::ImageLayout::eShaderReadOnlyOptimal
+    // );
 
-    (*m_device).updateDescriptorSets(descriptorWrites, {});
+    // vk::WriteDescriptorSet descriptorWrites[] = {
+    //     vk::WriteDescriptorSet(
+    //         m_texture_descriptor_sets[m_texture_descriptor_sets.size()-1],
+    //         0, // binding
+    //         0, // arrayElement
+    //         1, // descriptorCount
+    //         vk::DescriptorType::eCombinedImageSampler,
+    //         &texInfo,               // pImageInfo
+    //         {},                     // pBufferInfo
+    //         {}                      // pTexelBufferView
+    //     )
+    // };
 
-    return MaterialHandle{m_textures.size()-1};
+    // (*m_device).updateDescriptorSets(descriptorWrites, {});
+
+    // return MaterialHandle{m_textures.size()-1};
 }
 
 /**
@@ -850,17 +879,17 @@ void Renderer::record_command_buffer(vk::CommandBuffer commandBuffer, uint32_t i
     DrawCall* prevDrawCall = nullptr;
     for (auto& drawCall : m_draw_calls)
     {
-        Mesh& m = m_mesh_manager.get_mesh(drawCall.mesh);
+        Mesh& m = m_mesh_store->get_mesh(drawCall.mesh);
 
-        if (prevDrawCall == nullptr || prevDrawCall->material != drawCall.material)
+        if (prevDrawCall == nullptr || prevDrawCall->texture != drawCall.texture)
         {
             commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_pipeline_layout, 1, 1, &m_texture_descriptor_sets[drawCall.material.material], 0, nullptr);
         }
 
         if (prevDrawCall == nullptr || prevDrawCall->mesh != drawCall.mesh)
         {
-            commandBuffer.bindVertexBuffers(0, {m.get_vertex_buffer()}, {0});
-            commandBuffer.bindIndexBuffer(m.get_index_buffer(), 0, vk::IndexType::eUint32);
+            commandBuffer.bindVertexBuffers(0, {m_mesh_store->get_vertex_buffer()}, {m.get_vertex_slice().start});
+            commandBuffer.bindIndexBuffer(m_mesh_store->get_index_buffer(), m.get_index_slice().start, vk::IndexType::eUint32);
         }
 
         commandBuffer.pushConstants(m_pipeline_layout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(glm::mat4), &drawCall.transform);
