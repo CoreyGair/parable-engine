@@ -26,9 +26,17 @@ set(PARABLE_SRCS_PLATFORM   ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Renderer
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Wrapper/PhysicalDevice.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Wrapper/Swapchain.cpp
 
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Loader/Loader.cpp
+
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Mesh/Mesh.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Mesh/MeshStore.cpp
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Mesh/MeshLoader.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Mesh/MeshData.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Mesh/MeshLoadTask.cpp
+
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Texture/Texture.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Texture/TextureStore.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Texture/TextureData.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Texture/TextureLoadTask.cpp
                             )
 
 set(PARABLE_SRCS_WINDOW     ${CMAKE_CURRENT_SOURCE_DIR}/Window/Window.cpp

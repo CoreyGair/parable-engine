@@ -18,12 +18,25 @@ public:
     Image(Image&& other) = default;
     Image(Device& device, PhysicalDevice& physicalDevice, vk::ImageCreateInfo& imageInfo);
     
+    Image& operator=(const Image& other)
+    {
+        m_device = other.m_device;
+
+        m_image = other.m_image;
+        m_image_memory = other.m_image_memory;
+
+        return *this;
+    }
+
     Image& operator=(Image&& other)
     {
         m_device = other.m_device;
 
         m_image = other.m_image;
         m_image_memory = other.m_image_memory;
+
+        other.m_image = nullptr;
+        other.m_image_memory = nullptr;
 
         return *this;
     }

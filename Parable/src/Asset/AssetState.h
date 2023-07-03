@@ -16,8 +16,8 @@ enum class AssetLoadState
 class AssetStateBlock
 {
 private:
-    int m_reference_count;
-    AssetLoadState m_load_state;
+    int m_reference_count = 0;
+    AssetLoadState m_load_state = AssetLoadState::Unloaded;
 
 public:
     ~AssetStateBlock()
@@ -29,15 +29,18 @@ public:
     AssetStateBlock& operator++()
     {
         m_reference_count++;
+        return *this;
     }
     AssetStateBlock& operator--()
     {
         PBL_CORE_ASSERT(m_reference_count > 0);
         m_reference_count--;
+        return *this;
     }
 
     int get_ref_count() const { return m_reference_count; }
     AssetLoadState get_load_state() const { return m_load_state; }
+    void set_load_state(AssetLoadState state) { m_load_state = state; }
 };
 
 

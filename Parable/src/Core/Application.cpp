@@ -21,6 +21,8 @@
 #include "Renderer/Handles.h"
 #include "Asset/AssetDescriptor.h"
 
+#include "Asset/AssetRegistry.h"
+
 
 //TEMP FOR TEST
 #include "Debug/EventLogLayer.h"
@@ -47,6 +49,8 @@ auto startTime = std::chrono::high_resolution_clock::now();
 
 Application::Application()
 {
+    AssetRegistry::init();
+
     PBL_CORE_ASSERT_MSG(!s_instance, "Application already exists!");
     s_instance = this;
 

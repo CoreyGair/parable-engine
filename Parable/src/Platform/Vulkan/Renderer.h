@@ -22,7 +22,9 @@ namespace Parable::Vulkan
 {
 
 
+class Loader;
 class MeshStore;
+class TextureStore;
 
 struct DrawCall
 {
@@ -120,7 +122,10 @@ private:
 
     std::vector<vk::CommandBuffer> m_command_buffers;
 
-    UPtr<Vulkan::MeshStore> m_mesh_store;
+    UPtr<Loader> m_resource_loader;
+
+    UPtr<MeshStore> m_mesh_store;
+    UPtr<TextureStore> m_texture_store;
 
     std::vector<DrawCall> m_draw_calls;
 

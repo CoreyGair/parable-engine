@@ -2,7 +2,10 @@
 
 #include "pblpch.h"
 
-#include "MeshLoader.h"
+#include "../Loader/Loader.h"
+
+#include "MeshData.h"
+#include "MeshLoadTask.h"
 
 #include "Asset/AssetRegistry.h"
 #include "Asset/AssetLoadInfo.h"
@@ -13,20 +16,26 @@ namespace Parable::Vulkan
 
 Parable::MeshHandle MeshStore::load(AssetDescriptor descriptor)
 {
-    auto it = m_state_blocks.lower_bound(descriptor);
-    if (it != m_state_blocks.end() && it->first == descriptor)
+    auto hint = m_state_blocks.lower_bound(descriptor);
+    if (hint != m_state_blocks.end() && hint->first == descriptor)
     {
-        return MeshHandle(&it->second);
+        return MeshHandle(&hint->second);
     }
 
     const Parable::MeshLoadInfo& load_info = AssetRegistry::resolve<Parable::MeshLoadInfo>(descriptor);
+    
+    // its state block goes into the Loading state until the mesh data is uploaded to GPU buffers
+    auto it = m_state_blocks.emplace_hint(hint, descriptor, MeshStateBlock(Mesh()));
+    it->second.set_load_state(AssetLoadState::Loading);
 
-    Mesh new_mesh = m_mesh_loader->load(load_info, m_vertex_buffer_suballocator, m_index_buffer_suballocator);
+    // now we must submit a load task to copy the mesh data to gpu buffers
+    std::unique_ptr<MeshLoadTask> load_task = std::make_unique<MeshLoadTask>(load_info, it->second, m_vertex_buffer_suballocator, m_index_buffer_suballocator);
+    m_loader.submit_task(std::move(load_task));
 
-    return MeshHandle();
+    return MeshHandle(&it->second);
 }
 
-Mesh& MeshStore::get_mesh(Parable::MeshHandle& handle)
+const Mesh& MeshStore::get_mesh(Parable::MeshHandle& handle)
 {
     if (!handle)
     {

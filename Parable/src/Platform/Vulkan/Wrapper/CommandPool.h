@@ -50,11 +50,10 @@ public:
         SingleTimeCommandBuffer(CommandPool& cmdPool)
             : m_command_pool(cmdPool)
         {
-            m_command_buffer = m_command_pool.m_device->allocateCommandBuffers(vk::CommandBufferAllocateInfo(
-                m_command_pool,
+            m_command_buffer = m_command_pool.create_command_buffers(
                 vk::CommandBufferLevel::ePrimary,
                 1
-            ))[0];
+            )[0];
 
             m_command_buffer.begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
         }
@@ -64,14 +63,19 @@ public:
     private:
         bool m_has_submitted = false;
 
-    public:
-        ~SingleTimeCommandBuffer()
-        {
-            PBL_CORE_ASSERT(m_has_submitted);
-        }
     #endif
 
     public:
+        ~SingleTimeCommandBuffer()
+        {
+            #ifdef PBL_DEBUG
+            PBL_CORE_ASSERT(m_has_submitted);
+            #endif
+
+            std::vector<vk::CommandBuffer> bufs {m_command_buffer};
+            m_command_pool.free_command_buffers(bufs);
+        }
+
         SingleTimeCommandBuffer& operator=(SingleTimeCommandBuffer&& other)
         {
             m_command_pool = other.m_command_pool;
@@ -86,12 +90,14 @@ public:
 
         void end_and_submit(vk::Queue& queue, vk::Fence fence)
         {
+            #ifdef PBL_DEBUG
             PBL_CORE_ASSERT(!m_has_submitted);
+            #endif
 
             m_command_buffer.end();
 
             queue.submit({vk::SubmitInfo(0, nullptr, {}, 1, &m_command_buffer)}, fence);
-            queue.waitIdle();
+            //queue.waitIdle();
 
             m_command_pool.m_device->freeCommandBuffers(m_command_pool, {m_command_buffer});
 

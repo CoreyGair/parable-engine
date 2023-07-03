@@ -4,25 +4,20 @@
 
 #include "Core/Base.h"
 
-#include "Texture.h"
+#include <vulkan/vulkan.h>
+#include "../Wrapper/Device.h"
 
 #include "Renderer/Handles.h"
 
-#include "Asset/AssetState.h"
 #include "Asset/AssetDescriptor.h"
+
+#include "TextureStateBlock.h"
 
 namespace Parable::Vulkan
 {
 
 
-class TextureStateBlock : public Parable::AssetStateBlock
-{
-private:
-    Texture m_texture;
-
-public:
-    Texture& get_texture() { return m_texture; }
-};
+class Loader;
 
 /**
  * Handles the storage and lookup of Vulkan Texture resources.
@@ -30,13 +25,25 @@ public:
 class TextureStore
 {
 private:
+    Loader& m_loader;
+
     std::map<AssetDescriptor,TextureStateBlock> m_state_blocks;
 
-    
+    Device m_device;
+
+    vk::DescriptorSetLayout& m_descriptor_set_layout;
+
+    vk::DescriptorPool m_descriptor_pool;
 
 public:
+    TextureStore(Device device, vk::DescriptorSetLayout& texture_descriptor_set_layout, Loader& loader);
 
-    Parable::TextureHandle load(AssetDescriptor descriptor);
+    ~TextureStore()
+    {
+        m_device->destroyDescriptorPool(m_descriptor_pool);
+    }
+
+    TextureHandle load(AssetDescriptor descriptor);
 
     Texture& get_texture(Parable::TextureHandle& handle);
 };

@@ -20,7 +20,7 @@ public:
 
     void destroy()
     {
-        (*m_device).destroyBuffer(m_buffer);
+        m_device->destroyBuffer(m_buffer);
         m_device.free_memory(m_buffer_memory);
     }
 
@@ -55,9 +55,9 @@ public:
         PBL_CORE_ASSERT(size <= m_buffer_size);
         PBL_CORE_ASSERT(!m_buffer_map);
 
-        void* bufferMap = (*m_device).mapMemory(m_buffer_memory, offset, size);
+        void* bufferMap = m_device->mapMemory(m_buffer_memory, offset, size);
         memcpy(bufferMap, data, (size_t)size);
-        (*m_device).unmapMemory(m_buffer_memory);
+        m_device->unmapMemory(m_buffer_memory);
     }
 
     /**
@@ -74,10 +74,10 @@ public:
         PBL_CORE_ASSERT(size <= m_buffer_size);
         PBL_CORE_ASSERT(!m_buffer_map);
 
-        void* bufferMap = (*m_device).mapMemory(m_buffer_memory, offset, size);
+        void* bufferMap = m_device->mapMemory(m_buffer_memory, offset, size);
         memcpy(bufferMap, data, (size_t)size);
         flush({vk::MappedMemoryRange(m_buffer_memory, offset, size)});
-        (*m_device).unmapMemory(m_buffer_memory);
+        m_device->unmapMemory(m_buffer_memory);
     }
 
     /**
@@ -93,7 +93,7 @@ public:
         PBL_CORE_ASSERT(size <= m_buffer_size);
         PBL_CORE_ASSERT(!m_buffer_map);
 
-        m_buffer_map = (*m_device).mapMemory(m_buffer_memory, offset, size);
+        m_buffer_map = m_device->mapMemory(m_buffer_memory, offset, size);
     }
 
     /**
@@ -103,7 +103,7 @@ public:
     {
         PBL_CORE_ASSERT(m_buffer_map);
 
-        (*m_device).unmapMemory(m_buffer_memory);
+        m_device->unmapMemory(m_buffer_memory);
         m_buffer_map = nullptr;
     }
 
@@ -114,7 +114,7 @@ public:
     {
         PBL_CORE_ASSERT(m_buffer_memory);
 
-        (*m_device).flushMappedMemoryRanges(ranges);
+        m_device->flushMappedMemoryRanges(ranges);
     }
 
     /**
