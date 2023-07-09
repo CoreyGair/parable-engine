@@ -38,6 +38,7 @@ AssetDescriptor texADescriptor = 1;
 AssetDescriptor texBDescriptor = 2;
 
 MeshHandle cubeMesh;
+MeshHandle vikingMesh;
 
 TextureHandle matA;
 TextureHandle matB;
@@ -69,7 +70,8 @@ Application::Application()
     m_layer_stack.push(std::make_unique<RenderLayer>());
 
     // load test mesh
-    cubeMesh = Renderer::get_instance()->load_mesh(cubeMeshDescriptor);
+    cubeMesh = Renderer::get_instance()->load_mesh(4);
+    vikingMesh = Renderer::get_instance()->load_mesh(3);
 
     // load textures to test
     matA = Renderer::get_instance()->load_texture(texADescriptor);
@@ -103,7 +105,7 @@ void Application::run()
         auto currMatB = glm::rotate(startMatB, -elapsedTime * glm::radians(45.0f), glm::vec3(0.0f,0.0f,1.0f));
 
         Renderer::get_instance()->draw(cubeMesh, matA, currMatA);
-        Renderer::get_instance()->draw(cubeMesh, matB, currMatB);
+        Renderer::get_instance()->draw(vikingMesh, matB, currMatB);
 
         // invoke update for the ecs
         //m_ecs.on_update();

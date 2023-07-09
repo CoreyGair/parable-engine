@@ -31,7 +31,7 @@ MeshData MeshData::from_obj(const std::string& obj_path)
     std::string warn, err;
     bool success = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, obj_path.c_str());
 
-    PBL_CORE_ASSERT(success, "{} : {}", warn, err);
+    PBL_CORE_ASSERT_MSG(success, "tinyobj failed: {} : {}", warn, err);
 
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
@@ -55,8 +55,8 @@ MeshData MeshData::from_obj(const std::string& obj_path)
                 },
                 // temp, only if tex coords present
                 .texCoord = {
-                    attrib.texcoords.size() > 0 ? attrib.texcoords[2 * index.vertex_index + 0] : 0,
-                    attrib.texcoords.size() > 0 ? 1.0f - attrib.texcoords[2 * index.vertex_index + 1] : 0
+                    attrib.texcoords.size() > 0 ? attrib.texcoords[2 * index.texcoord_index  + 0] : 0,
+                    attrib.texcoords.size() > 0 ? 1.0f - attrib.texcoords[2 * index.texcoord_index  + 1] : 0
                 }
             };
             

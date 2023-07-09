@@ -15,7 +15,7 @@ private:
 
 public:
     MeshData() = default;
-    MeshData(std::vector<Vertex>&& vertices, std::vector<uint32_t> indices) : m_vertices(std::move(vertices)), m_indices(std::move(indices)) {}
+    MeshData(std::vector<Vertex>&& vertices, std::vector<uint32_t>&& indices) : m_vertices(std::move(vertices)), m_indices(std::move(indices)) {}
     MeshData(MeshData&& other) : MeshData(std::move(other.m_vertices), std::move(other.m_indices)) {}
 
     MeshData& operator=(MeshData&& other)

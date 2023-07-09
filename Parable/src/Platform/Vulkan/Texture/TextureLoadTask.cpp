@@ -157,7 +157,7 @@ void TextureLoadTask::record_commands(Device& device, PhysicalDevice& physical_d
         vk::ImageLayout::eShaderReadOnlyOptimal
     );
 
-    vk::WriteDescriptorSet descriptorWrites[] = {
+    vk::WriteDescriptorSet descriptor_writes[] = {
         vk::WriteDescriptorSet(
             m_descriptor_set,
             0, // binding
@@ -170,7 +170,7 @@ void TextureLoadTask::record_commands(Device& device, PhysicalDevice& physical_d
         )
     };
 
-    device->updateDescriptorSets(descriptorWrites, {});
+    device->updateDescriptorSets(descriptor_writes, {});
 
     // now we can construct the Texture object and place it into the state block
     m_texture_state.set_texture(Texture(std::move(texture_image), texture_view, texture_sampler, m_descriptor_set));

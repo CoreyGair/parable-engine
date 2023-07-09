@@ -14,6 +14,10 @@ void AssetRegistry::init()
     
     descriptor_to_load_info.emplace(1, std::make_unique<TextureLoadInfo>("D:\\parable-engine\\Parable\\src\\Renderer\\Textures\\test_grid.png"));
     descriptor_to_load_info.emplace(2, std::make_unique<TextureLoadInfo>("D:\\parable-engine\\Parable\\src\\Renderer\\Textures\\viking_room.png"));
+
+    descriptor_to_load_info.emplace(3, std::make_unique<MeshLoadInfo>("D:\\parable-engine\\Parable\\src\\Renderer\\Models\\viking_room.obj"));
+
+    descriptor_to_load_info.emplace(4, std::make_unique<MeshLoadInfo>("D:\\parable-engine\\Parable\\src\\Renderer\\Models\\cuboid.obj"));
 }
 
 

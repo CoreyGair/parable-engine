@@ -789,6 +789,8 @@ void Renderer::on_update()
         return;
     }    
 
+    m_resource_loader->run_tasks();
+
     const FramebufferData& framebufferData = m_framebuffers[m_current_frame];
 
     // wait for prev frame to finish
@@ -855,7 +857,7 @@ void Renderer::on_update()
     }
 
     // run loading stuff here to simulate async loading
-    m_resource_loader->run_tasks();
+    // m_resource_loader->run_tasks();
 
     m_current_frame = (m_current_frame + 1) % MAX_FRAMES_IN_FLIGHT; // go to the next frame origin
 }
