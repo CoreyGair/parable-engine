@@ -7,19 +7,21 @@
 
 namespace Parable
 {
+template<class ResourceType>
+class ResourceStorageBlock;
+
 class MeshLoadInfo;
+class Mesh;
 }
 
 namespace vk
 {
-class CommabdBuffer;
+class CommandBuffer;
 }
 
 namespace Parable::Vulkan
 {
 
-
-class MeshStateBlock;
 
 class Device;
 class PhysicalDevice;
@@ -33,7 +35,7 @@ class MeshLoadTask : public LoadTask
 private:
     const MeshLoadInfo& m_load_info;
 
-    MeshStateBlock& m_mesh_state;
+    Parable::ResourceStorageBlock<Parable::Mesh>& m_mesh_storage;
 
     BufferSuballocator& m_vertex_target_suballocator;
     BufferSuballocator& m_index_target_suballocator;
@@ -44,7 +46,7 @@ private:
 public:
     MeshLoadTask(
         const MeshLoadInfo& load_info,
-        MeshStateBlock& mesh_state,
+        Parable::ResourceStorageBlock<Parable::Mesh>& mesh_storage,
         BufferSuballocator& vertex_target_suballocator,
         BufferSuballocator& index_target_suballocator
     );

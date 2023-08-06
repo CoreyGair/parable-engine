@@ -6,6 +6,8 @@
 
 #include "AssetDescriptor.h"
 
+#include <rapidjson/fwd.h>
+
 namespace Parable
 {
 
@@ -15,6 +17,9 @@ enum class AssetType
     None = 0,
     Mesh,
     Texture,
+    Shader,
+    Effect,
+    Material
 };
 
 class AssetLoadInfo
@@ -26,10 +31,10 @@ public:
 };
 
 template<class T>
-concept IsAssetLoadInfo = std::derived_from<T,AssetLoadInfo>;
+concept IsAssetLoadInfo = std::derived_from<T, AssetLoadInfo>;
 
-#define LOAD_INFO_ASSET_TYPE(x) = const static AssetType asset_type = x; \
-                                    AssetType get_asset_type() const override { return x; }
+#define LOAD_INFO_ASSET_TYPE(type) const static AssetType asset_type = AssetType::type;\
+                                    AssetType get_asset_type() const override { return AssetType::type; }
 
 class MeshLoadInfo : public AssetLoadInfo
 {
@@ -37,11 +42,9 @@ private:
     std::string m_obj_path;
 
 public:
-    //LOAD_INFO_ASSET_TYPE(AssetType::Mesh)
-    const static AssetType asset_type = AssetType::Mesh;
-    AssetType get_asset_type() const override { return AssetType::Mesh; }
+    LOAD_INFO_ASSET_TYPE(Mesh)
 
-    MeshLoadInfo(std::string obj_path) : m_obj_path(obj_path) {}
+    MeshLoadInfo(const rapidjson::Value& source);
 
     const std::string& get_obj_path() const { return m_obj_path; }
 };
@@ -52,13 +55,38 @@ private:
     std::string m_png_path;
 
 public:
-    //LOAD_INFO_ASSET_TYPE(AssetType::Texture)
-    const static AssetType asset_type = AssetType::Texture;
-    AssetType get_asset_type() const override { return AssetType::Texture; }
+    LOAD_INFO_ASSET_TYPE(Texture)
 
-    TextureLoadInfo(std::string png_path) : m_png_path(png_path) {}
+    TextureLoadInfo(const rapidjson::Value& source);
 
     const std::string& get_png_path() const { return m_png_path; }
+};
+
+class ShaderLoadInfo : public AssetLoadInfo
+{
+private:
+    std::string m_spv_path;
+
+public:
+    LOAD_INFO_ASSET_TYPE(Shader)
+
+    ShaderLoadInfo(const rapidjson::Value& source);
+
+    const std::string& get_spv_path() const { return m_spv_path; }
+};
+
+class AssetLoadInfoFactory
+{
+public:
+    AssetLoadInfoFactory() = delete;
+
+    /**
+     * Create a new AssetLoadInfo object from a source json document.
+     * 
+     * @param source The parse JSON document containing load info.
+     * @return std::unique_ptr<AssetLoadInfo> 
+     */
+    static std::unique_ptr<AssetLoadInfo> create(const rapidjson::Value& source);
 };
 
 

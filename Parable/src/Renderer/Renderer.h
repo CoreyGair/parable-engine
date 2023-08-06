@@ -4,7 +4,7 @@
 
 #include <glm/fwd.hpp>
 
-#include "Handles.h"
+#include "Asset/Handle.h"
 #include "Asset/AssetDescriptor.h"
 
 class GLFWwindow;
@@ -14,6 +14,9 @@ namespace Parable
 
 
 class RenderLayer;
+
+class Mesh;
+class Texture;
 
 class Renderer
 {
@@ -31,11 +34,11 @@ public:
 
     virtual ~Renderer() {};
 
-    virtual MeshHandle load_mesh(AssetDescriptor descriptor) = 0;
+    virtual Handle<Mesh> load_mesh(AssetDescriptor descriptor) = 0;
 
-    virtual TextureHandle load_texture(AssetDescriptor descriptor) = 0;
+    virtual Handle<Texture> load_texture(AssetDescriptor descriptor) = 0;
 
-    virtual void draw(MeshHandle mesh, TextureHandle texture, glm::mat4& transform) = 0;
+    virtual void draw(Handle<Mesh> mesh, Handle<Texture> texture, glm::mat4& transform) = 0;
 
     virtual void on_update() = 0;
 

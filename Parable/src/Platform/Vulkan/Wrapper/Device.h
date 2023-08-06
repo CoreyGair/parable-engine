@@ -28,10 +28,11 @@ public:
         m_device = physicalDevice.createDevice(deviceCreateInfo);
     }
 
-
     operator vk::Device&() { return m_device; }
     vk::Device& operator*() { return m_device; }
     vk::Device* operator->() { return &m_device; }
+
+    Device& operator=(std::nullptr_t) { m_device = nullptr; return *this;}
 
     /**
      * Destroy the underlying vulkan device.

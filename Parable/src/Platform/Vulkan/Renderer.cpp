@@ -23,7 +23,12 @@
 #include "Loader/Loader.h"
 
 #include "Mesh/MeshStore.h"
+#include "Mesh/Mesh.h"
+
 #include "Texture/TextureStore.h"
+#include "Texture/Texture.h"
+
+#include "Asset/Handle.h"
 
 #include <GLFW/glfw3.h>
 
@@ -558,6 +563,9 @@ Renderer::Renderer(GLFWwindow* window) : m_window(window)
 
     // Write static view and proj mats
     // temp for now
+    // TODO: the projection matrix needs to change with screen resolution (aspect ratio change)
+    //  or just have some Renderer.set_resolution which rebuilds necessary stuff
+    //      (i think this is better, as lends itself to having a game setting for resolution and keeping it fixed at that)
     {
         PerFrameUniformBufferObject ubo{};
         
@@ -653,7 +661,7 @@ Renderer::~Renderer()
     m_instance.destroy();
 }
 
-MeshHandle Renderer::load_mesh(AssetDescriptor descriptor)
+Handle<Parable::Mesh> Renderer::load_mesh(AssetDescriptor descriptor)
 {
     return m_mesh_store->load(descriptor);
 }
@@ -664,7 +672,7 @@ MeshHandle Renderer::load_mesh(AssetDescriptor descriptor)
  * @param texturePath 
  * @return MaterialHandle 
  */
-TextureHandle Renderer::load_texture(AssetDescriptor descriptor)
+Handle<Parable::Texture> Renderer::load_texture(AssetDescriptor descriptor)
 {
     return m_texture_store->load(descriptor);
 }
@@ -742,23 +750,25 @@ void Renderer::record_command_buffer(vk::CommandBuffer commandBuffer, uint32_t i
             PBL_CORE_TRACE("Skipping due to unloaded mesh.");
             continue;
         }
-        const Mesh& m = m_mesh_store->get_mesh(drawCall.mesh);
 
-        if (prevDrawCall == nullptr || !prevDrawCall->texture.equals(drawCall.texture))
-        {
-            if (!drawCall.texture.is_loaded()) {
-                // this tex is not finished loading, skip call
-                PBL_CORE_TRACE("Skipping due to unloaded texture.");
-                continue;
-            }
-            const Texture& t = m_texture_store->get_texture(drawCall.texture);
-            commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_pipeline_layout, 1, 1, &t.get_descriptor_set(), 0, nullptr);
-        }
+        const Mesh& m = static_cast<const Mesh&>(*drawCall.mesh);
 
-        if (prevDrawCall == nullptr || !prevDrawCall->mesh.equals(drawCall.mesh))
+        if (prevDrawCall == nullptr || prevDrawCall->mesh != drawCall.mesh)
         {
             commandBuffer.bindVertexBuffers(0, {m_mesh_store->get_vertex_buffer()}, {m.get_vertex_slice().start});
             commandBuffer.bindIndexBuffer(m_mesh_store->get_index_buffer(), m.get_index_slice().start, vk::IndexType::eUint32);
+        }
+
+        if (!drawCall.texture.is_loaded()) {
+            // this tex is not finished loading, skip call
+            PBL_CORE_TRACE("Skipping due to unloaded texture.");
+            continue;
+        }
+
+        if (prevDrawCall == nullptr || prevDrawCall->texture != drawCall.texture)
+        {
+            const Texture& t = static_cast<const Texture&>(*drawCall.texture);
+            commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_pipeline_layout, 1, 1, &t.get_descriptor_set(), 0, nullptr);
         }
 
         commandBuffer.pushConstants(m_pipeline_layout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(glm::mat4), &drawCall.transform);

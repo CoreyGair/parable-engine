@@ -4,11 +4,13 @@
 
 #include "../Wrapper/Image.h"
 
+#include "Renderer/Texture.h"
+
 namespace Parable::Vulkan
 {
 
 
-class Texture
+class Texture : public Parable::Texture
 {
 private:
     Image m_image;
@@ -18,6 +20,8 @@ private:
     vk::DescriptorSet m_descriptor_set;
 
 public:
+    ~Texture() {}
+
     Texture() = default;
     Texture(Image&& image, vk::ImageView image_view, vk::Sampler sampler, vk::DescriptorSet descriptor_set)
         : m_image(std::move(image)),

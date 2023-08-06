@@ -31,6 +31,8 @@ public:
     vk::PhysicalDevice operator*() { return m_physical_device; }
     vk::PhysicalDevice* operator->() { return &m_physical_device; }
 
+    PhysicalDevice& operator=(std::nullptr_t) { m_physical_device = nullptr; return *this;}
+
     /**
      * Gets the details of the swap chain support for this device and a surface.
      */

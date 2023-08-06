@@ -1,0 +1,22 @@
+[
+    {
+        "type":"mesh",
+        "obj_path":"D:\\parable-engine\\Parable\\src\\Renderer\\Models\\unit_cube.obj"
+    },
+    {
+        "type":"texture",
+        "png_path":"D:\\parable-engine\\Parable\\src\\Renderer\\Textures\\test_grid.png"
+    },
+    {
+        "type":"texture",
+        "png_path":"D:\\parable-engine\\Parable\\src\\Renderer\\Textures\\viking_room.png"
+    },
+    {
+        "type":"mesh",
+        "obj_path":"D:\\parable-engine\\Parable\\src\\Renderer\\Models\\viking_room.obj"
+    },
+    {
+        "type":"mesh",
+        "obj_path":"D:\\parable-engine\\Parable\\src\\Renderer\\Models\\cuboid.obj"
+    }
+]

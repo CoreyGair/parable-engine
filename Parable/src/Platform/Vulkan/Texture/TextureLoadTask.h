@@ -12,7 +12,11 @@ class DescriptorPool;
 
 namespace Parable
 {
+template<class ResourceType>
+class ResourceStorageBlock;
+
 class TextureLoadInfo;
+class Texture;
 }
 
 namespace Parable::Vulkan
@@ -29,7 +33,7 @@ class TextureLoadTask : public LoadTask
 private:
     const TextureLoadInfo& m_load_info;
 
-    TextureStateBlock& m_texture_state;
+    ResourceStorageBlock<Parable::Texture>& m_texture_storage;
 
     /**
      * An allocated descriptor set for the new texture.
@@ -41,11 +45,11 @@ private:
 public:
     TextureLoadTask(
         const TextureLoadInfo& load_info,
-        TextureStateBlock& texture_state,
+        ResourceStorageBlock<Parable::Texture>& texture_storage,
         vk::DescriptorSet descriptor_set
     )
         : m_load_info(load_info),
-        m_texture_state(texture_state),
+        m_texture_storage(texture_storage),
         m_descriptor_set(descriptor_set)
     {}
     

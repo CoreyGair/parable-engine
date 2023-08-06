@@ -76,7 +76,7 @@ public:
 
         void* bufferMap = m_device->mapMemory(m_buffer_memory, offset, size);
         memcpy(bufferMap, data, (size_t)size);
-        flush({vk::MappedMemoryRange(m_buffer_memory, offset, size)});
+        m_device->flushMappedMemoryRanges({vk::MappedMemoryRange(m_buffer_memory, offset, size)});
         m_device->unmapMemory(m_buffer_memory);
     }
 
@@ -110,7 +110,7 @@ public:
     /**
      * Flush ranges of the buffer.
      */
-    void flush(vk::ArrayProxy<const vk::MappedMemoryRange> ranges)
+    void flush(std::vector<vk::MappedMemoryRange>& ranges)
     {
         PBL_CORE_ASSERT(m_buffer_memory);
 
@@ -122,7 +122,10 @@ public:
      */
     void flush()
     {
-        flush({vk::MappedMemoryRange(m_buffer_memory, 0, m_buffer_size)});
+        PBL_CORE_ASSERT(m_buffer_memory);
+
+        std::array range = {vk::MappedMemoryRange(m_buffer_memory, 0, m_buffer_size)};
+        m_device->flushMappedMemoryRanges(range);
     }
 
     void copy_from(Buffer& src, vk::DeviceSize srcOffset, vk::DeviceSize dstOffset, vk::DeviceSize size, vk::CommandBuffer transferCommandBuffer);

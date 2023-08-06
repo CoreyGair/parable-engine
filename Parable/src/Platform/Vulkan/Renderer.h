@@ -8,14 +8,15 @@
 
 #include "Wrapper/VulkanWrapper.h"
 
+#include "Asset/Handle.h"
 
 class GLFWwindow;
 
 
 namespace Parable
 {
-    namespace Vulkan { class Mesh; }
-    using Mesh = Vulkan::Mesh;
+    class Mesh;
+    class Texture;
 }
 
 namespace Parable::Vulkan
@@ -28,8 +29,8 @@ class TextureStore;
 
 struct DrawCall
 {
-    MeshHandle mesh;
-    TextureHandle texture;
+    Handle<Parable::Mesh> mesh;
+    Handle<Parable::Texture> texture;
     glm::mat4 transform;
 };
 
@@ -39,11 +40,11 @@ public:
     Renderer(GLFWwindow* window);
     ~Renderer();
 
-    MeshHandle load_mesh(AssetDescriptor descriptor) override;
+    Handle<Parable::Mesh> load_mesh(AssetDescriptor descriptor) override;
 
-    TextureHandle load_texture(AssetDescriptor descriptor) override;
+    Handle<Parable::Texture> load_texture(AssetDescriptor descriptor) override;
 
-    void draw(MeshHandle mesh, TextureHandle texture, glm::mat4& transform) override
+    void draw(Handle<Parable::Mesh> mesh, Handle<Parable::Texture> texture, glm::mat4& transform) override
     {
         m_draw_calls.push_back(DrawCall{mesh,texture,transform});
     }

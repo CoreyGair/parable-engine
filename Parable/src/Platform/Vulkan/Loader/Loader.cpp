@@ -2,6 +2,8 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include "LoadTask.h"
+
 namespace Parable::Vulkan
 {
 
@@ -54,17 +56,18 @@ void Loader::run_tasks()
     if (res != vk::Result::eSuccess) {
         throw std::runtime_error("Failed to wait for transfer fence.");
     }
+
+    for (auto& task : m_tasks)
+    {
+        task->on_load_complete();
+    }
+
     res = m_device->resetFences(1, &m_transfer_finished_fence);
     if (res != vk::Result::eSuccess) {
         throw std::runtime_error("Failed to reset transfer fence.");
     }
 
     m_device->resetCommandPool(m_command_pool);
-
-    for (auto& task : m_tasks)
-    {
-        task->on_load_complete();
-    }
 
     m_tasks.clear();
 }

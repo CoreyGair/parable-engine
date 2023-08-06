@@ -18,8 +18,10 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <chrono>
-#include "Renderer/Handles.h"
 #include "Asset/AssetDescriptor.h"
+#include "Asset/Handle.h"
+#include "Renderer/Mesh.h"
+#include "Renderer/Texture.h"
 
 #include "Asset/AssetRegistry.h"
 
@@ -37,11 +39,11 @@ AssetDescriptor cubeMeshDescriptor = 0;
 AssetDescriptor texADescriptor = 1;
 AssetDescriptor texBDescriptor = 2;
 
-MeshHandle cubeMesh;
-MeshHandle vikingMesh;
+Handle<Mesh> cubeMesh;
+Handle<Mesh> vikingMesh;
 
-TextureHandle matA;
-TextureHandle matB;
+Handle<Texture> matA;
+Handle<Texture> matB;
 
 glm::mat4 startMatA = glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(0.5f,0.5f,0.5f)), glm::vec3(-1.5f, 0.0f, 0.0f));
 glm::mat4 startMatB = glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(0.5f,0.5f,0.5f)), glm::vec3(1.5f, 0.0f, 0.0f));

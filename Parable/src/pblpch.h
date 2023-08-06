@@ -23,3 +23,4 @@
 #include <optional>
 #include <memory>
 #include <utility>
+#include <exception>

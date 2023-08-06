@@ -4,14 +4,18 @@ set(PARABLE_SRCS_CORE       ${CMAKE_CURRENT_SOURCE_DIR}/Core/Application.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Core/Time.cpp
                             )
 
-set(PARABLE_SRCS_ASSET      ${CMAKE_CURRENT_SOURCE_DIR}/Asset/AssetHandle.cpp
-                            ${CMAKE_CURRENT_SOURCE_DIR}/Asset/AssetRegistry.cpp
+set(PARABLE_SRCS_ASSET      ${CMAKE_CURRENT_SOURCE_DIR}/Asset/AssetRegistry.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Asset/AssetLoadInfo.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Asset/EffectLoadInfo.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Asset/MaterialLoadInfo.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Asset/Handle.cpp
                             )
                             
 set(PARABLE_SRCS_EVENTS     ${CMAKE_CURRENT_SOURCE_DIR}/Events/EventBuffer.cpp
                             )
 
 set(PARABLE_SRCS_PLATFORM   ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Renderer.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/ResourceStore.cpp
 
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Wrapper/Renderpass.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Platform/Vulkan/Wrapper/DescriptorSets.cpp
@@ -71,6 +75,7 @@ set(PARABLE_SRCS_EXCEPTION
 
 set(PARABLE_SRCS_RENDER     ${CMAKE_CURRENT_SOURCE_DIR}/Renderer/Renderer.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/Renderer/RenderLayer.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/Renderer/PVD.cpp
                             )
 
 set(PARABLE_SRCS    ${PARABLE_SRCS_CORE}

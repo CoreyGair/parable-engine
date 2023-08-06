@@ -10,10 +10,10 @@
 #include "../Wrapper/Image.h"
 
 #include "TextureData.h"
-#include "TextureStateBlock.h"
 #include "Texture.h"
 
 #include "Asset/AssetLoadInfo.h"
+#include "Asset/ResourceState.h"
 
 namespace Parable::Vulkan
 {
@@ -173,14 +173,15 @@ void TextureLoadTask::record_commands(Device& device, PhysicalDevice& physical_d
     device->updateDescriptorSets(descriptor_writes, {});
 
     // now we can construct the Texture object and place it into the state block
-    m_texture_state.set_texture(Texture(std::move(texture_image), texture_view, texture_sampler, m_descriptor_set));
+    std::unique_ptr<Parable::Texture> tex = std::make_unique<Texture>(std::move(texture_image), texture_view, texture_sampler, m_descriptor_set);
+    m_texture_storage.set_resource(std::move(tex));
 }
 
 void TextureLoadTask::on_load_complete()
 {
     m_staging_buffer.destroy();
 
-    m_texture_state.set_load_state(AssetLoadState::Loaded);
+    m_texture_storage.set_load_state(ResourceLoadState::Loaded);
 }
 
 

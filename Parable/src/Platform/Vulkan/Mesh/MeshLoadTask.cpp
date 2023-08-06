@@ -7,8 +7,9 @@
 #include "../Wrapper/BufferSuballocator.h"
 
 #include "MeshData.h"
-#include "MeshStateBlock.h"
+#include "Mesh.h"
 
+#include "Asset/ResourceState.h"
 #include "Asset/AssetLoadInfo.h"
 
 namespace Parable::Vulkan
@@ -17,12 +18,12 @@ namespace Parable::Vulkan
 
 MeshLoadTask::MeshLoadTask(
     const MeshLoadInfo& load_info,
-    MeshStateBlock& mesh_state,
+    Parable::ResourceStorageBlock<Parable::Mesh>& mesh_storage,
     BufferSuballocator& vertex_target_suballocator,
     BufferSuballocator& index_target_suballocator
 )
     : m_load_info(load_info),
-    m_mesh_state(mesh_state),
+    m_mesh_storage(mesh_storage),
     m_vertex_target_suballocator(vertex_target_suballocator),
     m_index_target_suballocator(index_target_suballocator)
 {}
@@ -45,7 +46,7 @@ void MeshLoadTask::record_commands(Device& device, PhysicalDevice& physical_devi
     }
     
     // we are now able to set the Mesh information correctly
-    m_mesh_state.set_mesh(Mesh(vertex_slice, index_slice));
+    m_mesh_storage.set_resource(std::make_unique<Mesh>(vertex_slice, index_slice));
 
     // copy data to staging buffers
     // TODO: in future can pre-allocate staging buffers and keep around
@@ -80,7 +81,7 @@ void MeshLoadTask::on_load_complete()
     m_index_staging_buffer.destroy();
 
     // update the state block to show the mesh is now loaded
-    m_mesh_state.set_load_state(AssetLoadState::Loaded);
+    m_mesh_storage.set_load_state(Parable::ResourceLoadState::Loaded);
 }
 
 

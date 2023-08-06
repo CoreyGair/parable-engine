@@ -7,11 +7,14 @@
 #include <vulkan/vulkan.h>
 #include "../Wrapper/Device.h"
 
-#include "Renderer/Handles.h"
+#include "../ResourceStore.h"
 
 #include "Asset/AssetDescriptor.h"
 
-#include "TextureStateBlock.h"
+namespace Parable
+{
+class Texture;
+}
 
 namespace Parable::Vulkan
 {
@@ -22,13 +25,9 @@ class Loader;
 /**
  * Handles the storage and lookup of Vulkan Texture resources.
  */
-class TextureStore
+class TextureStore : public ResourceStore<Parable::Texture>
 {
 private:
-    Loader& m_loader;
-
-    std::map<AssetDescriptor,TextureStateBlock> m_state_blocks;
-
     Device m_device;
 
     vk::DescriptorSetLayout& m_descriptor_set_layout;
@@ -41,11 +40,9 @@ public:
     ~TextureStore()
     {
         m_device->destroyDescriptorPool(m_descriptor_pool);
-    }
+    }   
 
-    TextureHandle load(AssetDescriptor descriptor);
-
-    Texture& get_texture(Parable::TextureHandle& handle);
+    std::unique_ptr<LoadTask> create_load_task(AssetDescriptor descriptor, ResourceStorageBlock<Parable::Texture>& storage_block) override;
 };
 
 
