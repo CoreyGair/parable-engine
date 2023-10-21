@@ -59,6 +59,9 @@ public:
      * Release staging buffer resources.
      */
     void on_load_complete() override;
+
+    // unused
+    void create_device_resources(Device& device) {}
 };
 
 

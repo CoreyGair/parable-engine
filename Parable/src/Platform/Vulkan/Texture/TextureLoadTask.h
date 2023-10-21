@@ -56,6 +56,9 @@ public:
     void record_commands(Device& device, PhysicalDevice& physical_device, vk::CommandBuffer& command_buffer) override;
 
     void on_load_complete() override;
+
+    // unused
+    void create_device_resources(Device& device) {}
 };
 
 

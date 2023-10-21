@@ -52,11 +52,19 @@ void Loader::run_tasks()
 
     m_transfer_queue.submit({vk::SubmitInfo(0, nullptr, nullptr, 1, &m_command_buffer)}, m_transfer_finished_fence);
 
+    // call all the host/driver side creation funcs while the GPU works
+    for (auto& task : m_tasks)
+    {
+        task->create_device_resources();
+    }
+
+    // now wait until the GPU is actually done
     vk::Result res = m_device->waitForFences(1, &m_transfer_finished_fence, VK_TRUE, UINT64_MAX);
     if (res != vk::Result::eSuccess) {
         throw std::runtime_error("Failed to wait for transfer fence.");
     }
 
+    // cleanup
     for (auto& task : m_tasks)
     {
         task->on_load_complete();

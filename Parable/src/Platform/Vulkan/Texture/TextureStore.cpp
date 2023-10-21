@@ -5,8 +5,6 @@
 #include "Asset/AssetRegistry.h"
 #include "Asset/AssetLoadInfo.h"
 
-#include "../Loader/Loader.h"
-
 #include "TextureLoadTask.h"
 #include "Texture.h"
 

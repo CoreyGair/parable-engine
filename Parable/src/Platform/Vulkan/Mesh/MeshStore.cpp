@@ -2,8 +2,6 @@
 
 #include "pblpch.h"
 
-#include "../Loader/Loader.h"
-
 #include "MeshData.h"
 #include "MeshLoadTask.h"
 

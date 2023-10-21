@@ -4,15 +4,11 @@
 
 #include "Core/Base.h"
 
-#include "Effect.h"
-
 #include "Asset/AssetDescriptor.h"
-#include "Asset/Handle.h"
 
 namespace Parable
 {
-template<class ResourceType>
-class ResourceStorageBlock;
+class Effect;
 }
 
 namespace Parable::Vulkan
@@ -24,17 +20,12 @@ class Loader;
 /**
  * Handles the storage and lookup of Vulkan Effect resources.
  */
-class EffectStore
+class EffectStore : public ResourceStore<Parable::Effect>
 {
-private:
-    Loader& m_loader;
-
-    std::map<AssetDescriptor,ResourceStorageBlock<Parable::Effect>> m_descriptor_effect_map;
-
 public:
-    EffectStore()
+    EffectStore() {}
 
-    Handle<Parable::Effect> load(AssetDescriptor descriptor);
+    std::unique_ptr<LoadTask> create_load_task(AssetDescriptor descriptor, ResourceStorageBlock<Parable::Effect>& storage_block) override;
 };
 
 
